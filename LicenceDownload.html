@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+
+  <style>
+    :root {
+      --primary: #183b56;
+      --text: #101828;
+      --muted: #667085;
+      --border: #e4e7ec;
+      --success-bg: #ecfdf3;
+      --success: #027a48;
+      --error-bg: #fef3f2;
+      --error: #b42318;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background:
+        linear-gradient(
+          180deg,
+          #edf3f7,
+          #f8fafc
+        );
+      color: var(--text);
+      font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+    }
+
+    .card {
+      width: min(520px, 100%);
+      padding: 30px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: #ffffff;
+      box-shadow:
+        0 18px 44px
+        rgba(16, 24, 40, 0.10);
+      text-align: center;
+    }
+
+    h1 {
+      margin:
+        0 0 8px;
+      color: var(--primary);
+      font-size: 24px;
+    }
+
+    p {
+      margin:
+        8px 0;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .loader {
+      width: 34px;
+      height: 34px;
+      margin:
+        22px auto 14px;
+      border:
+        4px solid #e4e7ec;
+      border-top-color:
+        var(--primary);
+      border-radius: 50%;
+      animation:
+        spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform:
+          rotate(360deg);
+      }
+    }
+
+    .message {
+      display: none;
+      margin-top: 18px;
+      padding: 12px;
+      border-radius: 8px;
+      text-align: left;
+    }
+
+    .message.success {
+      display: block;
+      background:
+        var(--success-bg);
+      color:
+        var(--success);
+    }
+
+    .message.error {
+      display: block;
+      background:
+        var(--error-bg);
+      color:
+        var(--error);
+    }
+
+    .button {
+      display: none;
+      width: 100%;
+      margin-top: 16px;
+      padding: 12px 16px;
+      border: 0;
+      border-radius: 8px;
+      background:
+        var(--primary);
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .button.is-visible {
+      display: block;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="card">
+    <h1>
+      Download Your Licence
+    </h1>
+
+    <p>
+      We are securely preparing your approved
+      CRFFN Licence.
+    </p>
+
+    <div
+      id="loader"
+      class="loader"
+    ></div>
+
+    <div
+      id="message"
+      class="message"
+    ></div>
+
+    <button
+      id="retryButton"
+      class="button"
+      type="button"
+      onclick="loadLicence()"
+    >
+      Try Again
+    </button>
+  </main>
+
+  <script>
+    const APPLICATION_ID =
+      <?!= JSON.stringify(applicationId || '') ?>;
+
+    const SECURE_TOKEN =
+      <?!= JSON.stringify(secureToken || '') ?>;
+
+
+    document.addEventListener(
+      'DOMContentLoaded',
+      loadLicence
+    );
+
+
+    function loadLicence() {
+      setLoading_(
+        true
+      );
+
+      google.script.run
+        .withSuccessHandler(
+          function(result) {
+            if (
+              !result ||
+              result.ok !==
+                true ||
+              !result.base64Data
+            ) {
+              setError_(
+                'The licence could not be prepared for download.'
+              );
+
+              return;
+            }
+
+            try {
+              downloadBase64Pdf_(
+                result
+              );
+
+              setLoading_(
+                false
+              );
+
+              const message =
+                document.getElementById(
+                  'message'
+                );
+
+              message.textContent =
+                'Your licence download has started. You can close this page after the file is saved.';
+
+              message.className =
+                'message success';
+            } catch (error) {
+              setError_(
+                'The licence was prepared, but the browser could not start the download. Please try again.'
+              );
+            }
+          }
+        )
+        .withFailureHandler(
+          function(error) {
+            setError_(
+              error &&
+              error.message
+                ? error.message
+                : 'The licence could not be downloaded.'
+            );
+          }
+        )
+        .getReleasedLicenceDownloadData(
+          APPLICATION_ID,
+          SECURE_TOKEN
+        );
+    }
+
+
+    function downloadBase64Pdf_(
+      result
+    ) {
+      const binary =
+        atob(
+          result.base64Data
+        );
+
+      const bytes =
+        new Uint8Array(
+          binary.length
+        );
+
+      for (
+        let index = 0;
+        index <
+          binary.length;
+        index++
+      ) {
+        bytes[index] =
+          binary.charCodeAt(
+            index
+          );
+      }
+
+      const blob =
+        new Blob(
+          [
+            bytes
+          ],
+          {
+            type:
+              result.mimeType ||
+              'application/pdf'
+          }
+        );
+
+      const objectUrl =
+        URL.createObjectURL(
+          blob
+        );
+
+      const link =
+        document.createElement(
+          'a'
+        );
+
+      link.href =
+        objectUrl;
+
+      link.download =
+        result.fileName ||
+        'CRFFN Licence.pdf';
+
+      link.style.display =
+        'none';
+
+      document.body
+        .appendChild(
+          link
+        );
+
+      link.click();
+
+      window.setTimeout(
+        function() {
+          URL.revokeObjectURL(
+            objectUrl
+          );
+
+          link.remove();
+        },
+        1000
+      );
+    }
+
+
+    function setLoading_(
+      loading
+    ) {
+      const loader =
+        document.getElementById(
+          'loader'
+        );
+
+      const message =
+        document.getElementById(
+          'message'
+        );
+
+      const retry =
+        document.getElementById(
+          'retryButton'
+        );
+
+      loader.style.display =
+        loading
+          ? 'block'
+          : 'none';
+
+      if (loading) {
+        message.className =
+          'message';
+
+        message.textContent =
+          '';
+
+        retry.classList.remove(
+          'is-visible'
+        );
+      }
+    }
+
+
+    function setError_(
+      text
+    ) {
+      setLoading_(
+        false
+      );
+
+      const message =
+        document.getElementById(
+          'message'
+        );
+
+      const retry =
+        document.getElementById(
+          'retryButton'
+        );
+
+      message.textContent =
+        text;
+
+      message.className =
+        'message error';
+
+      retry.classList.add(
+        'is-visible'
+      );
+    }
+  </script>
+</body>
+</html>

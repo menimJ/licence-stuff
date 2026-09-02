@@ -1,0 +1,1012 @@
+<section class="card" id="supportingDocumentsSection">
+  <h2 class="section-title">Supporting Documents</h2>
+
+  <p class="muted">
+    Upload the five supporting documents below. Accepted formats: PDF, JPG and PNG.
+    Maximum size: 5 MB each.
+  </p>
+
+  <div id="supportDocsProgress" class="security-note">
+    Loading supporting documents...
+  </div>
+
+  <div
+    id="supportDocsCorrection"
+    class="payment-message"
+    style="display:none"
+  ></div>
+
+  <div
+    id="supportDocsList"
+    class="document-list"
+    style="margin-top:16px"
+  ></div>
+
+  <div
+    id="supportDocsMessage"
+    class="payment-message"
+    style="display:none"
+  ></div>
+</section>
+
+<style>
+  .support-doc-card {
+    display: grid;
+    gap: 12px;
+    padding: 16px;
+    border: 1px solid #e4e7ec;
+    border-radius: 9px;
+    background: #fff;
+  }
+
+  .support-doc-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .support-doc-title {
+    font-weight: 700;
+  }
+
+  .support-doc-meta {
+    color: #667085;
+    font-size: 12px;
+  }
+
+  .support-doc-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .support-doc-file {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #d0d5dd;
+    border-radius: 7px;
+  }
+
+  .support-doc-row-message {
+    display: none;
+    padding: 10px;
+    border-radius: 7px;
+  }
+
+  .support-doc-row-message.success {
+    display: block;
+    background: #ecfdf3;
+    color: #027a48;
+  }
+
+  .support-doc-row-message.error {
+    display: block;
+    background: #fef3f2;
+    color: #b42318;
+  }
+.support-doc-preview{padding:12px;border:1px solid #e4e7ec;border-radius:8px;background:#f9fafb}.support-doc-preview img{display:block;max-width:100%;max-height:280px;margin:0 auto;border-radius:6px}.support-doc-preview-title{font-size:12px;font-weight:700;color:#475467;margin-bottom:8px}
+.support-doc-admin-note{padding:10px 12px;border-radius:7px;background:#fef3f2;color:#b42318;font-size:13px;font-weight:600}
+
+
+  .support-doc-progress-panel {
+    padding: 16px;
+    border: 1px solid #dbe6ef;
+    border-radius: 10px;
+    background: #f8fafc;
+  }
+  .support-doc-progress-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .support-doc-progress-count { font-weight: 800; color: #17202a; }
+  .support-doc-progress-percent { color: #667085; font-size: 12px; font-weight: 700; }
+  .support-doc-progress-track {
+    height: 9px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #e4e7ec;
+  }
+  .support-doc-progress-fill {
+    width: 0;
+    height: 100%;
+    border-radius: inherit;
+    background: #183b56;
+    transition: width .25s ease;
+  }
+  .support-doc-progress-list {
+    display: grid;
+    gap: 7px;
+    margin-top: 13px;
+  }
+  .support-doc-progress-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #667085;
+    font-size: 12.5px;
+  }
+  .support-doc-progress-item.is-submitted { color: #027a48; font-weight: 700; }
+  .support-doc-progress-symbol { width: 18px; text-align: center; font-weight: 900; }
+  .support-doc-card.is-uploading {
+    border-color: #9fc1d8;
+    box-shadow: 0 0 0 3px rgba(24,59,86,.08);
+  }
+  .support-doc-upload-progress { display:none; }
+  .support-doc-card.is-uploading .support-doc-upload-progress { display:block; }
+  .support-doc-upload-track {
+    height: 7px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #e4e7ec;
+  }
+  .support-doc-upload-fill {
+    height: 100%;
+    width: 38%;
+    border-radius: inherit;
+    background: #183b56;
+    animation: supportDocPulse 1.1s ease-in-out infinite alternate;
+  }
+  .support-doc-upload-label { margin-top:7px; color:#475467; font-size:12px; font-weight:700; }
+  .support-doc-card.is-disabled:not(.is-uploading) { opacity:.62; }
+  @keyframes supportDocPulse { from { width: 28%; } to { width: 82%; } }
+
+</style>
+
+<script>
+  const SUPPORT_DOC_MAX =
+    5 * 1024 * 1024;
+
+  let SUPPORT_DOC_CREDENTIALS = {
+    applicationId: '',
+    secureToken: '',
+  };
+
+
+  let SUPPORT_DOC_STATE = null;
+  let SUPPORT_DOC_UPLOAD_BUSY = false;
+
+  document.addEventListener(
+    'DOMContentLoaded',
+    initialiseSupportDocs
+  );
+
+
+  function initialiseSupportDocs() {
+    google.script.url.getLocation(
+      function(location) {
+        const parameters =
+          location &&
+          location.parameter
+            ? location.parameter
+            : {};
+
+        SUPPORT_DOC_CREDENTIALS = {
+          applicationId:
+            String(
+              parameters.ref ||
+              parameters.applicationId ||
+              ''
+            ).trim(),
+
+          secureToken:
+            String(
+              parameters.token ||
+              parameters.secureToken ||
+              ''
+            ).trim(),
+        };
+
+        loadSupportDocs();
+      }
+    );
+  }
+
+
+  function supportCredentials() {
+    return {
+      applicationId:
+        SUPPORT_DOC_CREDENTIALS.applicationId,
+
+      secureToken:
+        SUPPORT_DOC_CREDENTIALS.secureToken,
+    };
+  }
+
+
+  function loadSupportDocs() {
+    const credentials =
+      supportCredentials();
+
+    if (
+      !credentials.applicationId ||
+      !credentials.secureToken
+    ) {
+      supportGlobal(
+        'The Practitioner Portal link does not contain a valid Application ID and secure token.',
+        'error'
+      );
+
+      return;
+    }
+
+    google.script.run
+      .withSuccessHandler(
+        renderSupportDocs
+      )
+      .withFailureHandler(
+        function(error) {
+          supportGlobal(
+            errorText(error),
+            'error'
+          );
+        }
+      )
+      .getApplicantSupportingDocuments(
+        credentials.applicationId,
+        credentials.secureToken
+      );
+  }
+
+
+  function renderSupportDocs(result) {
+    if (
+      !result ||
+      result.ok !== true
+    ) {
+      supportGlobal(
+        result &&
+        result.message
+          ? result.message
+          : 'Documents could not be loaded.',
+        'error'
+      );
+
+      return;
+    }
+
+    SUPPORT_DOC_STATE = result;
+    renderSupportDocsProgress_(result);
+
+    const correction =
+      document.getElementById(
+        'supportDocsCorrection'
+      );
+
+    if (result.reviewNotes) {
+      correction.textContent =
+        'Administrator note: ' +
+        result.reviewNotes;
+
+      correction.className =
+        'payment-message payment-message-danger';
+
+      correction.style.display =
+        'block';
+    } else {
+      correction.style.display =
+        'none';
+    }
+
+    const list =
+      document.getElementById(
+        'supportDocsList'
+      );
+
+    list.innerHTML =
+      '';
+
+    result.documents.forEach(
+      function(documentData) {
+        list.appendChild(
+          supportCard(
+            documentData
+          )
+        );
+      }
+    );
+  }
+
+
+  function supportCard(documentData) {
+    const card =
+      document.createElement(
+        'div'
+      );
+
+    card.className =
+      'support-doc-card';
+
+    card.dataset.documentType = documentData.type;
+
+    const reviewStatus =
+      String(
+        documentData.reviewStatus ||
+        (
+          documentData.uploaded
+            ? 'Pending Review'
+            : 'Not Submitted'
+        )
+      ).trim();
+
+    const normalizedStatus =
+      reviewStatus.toLowerCase();
+
+    const canUpload =
+      documentData.canUpload ===
+        true;
+
+    card.innerHTML = [
+      '<div class="support-doc-head">',
+      '  <div>',
+      '    <div class="support-doc-title"></div>',
+      '    <div class="support-doc-meta"></div>',
+      '  </div>',
+      '  <span class="badge"></span>',
+      '</div>',
+      '<div class="support-doc-admin-note" style="display:none"></div>',
+      canUpload
+        ? '<input class="support-doc-file" type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png">'
+        : '',
+      canUpload
+        ? '<div class="support-doc-preview" style="display:none"></div>'
+        : '',
+      '<div class="support-doc-upload-progress"><div class="support-doc-upload-track"><div class="support-doc-upload-fill"></div></div><div class="support-doc-upload-label">Uploading...</div></div>',
+      '<div class="support-doc-actions"></div>',
+      '<div class="support-doc-row-message"></div>'
+    ].join('');
+
+    card
+      .querySelector(
+        '.support-doc-title'
+      )
+      .textContent =
+        documentData.label;
+
+    const meta =
+      card.querySelector(
+        '.support-doc-meta'
+      );
+
+    if (!documentData.uploaded) {
+      meta.textContent =
+        'Not submitted. Select a file below, preview it, then upload.';
+    } else if (
+      normalizedStatus ===
+        'approved'
+    ) {
+      meta.textContent =
+        'Approved by CRFFN. This document is locked and does not need to be resubmitted.';
+    } else if (
+      normalizedStatus ===
+        'correction required'
+    ) {
+      meta.textContent =
+        'A correction is required. Select only the replacement document requested below, preview it, then resubmit.';
+    } else {
+      meta.textContent =
+        'Submitted and awaiting CRFFN review. The submitted file cannot be reopened or replaced unless a correction is requested.';
+    }
+
+    const badge =
+      card.querySelector(
+        '.badge'
+      );
+
+    if (
+      normalizedStatus ===
+        'approved'
+    ) {
+      badge.className =
+        'badge badge-success';
+
+      badge.textContent =
+        'Approved';
+    } else if (
+      normalizedStatus ===
+        'correction required'
+    ) {
+      badge.className =
+        'badge badge-danger';
+
+      badge.textContent =
+        'Correction Required';
+    } else if (
+      documentData.uploaded
+    ) {
+      badge.className =
+        'badge badge-warning';
+
+      badge.textContent =
+        'Pending Review';
+    } else {
+      badge.className =
+        'badge badge-warning';
+
+      badge.textContent =
+        'Required';
+    }
+
+    const adminNote =
+      card.querySelector(
+        '.support-doc-admin-note'
+      );
+
+    if (
+      documentData.reviewNotes
+    ) {
+      adminNote.textContent =
+        'Administrator note: ' +
+        documentData.reviewNotes;
+
+      adminNote.style.display =
+        'block';
+    }
+
+    const actions =
+      card.querySelector(
+        '.support-doc-actions'
+      );
+
+    if (canUpload) {
+      const fileInput =
+        card.querySelector(
+          '.support-doc-file'
+        );
+
+      fileInput.addEventListener(
+        'change',
+        function() {
+          previewSelectedSupportDocument_(
+            card,
+            fileInput
+          );
+        }
+      );
+
+      const uploadButton =
+        document.createElement(
+          'button'
+        );
+
+      uploadButton.type =
+        'button';
+
+      uploadButton.className =
+        'button';
+
+      uploadButton.textContent =
+        documentData.uploaded
+          ? 'Resubmit Corrected Document'
+          : 'Upload Document';
+
+      uploadButton.onclick =
+        function() {
+          uploadSupportDoc(
+            documentData,
+            card,
+            uploadButton
+          );
+        };
+
+      actions.appendChild(
+        uploadButton
+      );
+    }
+
+    return card;
+  }
+
+
+  function previewSelectedSupportDocument_(card,input) {
+    const preview = card.querySelector('.support-doc-preview');
+    const message = card.querySelector('.support-doc-row-message');
+
+    // Release a preview URL created for a previously selected file.
+    if (preview._supportDocObjectUrl) {
+      try { URL.revokeObjectURL(preview._supportDocObjectUrl); } catch (e) {}
+      preview._supportDocObjectUrl = '';
+    }
+
+    preview.innerHTML = '';
+    preview.style.display = 'none';
+
+    if (!input.files || !input.files.length) return;
+
+    const file = input.files[0];
+    let mimeType = String(file.type || '').toLowerCase();
+
+    if (!mimeType) {
+      const ext = file.name.toLowerCase().split('.').pop();
+      mimeType = {
+        pdf: 'application/pdf',
+        jpg: 'image/jpeg',
+        jpeg: 'image/jpeg',
+        png: 'image/png'
+      }[ext] || '';
+    }
+
+    if (!['application/pdf','image/jpeg','image/png'].includes(mimeType)) {
+      input.value = '';
+      rowMsg(message, 'Only PDF, JPG and PNG are allowed.', 'error');
+      return;
+    }
+
+    if (file.size > SUPPORT_DOC_MAX) {
+      input.value = '';
+      rowMsg(message, 'The file must not exceed 5 MB.', 'error');
+      return;
+    }
+
+    const title = document.createElement('div');
+    title.className = 'support-doc-preview-title';
+    title.textContent = 'Preview before submission: ' + file.name;
+    preview.appendChild(title);
+
+    const objectUrl = URL.createObjectURL(file);
+    preview._supportDocObjectUrl = objectUrl;
+
+    if (mimeType === 'application/pdf') {
+      // Do not embed a PDF in an iframe inside Apps Script. Chromium/Brave can
+      // show a grey broken-document panel in the Apps Script sandbox. A
+      // user-initiated new tab lets the browser render the local PDF normally.
+      const pdfBox = document.createElement('div');
+      pdfBox.style.padding = '14px';
+      pdfBox.style.border = '1px solid #d0d5dd';
+      pdfBox.style.borderRadius = '8px';
+      pdfBox.style.background = '#fff';
+
+      const details = document.createElement('div');
+      details.style.marginBottom = '10px';
+      details.style.color = '#475467';
+      details.textContent = 'PDF selected • ' + Math.max(1, Math.ceil(file.size / 1024)) + ' KB';
+      pdfBox.appendChild(details);
+
+      const openButton = document.createElement('button');
+      openButton.type = 'button';
+      openButton.className = 'button';
+      openButton.textContent = 'Preview PDF';
+      openButton.addEventListener('click', function() {
+        const popup = window.open(objectUrl, '_blank');
+        if (popup) {
+          try { popup.opener = null; } catch (e) {}
+        } else {
+          rowMsg(message, 'Your browser blocked the preview tab. Allow pop-ups for this page and click Preview PDF again.', 'error');
+        }
+      });
+      pdfBox.appendChild(openButton);
+      preview.appendChild(pdfBox);
+    } else {
+      const image = document.createElement('img');
+      image.src = objectUrl;
+      image.alt = 'Selected document preview';
+      preview.appendChild(image);
+    }
+
+    preview.style.display = 'block';
+    rowMsg(
+      message,
+      mimeType === 'application/pdf'
+        ? 'Click Preview PDF to inspect the selected file. If it is correct, return here and upload it.'
+        : 'Review this preview. If it is correct, click the upload button below.',
+      'success'
+    );
+  }
+
+
+  function uploadSupportDoc(
+    documentData,
+    card,
+    button
+  ) {
+    if (SUPPORT_DOC_UPLOAD_BUSY) {
+      return;
+    }
+
+    const input =
+      card.querySelector(
+        'input'
+      );
+
+    const message =
+      card.querySelector(
+        '.support-doc-row-message'
+      );
+
+    if (!input || !input.files.length) {
+      rowMsg(
+        message,
+        'Select a file first.',
+        'error'
+      );
+      return;
+    }
+
+    const file = input.files[0];
+    let mimeType = String(file.type || '').toLowerCase();
+
+    if (!mimeType) {
+      const extension = file.name.toLowerCase().split('.').pop();
+      mimeType = {
+        pdf: 'application/pdf',
+        jpg: 'image/jpeg',
+        jpeg: 'image/jpeg',
+        png: 'image/png',
+      }[extension] || '';
+    }
+
+    if (!['application/pdf','image/jpeg','image/png'].includes(mimeType)) {
+      rowMsg(message, 'Only PDF, JPG and PNG are allowed.', 'error');
+      return;
+    }
+
+    if (file.size > SUPPORT_DOC_MAX) {
+      rowMsg(message, 'The file must not exceed 5 MB.', 'error');
+      return;
+    }
+
+    const originalText = button.textContent;
+    setSupportDocUploadBusy_(true, card);
+    button.textContent = 'Reading...';
+    clearRowMsg_(message);
+
+    const reader = new FileReader();
+
+    reader.onload = function(event) {
+      const result = String(event.target.result || '');
+      const base64 = result.includes(',') ? result.split(',')[1] : result;
+      const credentials = supportCredentials();
+
+      button.textContent = 'Uploading...';
+      const label = card.querySelector('.support-doc-upload-label');
+      if (label) label.textContent = 'Uploading ' + documentData.label + '...';
+
+      google.script.run
+        .withSuccessHandler(function(response) {
+          if (!response || response.ok !== true) {
+            setSupportDocUploadBusy_(false, card);
+            button.textContent = originalText;
+            rowMsg(
+              message,
+              response && response.message ? response.message : 'Upload failed.',
+              'error'
+            );
+            return;
+          }
+
+          input.value = '';
+
+          const previousState =
+            SUPPORT_DOC_STATE
+              ? JSON.parse(
+                  JSON.stringify(
+                    SUPPORT_DOC_STATE
+                  )
+                )
+              : null;
+
+          const shouldReload =
+            shouldReloadAfterFinalSupportingDocumentUpload_(
+              previousState,
+              documentData,
+              response
+            );
+
+          updateSupportDocStateAfterUpload_(documentData, response);
+          rowMsg(message, response.message || 'Uploaded successfully.', 'success');
+          renderSupportDocs(SUPPORT_DOC_STATE);
+          setSupportDocUploadBusy_(false, null);
+          supportGlobal(
+            shouldReload
+              ? 'Final required document submitted. Refreshing your application status...'
+              : (response.message || 'Document uploaded successfully.'),
+            'success'
+          );
+
+          if (shouldReload) {
+            window.setTimeout(
+              function() {
+                if (
+                  typeof reloadPractitionerPortal_ ===
+                  'function'
+                ) {
+                  reloadPractitionerPortal_();
+                } else {
+                  window.location.reload();
+                }
+              },
+              250
+            );
+          }
+        })
+        .withFailureHandler(function(error) {
+          setSupportDocUploadBusy_(false, card);
+          button.textContent = originalText;
+          rowMsg(message, errorText(error), 'error');
+        })
+        .uploadApplicantSupportingDocument({
+          applicationId: credentials.applicationId,
+          secureToken: credentials.secureToken,
+          documentType: documentData.type,
+          fileName: file.name,
+          mimeType: mimeType,
+          base64Data: base64,
+        });
+    };
+
+    reader.onerror = function() {
+      setSupportDocUploadBusy_(false, card);
+      button.textContent = originalText;
+      rowMsg(message, 'The file could not be read.', 'error');
+    };
+
+    reader.readAsDataURL(file);
+  }
+
+
+  function shouldReloadAfterFinalSupportingDocumentUpload_(
+    previousState,
+    documentData,
+    response
+  ) {
+    const documents =
+      previousState &&
+      Array.isArray(previousState.documents)
+        ? previousState.documents
+        : [];
+
+    const currentType =
+      String(
+        documentData &&
+        documentData.type ||
+        ''
+      )
+        .trim()
+        .toLowerCase();
+
+    const currentDocument =
+      documents.find(function(item) {
+        return (
+          String(item.type || '')
+            .trim()
+            .toLowerCase() ===
+          currentType
+        );
+      });
+
+    /*
+     * Reload only when this upload completes the applicant's
+     * original five-document submission.
+     *
+     * A corrected/replacement document was already submitted before,
+     * so it must keep the existing in-page resubmission behaviour.
+     */
+    if (
+      !currentDocument ||
+      currentDocument.uploaded === true
+    ) {
+      return false;
+    }
+
+    const total =
+      Number(
+        response &&
+        response.totalCount ||
+        previousState &&
+        previousState.totalCount ||
+        5
+      );
+
+    let previousUploaded =
+      Number(
+        previousState &&
+        previousState.uploadedCount
+      );
+
+    if (
+      !Number.isFinite(previousUploaded)
+    ) {
+      previousUploaded =
+        documents.filter(function(item) {
+          return item.uploaded === true;
+        }).length;
+    }
+
+    let currentUploaded =
+      Number(
+        response &&
+        response.uploadedCount
+      );
+
+    if (
+      !Number.isFinite(currentUploaded)
+    ) {
+      currentUploaded =
+        previousUploaded + 1;
+    }
+
+    return (
+      total > 0 &&
+      previousUploaded ===
+        total - 1 &&
+      currentUploaded >= total
+    );
+  }
+
+
+  function setSupportDocUploadBusy_(isBusy, activeCard) {
+    SUPPORT_DOC_UPLOAD_BUSY = isBusy === true;
+
+    document
+      .querySelectorAll('#supportDocsList .support-doc-card')
+      .forEach(function(card) {
+        const isActive = SUPPORT_DOC_UPLOAD_BUSY && card === activeCard;
+        card.classList.toggle('is-uploading', isActive);
+        card.classList.toggle('is-disabled', SUPPORT_DOC_UPLOAD_BUSY && !isActive);
+
+        const input = card.querySelector('.support-doc-file');
+        const button = card.querySelector('.support-doc-actions .button');
+        if (input) input.disabled = SUPPORT_DOC_UPLOAD_BUSY;
+        if (button) button.disabled = SUPPORT_DOC_UPLOAD_BUSY;
+      });
+  }
+
+
+  function updateSupportDocStateAfterUpload_(documentData, response) {
+    if (!SUPPORT_DOC_STATE || !Array.isArray(SUPPORT_DOC_STATE.documents)) {
+      return;
+    }
+
+    const item = SUPPORT_DOC_STATE.documents.find(function(document) {
+      return document.type === documentData.type;
+    });
+
+    if (!item) return;
+
+    item.uploaded = true;
+    item.uploadedAt = response.uploadedAt || item.uploadedAt || '';
+    item.reviewStatus = 'Pending Review';
+    item.reviewNotes = '';
+    item.canUpload = false;
+
+    SUPPORT_DOC_STATE.uploadedCount = SUPPORT_DOC_STATE.documents.filter(function(document) {
+      return document.uploaded === true;
+    }).length;
+
+    SUPPORT_DOC_STATE.approvedCount = SUPPORT_DOC_STATE.documents.filter(function(document) {
+      return String(document.reviewStatus || '').trim().toLowerCase() === 'approved';
+    }).length;
+
+    SUPPORT_DOC_STATE.documentStatus =
+      response.documentStatus ||
+      (SUPPORT_DOC_STATE.uploadedCount === SUPPORT_DOC_STATE.totalCount
+        ? 'Pending Review'
+        : 'In Progress');
+
+    SUPPORT_DOC_STATE.reviewNotes = '';
+  }
+
+
+  function renderSupportDocsProgress_(result) {
+    const progress = document.getElementById('supportDocsProgress');
+    if (!progress) return;
+
+    const total = Number(result.totalCount || 5);
+    const uploaded = Number(result.uploadedCount || 0);
+    const percentage = total ? Math.round((uploaded / total) * 100) : 0;
+    const documents = Array.isArray(result.documents) ? result.documents : [];
+
+    progress.className = 'support-doc-progress-panel';
+    progress.innerHTML = '';
+
+    const top = document.createElement('div');
+    top.className = 'support-doc-progress-top';
+
+    const count = document.createElement('div');
+    count.className = 'support-doc-progress-count';
+    count.textContent = uploaded + ' of ' + total + ' submitted';
+
+    const percent = document.createElement('div');
+    percent.className = 'support-doc-progress-percent';
+    percent.textContent = percentage + '%';
+
+    top.appendChild(count);
+    top.appendChild(percent);
+    progress.appendChild(top);
+
+    const track = document.createElement('div');
+    track.className = 'support-doc-progress-track';
+    const fill = document.createElement('div');
+    fill.className = 'support-doc-progress-fill';
+    fill.style.width = percentage + '%';
+    track.appendChild(fill);
+    progress.appendChild(track);
+
+    const list = document.createElement('div');
+    list.className = 'support-doc-progress-list';
+
+    documents.forEach(function(documentData) {
+      const row = document.createElement('div');
+      row.className = 'support-doc-progress-item' + (documentData.uploaded ? ' is-submitted' : '');
+
+      const symbol = document.createElement('span');
+      symbol.className = 'support-doc-progress-symbol';
+      symbol.textContent = documentData.uploaded ? '✓' : '○';
+
+      const label = document.createElement('span');
+      label.textContent = documentData.label;
+
+      row.appendChild(symbol);
+      row.appendChild(label);
+      list.appendChild(row);
+    });
+
+    progress.appendChild(list);
+  }
+
+
+  function clearRowMsg_(element) {
+    if (!element) return;
+    element.textContent = '';
+    element.className = 'support-doc-row-message';
+  }
+
+
+  function rowMsg(
+    element,
+    message,
+    type
+  ) {
+    element.textContent =
+      message;
+
+    element.className =
+      'support-doc-row-message ' +
+      type;
+  }
+
+
+  function supportGlobal(
+    message,
+    type
+  ) {
+    const element =
+      document.getElementById(
+        'supportDocsMessage'
+      );
+
+    element.textContent =
+      message;
+
+    element.className =
+      'payment-message ' +
+      (
+        type === 'error'
+          ? 'payment-message-danger'
+          : 'payment-message-success'
+      );
+
+    element.style.display =
+      'block';
+  }
+
+
+  function errorText(error) {
+    return (
+      error &&
+      error.message
+        ? String(
+            error.message
+          )
+        : (
+          error
+            ? String(
+                error
+              )
+            : 'Unexpected error.'
+        )
+    );
+  }
+</script>

@@ -1,0 +1,2679 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <base target="_top">
+
+  <style>
+    :root {
+      --background: #f4f6f8;
+      --surface: #ffffff;
+      --text-primary: #17202a;
+      --text-secondary: #667085;
+      --border: #e4e7ec;
+      --primary: #183b56;
+      --primary-hover: #152635;
+      --success-background: #ecfdf3;
+      --success-text: #027a48;
+      --warning-background: #fffaeb;
+      --warning-text: #b54708;
+      --neutral-background: #f2f4f7;
+      --neutral-text: #344054;
+      --danger-background: #fef3f2;
+      --danger-text: #b42318;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--background);
+      color: var(--text-primary);
+      font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+      line-height: 1.5;
+    }
+
+    .page-header {
+      background: var(--primary);
+      color: #ffffff;
+      padding: 22px 20px;
+    }
+
+    .header-content {
+      width: 100%;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .organisation-name {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      opacity: 0.82;
+    }
+
+    .portal-title {
+      margin: 6px 0 0;
+      font-size: 24px;
+    }
+
+    .page-content {
+      width: 100%;
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 28px 20px 48px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow:
+        0 2px 8px rgba(16, 24, 40, 0.05);
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .welcome-title {
+      margin: 0 0 4px;
+      font-size: 26px;
+    }
+
+    .muted {
+      color: var(--text-secondary);
+    }
+
+    .reference-box {
+      margin-top: 22px;
+      padding: 16px;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+
+    .reference-label {
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .reference-value {
+      display: block;
+      margin-top: 4px;
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .details-grid {
+      display: grid;
+      grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 22px;
+    }
+
+    .detail-label {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .detail-value {
+      font-size: 15px;
+      font-weight: 600;
+      word-break: break-word;
+    }
+
+    .section-title {
+      margin: 0 0 18px;
+      font-size: 20px;
+    }
+
+    .status-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 15px 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+
+    .status-name {
+      font-weight: 700;
+    }
+
+    .status-description {
+      margin-top: 2px;
+      color: var(--text-secondary);
+      font-size: 13px;
+    }
+
+    .badge {
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 110px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .badge-success {
+      background: var(--success-background);
+      color: var(--success-text);
+    }
+
+    .badge-warning {
+      background: var(--warning-background);
+      color: var(--warning-text);
+    }
+
+    .badge-neutral {
+      background: var(--neutral-background);
+      color: var(--neutral-text);
+    }
+
+    .badge-danger {
+      background: var(--danger-background);
+      color: var(--danger-text);
+    }
+
+    .document-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .document-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 15px 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+
+    .document-name {
+      font-weight: 700;
+    }
+
+    .document-state {
+      color: var(--text-secondary);
+      font-size: 13px;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      padding: 9px 16px;
+      border: 0;
+      border-radius: 7px;
+      background: var(--primary);
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .button:hover {
+      background: var(--primary-hover);
+    }
+
+    .button-disabled {
+      background: #eaecf0;
+      color: #98a2b3;
+      cursor: not-allowed;
+    }
+
+    .correction-alert {
+      margin-bottom: 20px;
+      padding: 18px;
+      border: 1px solid #fecdca;
+      border-radius: 10px;
+      background: var(--danger-background);
+      color: var(--danger-text);
+    }
+
+    .correction-alert h3 {
+      margin: 0 0 8px;
+      font-size: 17px;
+    }
+
+    .correction-alert p {
+      margin: 6px 0;
+    }
+
+    .correction-reason {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 8px;
+      background: #ffffff;
+      border: 1px solid #fecdca;
+      color: var(--text-primary);
+    }
+
+    .correction-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .correction-help {
+      margin-top: 12px;
+      color: var(--text-secondary);
+      font-size: 13px;
+    }
+
+    .error-card {
+      max-width: 620px;
+      margin: 40px auto 0;
+      text-align: center;
+    }
+
+    .error-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 52px;
+      height: 52px;
+      margin: 0 auto 16px;
+      border-radius: 50%;
+      background: var(--danger-background);
+      color: var(--danger-text);
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .error-title {
+      margin: 0 0 8px;
+      font-size: 24px;
+    }
+
+    .security-note {
+      padding: 14px 16px;
+      border-left: 4px solid var(--primary);
+      background: #f8fafc;
+      color: var(--text-secondary);
+      font-size: 13px;
+    }
+
+    .page-footer {
+      padding: 10px 20px 32px;
+      color: var(--text-secondary);
+      font-size: 12px;
+      text-align: center;
+    }
+
+    .payment-summary {
+      display: grid;
+      grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .payment-summary-item {
+      padding: 15px;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+
+    .payment-summary-label {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .payment-summary-value {
+      display: block;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .payment-amount {
+      font-size: 21px;
+    }
+
+    .payment-instructions {
+      margin: 0 0 18px;
+      padding: 14px 16px;
+      border-left: 4px solid var(--primary);
+      background: #f8fafc;
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    .payment-action {
+      margin-bottom: 22px;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-label {
+      display: block;
+      margin-bottom: 7px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .form-control {
+      display: block;
+      width: 100%;
+      min-height: 44px;
+      padding: 10px 12px;
+      border: 1px solid #d0d5dd;
+      border-radius: 7px;
+      background: #ffffff;
+      color: var(--text-primary);
+      font-size: 15px;
+    }
+
+    .form-control:focus {
+      border-color: var(--primary);
+      outline: 2px solid rgba(24, 59, 86, 0.12);
+    }
+
+    .file-help {
+      margin: 7px 0 0;
+      color: var(--text-secondary);
+      font-size: 12px;
+    }
+
+    .payment-message {
+      display: none;
+      margin-top: 16px;
+      padding: 13px 15px;
+      border-radius: 7px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .payment-message-success {
+      display: block;
+      background: var(--success-background);
+      color: var(--success-text);
+    }
+
+    .payment-message-warning {
+      display: block;
+      background: var(--warning-background);
+      color: var(--warning-text);
+    }
+
+    .payment-message-danger {
+      display: block;
+      background: var(--danger-background);
+      color: var(--danger-text);
+    }
+
+    .payment-loading {
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    .payment-confirmed-box {
+      padding: 18px;
+      border: 1px solid #abefc6;
+      border-radius: 8px;
+      background: var(--success-background);
+      color: var(--success-text);
+    }
+
+    .payment-confirmed-title {
+      margin: 0 0 5px;
+      font-size: 18px;
+    }
+
+    .payment-reference-display {
+      margin-top: 14px;
+      color: var(--text-primary);
+    }
+
+    .button-secondary {
+      border: 1px solid var(--primary);
+      background: #ffffff;
+      color: var(--primary);
+    }
+
+    .button-secondary:hover {
+      background: #f8fafc;
+    }
+
+    .button-loading {
+      opacity: 0.65;
+      cursor: wait;
+    }
+
+    @media (max-width: 640px) {
+      .payment-summary {
+        grid-template-columns: 1fr;
+      }
+
+      .portal-title {
+        font-size: 20px;
+      }
+
+      .page-content {
+        padding: 20px 14px 36px;
+      }
+
+      .card {
+        padding: 18px;
+      }
+
+      .welcome-title {
+        font-size: 22px;
+      }
+
+      .details-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .status-item,
+      .document-item {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .badge,
+      .button {
+        width: 100%;
+      }
+
+    }
+  
+    /* =========================================================
+       PRACTITIONER PORTAL — REFINED UI
+       ========================================================= */
+    .portal-overview-card {
+      overflow: hidden;
+      padding: 0;
+    }
+
+    .portal-overview-hero {
+      display: grid;
+      grid-template-columns:
+        minmax(0, 1fr) auto;
+      gap: 22px;
+      align-items: center;
+      padding: 26px;
+      background:
+        linear-gradient(
+          135deg,
+          #183b56 0%,
+          #24557a 100%
+        );
+      color: #ffffff;
+    }
+
+    .portal-overview-eyebrow {
+      margin: 0 0 6px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      opacity: .82;
+    }
+
+    .portal-overview-title {
+      margin: 0;
+      font-size: 28px;
+      line-height: 1.25;
+    }
+
+    .portal-overview-subtitle {
+      margin: 8px 0 0;
+      max-width: 620px;
+      color: rgba(255,255,255,.86);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .portal-reference-chip {
+      min-width: 180px;
+      padding: 14px 16px;
+      border: 1px solid rgba(255,255,255,.24);
+      border-radius: 10px;
+      background: rgba(255,255,255,.10);
+    }
+
+    .portal-reference-chip-label {
+      display: block;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      opacity: .78;
+    }
+
+    .portal-reference-chip-value {
+      display: block;
+      margin-top: 5px;
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: .02em;
+    }
+
+    .portal-overview-meta {
+      display: grid;
+      grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+      gap: 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .portal-overview-meta-item {
+      padding: 17px 20px;
+      border-right: 1px solid var(--border);
+    }
+
+    .portal-overview-meta-item:last-child {
+      border-right: 0;
+    }
+
+    .portal-meta-label {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--text-secondary);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+    }
+
+    .portal-meta-value {
+      display: block;
+      color: var(--text-primary);
+      font-size: 14px;
+      font-weight: 700;
+      word-break: break-word;
+    }
+
+    .workflow-card {
+      padding: 22px;
+    }
+
+    .workflow-intro {
+      margin: -8px 0 18px;
+      color: var(--text-secondary);
+      font-size: 13px;
+    }
+
+    .status-list {
+      position: relative;
+      gap: 10px;
+    }
+
+    .status-item {
+      position: relative;
+      overflow: hidden;
+      background: #ffffff;
+      transition:
+        border-color .18s ease,
+        box-shadow .18s ease,
+        transform .18s ease;
+    }
+
+    .status-item:hover {
+      border-color: #cfd8e3;
+      box-shadow:
+        0 5px 14px rgba(16,24,40,.05);
+      transform: translateY(-1px);
+    }
+
+    .status-item::before {
+      content: '';
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 4px;
+      background: #d0d5dd;
+    }
+
+    .status-item:has(.badge-success)::before {
+      background: #12b76a;
+    }
+
+    .status-item:has(.badge-warning)::before {
+      background: #f79009;
+    }
+
+    .status-item:has(.badge-danger)::before {
+      background: #f04438;
+    }
+
+    .status-name {
+      font-size: 14px;
+    }
+
+    .status-description {
+      max-width: 650px;
+      line-height: 1.5;
+    }
+
+    .section-header-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .section-kicker {
+      margin: 0 0 3px;
+      color: var(--text-secondary);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+    }
+
+    .section-title {
+      margin: 0;
+    }
+
+    .section-help {
+      margin: 6px 0 0;
+      color: var(--text-secondary);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    #supportingDocumentsSection,
+    #paymentCard {
+      scroll-margin-top: 20px;
+    }
+
+    #paymentCard {
+      border-top:
+        4px solid var(--primary);
+    }
+
+    .payment-summary {
+      gap: 10px;
+    }
+
+    .payment-summary-item {
+      min-height: 88px;
+    }
+
+    .payment-amount {
+      color: var(--primary);
+      font-size: 24px;
+    }
+
+    #paymentLockedNotice {
+      border-radius: 8px;
+    }
+
+    #paymentAvailableInstructions {
+      padding: 16px;
+      border: 1px solid #dbe6ef;
+      border-radius: 9px;
+      background: #f8fafc;
+    }
+
+    #paymentAvailableInstructions .payment-instructions {
+      border-left: 0;
+      background: transparent;
+      padding: 0;
+    }
+
+    .correction-alert {
+      box-shadow:
+        0 4px 12px rgba(180,35,24,.05);
+    }
+
+    .page-footer {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 720px) {
+      .portal-overview-hero {
+        grid-template-columns: 1fr;
+        padding: 22px 18px;
+      }
+
+      .portal-overview-title {
+        font-size: 23px;
+      }
+
+      .portal-reference-chip {
+        min-width: 0;
+      }
+
+      .portal-overview-meta {
+        grid-template-columns: 1fr;
+      }
+
+      .portal-overview-meta-item {
+        border-right: 0;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .portal-overview-meta-item:last-child {
+        border-bottom: 0;
+      }
+
+      .section-header-row {
+        flex-direction: column;
+      }
+    }
+
+
+    /* =========================================================
+       PRACTITIONER PORTAL — POLISHED PRODUCTION UI
+       ========================================================= */
+
+    body {
+      background:
+        linear-gradient(
+          180deg,
+          #eef3f7 0,
+          #f7f9fb 220px,
+          #f7f9fb 100%
+        );
+    }
+
+    .page-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      padding: 14px 20px;
+      background:
+        rgba(24, 59, 86, .97);
+      box-shadow:
+        0 1px 0 rgba(255,255,255,.08),
+        0 6px 18px rgba(16,24,40,.08);
+      backdrop-filter:
+        blur(10px);
+    }
+
+    .header-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .organisation-name {
+      font-size: 11px;
+      letter-spacing: .1em;
+    }
+
+    .portal-title {
+      margin-top: 2px;
+      font-size: 19px;
+      line-height: 1.2;
+    }
+
+    .page-content {
+      max-width: 1040px;
+      padding-top: 26px;
+    }
+
+    .card {
+      border-color: #dfe5eb;
+      box-shadow:
+        0 1px 2px rgba(16,24,40,.03),
+        0 8px 24px rgba(16,24,40,.045);
+    }
+
+    .portal-overview-card {
+      border: 0;
+      border-radius: 16px;
+      box-shadow:
+        0 18px 42px rgba(24,59,86,.14);
+    }
+
+    .portal-overview-hero {
+      padding: 30px;
+      background:
+        radial-gradient(
+          circle at top right,
+          rgba(255,255,255,.15),
+          transparent 34%
+        ),
+        linear-gradient(
+          135deg,
+          #15354f 0%,
+          #1d4b70 55%,
+          #285d83 100%
+        );
+    }
+
+    .portal-overview-eyebrow {
+      font-size: 10px;
+      letter-spacing: .12em;
+    }
+
+    .portal-overview-title {
+      font-size: 30px;
+    }
+
+    .portal-reference-chip {
+      min-width: 190px;
+      border-color: rgba(255,255,255,.22);
+      border-radius: 12px;
+      background: rgba(255,255,255,.12);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.10);
+    }
+
+    .portal-reference-chip-value {
+      font-size: 21px;
+    }
+
+    .portal-overview-meta {
+      background: #ffffff;
+    }
+
+    .portal-overview-meta-item {
+      min-height: 78px;
+      padding: 18px 22px;
+    }
+
+    .workflow-card {
+      border-radius: 14px;
+    }
+
+    .status-list {
+      gap: 12px;
+    }
+
+    .status-item {
+      min-height: 78px;
+      padding: 16px 18px 16px 20px;
+      border-radius: 10px;
+      background:
+        linear-gradient(
+          180deg,
+          #ffffff,
+          #fbfcfd
+        );
+    }
+
+    .status-item::before {
+      width: 5px;
+    }
+
+    .status-name {
+      font-size: 15px;
+    }
+
+    .status-description {
+      margin-top: 4px;
+      font-size: 12.5px;
+    }
+
+    .badge {
+      min-width: 124px;
+      padding: 7px 11px;
+      border-radius: 999px;
+      font-size: 11px;
+      letter-spacing: .01em;
+    }
+
+    .section-header-row {
+      margin-bottom: 18px;
+    }
+
+    .section-kicker {
+      color: #667085;
+    }
+
+    .section-title {
+      font-size: 20px;
+    }
+
+    .section-help {
+      max-width: 720px;
+    }
+
+    .correction-alert {
+      border-radius: 12px;
+      border-color: #fecdca;
+      box-shadow:
+        0 6px 20px rgba(180,35,24,.06);
+    }
+
+    .correction-reason {
+      padding: 13px 14px;
+      border-radius: 8px;
+    }
+
+    .button {
+      min-height: 42px;
+      padding: 10px 17px;
+      border-radius: 8px;
+      transition:
+        transform .15s ease,
+        box-shadow .15s ease,
+        background .15s ease;
+    }
+
+    .button:hover {
+      transform: translateY(-1px);
+      box-shadow:
+        0 5px 14px rgba(24,59,86,.14);
+    }
+
+    #paymentCard {
+      border-top: 0;
+      border-radius: 14px;
+      background:
+        linear-gradient(
+          180deg,
+          #ffffff 0%,
+          #fbfcfd 100%
+        );
+    }
+
+    #paymentCard::before {
+      content: '';
+      display: block;
+      height: 4px;
+      margin: -24px -24px 20px;
+      border-radius: 14px 14px 0 0;
+      background:
+        linear-gradient(
+          90deg,
+          #183b56,
+          #2d6c98
+        );
+    }
+
+    .payment-summary {
+      gap: 12px;
+    }
+
+    .payment-summary-item {
+      min-height: 92px;
+      padding: 16px;
+      border-radius: 10px;
+      background: #f8fafc;
+    }
+
+    .payment-summary-label {
+      font-size: 10px;
+      letter-spacing: .05em;
+    }
+
+    .payment-summary-value {
+      font-size: 15px;
+    }
+
+    .payment-amount {
+      color: #183b56;
+      font-size: 24px;
+      font-weight: 800;
+    }
+
+    #paymentAvailableInstructions {
+      border-radius: 10px;
+    }
+
+    .security-note {
+      border-radius: 8px;
+    }
+
+    .page-footer {
+      padding-bottom: 40px;
+    }
+
+    @media (max-width: 720px) {
+      .page-header {
+        position: static;
+      }
+
+      .header-content {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 5px;
+      }
+
+      .page-content {
+        padding:
+          18px 12px 36px;
+      }
+
+      .portal-overview-hero {
+        padding: 24px 20px;
+      }
+
+      .portal-overview-title {
+        font-size: 24px;
+      }
+
+      .card {
+        padding: 18px;
+        border-radius: 12px;
+      }
+
+      .portal-overview-card {
+        padding: 0;
+      }
+
+      .status-item {
+        min-height: 0;
+      }
+
+      .badge {
+        min-width: 0;
+      }
+
+      #paymentCard::before {
+        margin: -18px -18px 18px;
+      }
+    }
+
+
+    .status-step-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      margin-right: 9px;
+      border-radius: 50%;
+      background: #eef3f7;
+      color: #183b56;
+      font-size: 11px;
+      font-weight: 800;
+      vertical-align: middle;
+    }
+
+
+    .documents-approved-card {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 16px;
+      align-items: start;
+      border-color: #abefc6;
+      background:
+        linear-gradient(
+          180deg,
+          #ffffff 0%,
+          #f6fef9 100%
+        );
+    }
+
+    .documents-approved-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #dcfae6;
+      color: #067647;
+      font-size: 22px;
+      font-weight: 800;
+    }
+
+    .documents-approved-title {
+      margin: 8px 0 4px;
+      color: #067647;
+      font-size: 16px;
+      font-weight: 800;
+    }
+
+    @media (max-width: 640px) {
+      .documents-approved-card {
+        grid-template-columns: 1fr;
+      }
+    }
+
+
+    .payment-state-card {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 16px;
+      align-items: start;
+      padding: 2px 0;
+    }
+
+    .payment-state-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .payment-state-title {
+      margin: 8px 0 4px;
+      font-size: 16px;
+      font-weight: 800;
+    }
+
+    .payment-state-success .payment-state-icon {
+      background: #dcfae6;
+      color: #067647;
+    }
+
+    .payment-state-success .payment-state-title {
+      color: #067647;
+    }
+
+    .payment-state-pending .payment-state-icon {
+      background: #fff4e5;
+      color: #b54708;
+    }
+
+    .payment-state-pending .payment-state-title {
+      color: #b54708;
+    }
+
+    .payment-state-locked .payment-state-icon {
+      background: #f2f4f7;
+      color: #475467;
+    }
+
+    .payment-state-locked .payment-state-title {
+      color: #475467;
+    }
+
+    @media (max-width: 640px) {
+      .payment-state-card {
+        grid-template-columns: 1fr;
+      }
+    }
+
+
+    .payment-instructions-card {
+      padding: 18px;
+      border: 1px solid #dbe6ef;
+      border-radius: 12px;
+      background: #f8fafc;
+    }
+
+    .payment-instructions-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 12px;
+    }
+
+    .payment-instructions-title {
+      margin: 2px 0 0;
+      font-size: 18px;
+      color: var(--text-primary);
+    }
+
+    .payment-provider-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #e8f1f7;
+      color: #183b56;
+      font-size: 11px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .payment-instructions-intro {
+      margin: 0 0 16px;
+      color: var(--text-secondary);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .payment-step-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .payment-step {
+      display: grid;
+      grid-template-columns: 32px minmax(0, 1fr);
+      gap: 12px;
+      align-items: start;
+      padding: 12px 0;
+      border-top: 1px solid #e4e7ec;
+    }
+
+    .payment-step:first-child {
+      border-top: 0;
+      padding-top: 0;
+    }
+
+    .payment-step-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #183b56;
+      color: #ffffff;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .payment-step strong {
+      display: block;
+      color: var(--text-primary);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .payment-step p {
+      margin: 3px 0 0;
+      color: var(--text-secondary);
+      font-size: 12.5px;
+      line-height: 1.55;
+    }
+
+    @media (max-width: 640px) {
+      .payment-instructions-header {
+        flex-direction: column;
+      }
+
+      .payment-step {
+        grid-template-columns: 28px minmax(0, 1fr);
+        gap: 10px;
+      }
+
+      .payment-step-number {
+        width: 28px;
+        height: 28px;
+      }
+    }
+
+</style>
+</head>
+
+<body>
+  <header class="page-header">
+    <div class="header-content">
+      <p class="organisation-name">
+        CRFFN Licensing System
+      </p>
+
+      <h1 class="portal-title">
+        Practitioner Portal
+      </h1>
+    </div>
+  </header>
+
+  <main class="page-content">
+    <? if (!portalData.ok) { ?>
+
+    <section class="card error-card">
+      <div class="error-icon">!</div>
+
+      <h2 class="error-title">
+        Unable to open application
+      </h2>
+
+      <p class="muted">
+        <?= portalData.message ?>
+      </p>
+
+      <div class="security-note">
+        For security, confirm that you opened the
+        complete portal link issued for your
+        application. Do not edit the Application ID
+        or token in the address.
+      </div>
+    </section>
+
+    <? } else { ?>
+
+    <section class="card portal-overview-card">
+      <div class="portal-overview-hero">
+        <div>
+          <p class="portal-overview-eyebrow">
+            CRFFN Licence Application
+          </p>
+
+          <h2 class="portal-overview-title">
+            Welcome, <?= portalData.applicantName ?>
+          </h2>
+
+          <p class="portal-overview-subtitle">
+            Use this secure Practitioner Portal to upload documents, follow your application review,
+            make payment when approved, and monitor licence processing.
+          </p>
+        </div>
+
+        <div class="portal-reference-chip">
+          <span class="portal-reference-chip-label">
+            Application ID
+          </span>
+
+          <span class="portal-reference-chip-value">
+            <?= portalData.applicationId ?>
+          </span>
+        </div>
+      </div>
+
+      <div class="portal-overview-meta">
+        <div class="portal-overview-meta-item">
+          <span class="portal-meta-label">
+            Company
+          </span>
+
+          <span class="portal-meta-value">
+            <?= portalData.companyName || 'Not available' ?>
+          </span>
+        </div>
+
+        <div class="portal-overview-meta-item">
+          <span class="portal-meta-label">
+            Registered email
+          </span>
+
+          <span class="portal-meta-value">
+            <?= portalData.email || 'Not available' ?>
+          </span>
+        </div>
+
+        <div class="portal-overview-meta-item">
+          <span class="portal-meta-label">
+            Submitted
+          </span>
+
+          <span class="portal-meta-value">
+            <?= portalData.submittedAt || 'Not available' ?>
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <? if (
+      portalData.informationStatus ===
+        'Correction Required'
+    ) { ?>
+
+    <section class="correction-alert">
+      <h3>
+        Application Information Correction Required
+      </h3>
+
+      <p>
+        Your application information needs to be corrected before processing can continue.
+      </p>
+
+      <? if (portalData.informationReviewNotes) { ?>
+      <div class="correction-reason">
+        <strong>Administrator's reason:</strong><br>
+        <?= portalData.informationReviewNotes ?>
+      </div>
+      <? } ?>
+
+      <div class="correction-actions">
+        <? if (portalData.applicationCorrectionFormUrl) { ?>
+        <a
+          class="button"
+          href="<?= portalData.applicationCorrectionFormUrl ?>"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Open Prefilled Correction Form
+        </a>
+        <? } ?>
+      </div>
+
+      <div class="correction-help">
+        The correction form will open with your latest application information already filled in.
+        Only the field(s) identified by the administrator for correction will be left blank.
+        Review the remaining information, complete the blank field(s), reconfirm the declaration,
+        and submit using the same email address associated with Application ID
+        <strong><?= portalData.applicationId ?></strong>.
+        Your existing Application ID will be retained.
+      </div>
+    </section>
+
+    <? } ?>
+
+    <? if (
+      portalData.paymentStatus ===
+        'Rejected' &&
+      portalData.paymentReviewNotes
+    ) { ?>
+
+    <section class="correction-alert">
+      <h3>
+        Payment Correction Required
+      </h3>
+
+      <div class="correction-reason">
+        <strong>Administrator's reason:</strong><br>
+        <?= portalData.paymentReviewNotes ?>
+      </div>
+
+      <p class="correction-help">
+        Go to the Payment section below, correct the payment reference and/or upload a
+        valid replacement payment receipt, then submit it again for verification.
+      </p>
+    </section>
+
+    <? } ?>
+
+    <? if (
+      portalData.documentStatus ===
+        'Correction Required' &&
+      portalData.documentReviewNotes
+    ) { ?>
+
+    <section class="correction-alert">
+      <h3>
+        Supporting Document Correction Required
+      </h3>
+
+      <div class="correction-reason">
+        <strong>Administrator's reason:</strong><br>
+        <?= portalData.documentReviewNotes ?>
+      </div>
+
+      <p class="correction-help">
+        Go to the Supporting Documents section below and replace the affected document
+        with the correct, complete and legible file.
+      </p>
+    </section>
+
+    <? } ?>
+
+    <? if (
+      portalData.verificationStatus ===
+        'Rejected' &&
+      portalData.verificationNotes
+    ) { ?>
+
+    <section class="correction-alert">
+      <h3>
+        Final Verification Requires Attention
+      </h3>
+
+      <div class="correction-reason">
+        <strong>Administrator's reason:</strong><br>
+        <?= portalData.verificationNotes ?>
+      </div>
+
+      <p class="correction-help">
+        Review the reason above and follow the relevant correction instruction in this
+        portal. If the required action is unclear, contact
+        <strong>licensing@crffn.gov.ng</strong> and include your Application ID.
+      </p>
+    </section>
+
+    <? } ?>
+
+    <section class="card workflow-card">
+      <div class="section-header-row">
+        <div>
+          <p class="section-kicker">
+            Current status
+          </p>
+
+          <h2 class="section-title">
+            Application Progress
+          </h2>
+
+          <p class="section-help">
+            Your application moves through these stages in order. Payment becomes available only after
+            Application Information and Supporting Documents are approved.
+          </p>
+        </div>
+      </div>
+
+      <div class="status-list">
+        <div class="status-item">
+          <div>
+            <div class="status-name">
+              <span class="status-step-number">1</span>
+              Application Information
+            </div>
+
+            <div class="status-description">
+              Review of the information submitted in your application form.
+            </div>
+          </div>
+
+          <span class="<?=
+                getStatusClass_(portalData.informationStatus)
+              ?>">
+                <?= portalData.informationStatus ?>
+              </span>
+        </div>
+
+        <div class="status-item">
+          <div>
+            <div class="status-name">
+              <span class="status-step-number">2</span>
+              Supporting Documents
+            </div>
+
+            <div class="status-description">
+              Review of your required supporting documents.
+            </div>
+          </div>
+
+          <span class="<?=
+                getStatusClass_(portalData.documentStatus)
+              ?>">
+                <?= portalData.documentStatus ?>
+              </span>
+        </div>
+
+        <div class="status-item">
+          <div>
+            <div class="status-name">
+              <span class="status-step-number">3</span>
+              Payment
+            </div>
+
+            <div class="status-description">
+              Available after Application Information and Supporting Documents are approved.
+            </div>
+          </div>
+
+          <span class="<?=
+                getStatusClass_(portalData.paymentStatus)
+              ?>">
+                <?= portalData.paymentStatus ?>
+              </span>
+        </div>
+
+        <div class="status-item">
+          <div>
+            <div class="status-name">
+              <span class="status-step-number">4</span>
+              Final Verification
+            </div>
+
+            <div class="status-description">
+              Administrative review of your application.
+            </div>
+          </div>
+
+          <span class="<?=
+                getStatusClass_(portalData.verificationStatus)
+              ?>">
+                <?= portalData.verificationStatus ?>
+              </span>
+        </div>
+
+        <div class="status-item">
+          <div>
+            <div class="status-name">
+              <span class="status-step-number">5</span>
+              Licence
+            </div>
+
+            <div class="status-description">
+              Licence generation and release.
+            </div>
+          </div>
+
+          <span class="<?=
+                getStatusClass_(portalData.licenceStatus)
+              ?>">
+                <?= portalData.licenceStatus ?>
+              </span>
+        </div>
+      </div>
+    </section>
+    <? if (
+      String(
+        portalData.documentStatus || ''
+      ).trim() === 'Complete'
+    ) { ?>
+
+    <section class="card documents-approved-card">
+      <div class="documents-approved-icon">
+        ✓
+      </div>
+
+      <div>
+        <p class="section-kicker">
+          Step 2
+        </p>
+
+        <h2 class="section-title">
+          Supporting Documents
+        </h2>
+
+        <p class="documents-approved-title">
+          Documents approved
+        </p>
+
+        <p class="section-help" style="margin-bottom:0;">
+          Your supporting documents have been reviewed and approved by CRFFN.
+          No further document upload is required unless CRFFN specifically requests a correction.
+        </p>
+      </div>
+    </section>
+
+    <? } else { ?>
+
+    <?!= HtmlService
+      .createHtmlOutputFromFile(
+        'ApplicantSupportingDocuments'
+      )
+      .getContent();
+    ?>
+
+    <? } ?>
+
+<section class="card" id="paymentCard">
+      <? const paymentStatus =
+        String(
+          portalData.paymentStatus || ''
+        ).trim();
+      ?>
+
+      <? if (
+        paymentStatus === 'Confirmed'
+      ) { ?>
+
+      <div class="payment-state-card payment-state-success">
+        <div class="payment-state-icon">
+          ✓
+        </div>
+
+        <div>
+          <p class="section-kicker">
+            Step 3
+          </p>
+
+          <h2 class="section-title">
+            Payment
+          </h2>
+
+          <p class="payment-state-title">
+            Payment confirmed
+          </p>
+
+          <p class="section-help" style="margin-bottom:0;">
+            Your payment has been verified and confirmed by CRFFN.
+            No further payment action is required.
+          </p>
+        </div>
+      </div>
+
+      <? } else if (
+        paymentStatus === 'Pending Verification'
+      ) { ?>
+
+      <div class="payment-state-card payment-state-pending">
+        <div class="payment-state-icon">
+          …
+        </div>
+
+        <div>
+          <p class="section-kicker">
+            Step 3
+          </p>
+
+          <h2 class="section-title">
+            Payment
+          </h2>
+
+          <p class="payment-state-title">
+            Payment submitted
+          </p>
+
+          <p class="section-help" style="margin-bottom:0;">
+            Your payment details and receipt have been submitted and are awaiting verification.
+            You do not need to submit another payment unless CRFFN requests a correction.
+          </p>
+        </div>
+      </div>
+
+      <? } else if (
+        paymentStatus === 'Not Available'
+      ) { ?>
+
+      <div class="payment-state-card payment-state-locked">
+        <div class="payment-state-icon">
+          🔒
+        </div>
+
+        <div>
+          <p class="section-kicker">
+            Step 3
+          </p>
+
+          <h2 class="section-title">
+            Payment
+          </h2>
+
+          <p class="payment-state-title">
+            Payment not yet available
+          </p>
+
+          <p class="section-help" style="margin-bottom:0;">
+            Payment will become available after your Application Information
+            and Supporting Documents are approved.
+          </p>
+        </div>
+      </div>
+
+      <? } else { ?>
+
+<div class="section-header-row">
+        <div>
+          <p class="section-kicker">
+            Step 3
+          </p>
+
+          <h2 class="section-title">
+            Payment
+          </h2>
+
+          <p class="section-help">
+            Payment becomes available only after your Application Information and Supporting Documents are approved.
+          </p>
+        </div>
+      </div>
+
+      <div id="paymentLoading" class="payment-loading">
+        Loading payment information...
+      </div>
+
+      <div id="paymentContent" style="display: none;">
+        <div class="payment-summary">
+          <div class="payment-summary-item">
+            <span class="payment-summary-label">
+          Payment amount
+        </span>
+
+            <span
+          class="payment-summary-value payment-amount"
+          id="paymentAmount"
+        >
+          —
+        </span>
+          </div>
+
+          <div class="payment-summary-item">
+            <span class="payment-summary-label">
+          Payment provider
+        </span>
+
+            <span
+          class="payment-summary-value"
+          id="paymentProvider"
+        >
+          —
+        </span>
+          </div>
+
+          <div class="payment-summary-item">
+            <span class="payment-summary-label">
+          Payment status
+        </span>
+
+            <span
+          class="badge badge-neutral"
+          id="paymentStatusBadge"
+        >
+          —
+        </span>
+          </div>
+        </div>
+
+        <div id="paymentConfirmedView" style="display: none;">
+          <div class="payment-confirmed-box">
+            <h3 class="payment-confirmed-title">
+              Payment confirmed
+            </h3>
+
+            <div>
+              Your payment has been verified successfully.
+            </div>
+
+            <div class="payment-reference-display" id="confirmedPaymentReference"></div>
+          </div>
+        </div>
+
+        <div id="paymentSubmissionView">
+          <div
+            id="paymentLockedNotice"
+            class="security-note"
+            style="display:none; margin-bottom:14px;"
+          >
+            <strong>Payment is not yet available.</strong><br>
+            Payment becomes available only after CRFFN approves both your Application Information and Supporting Documents.
+          </div>
+
+          <div
+            id="paymentAvailableInstructions"
+            style="display:none; margin-bottom:14px;"
+          >
+  <div class="payment-instructions-card">
+    <div class="payment-instructions-header">
+      <div>
+        <p class="section-kicker">Payment instructions</p>
+        <h3 class="payment-instructions-title">Pay with Revop</h3>
+      </div>
+
+      <span class="payment-provider-badge">Revop only</span>
+    </div>
+
+    <p class="payment-instructions-intro">
+      Your Application Information and Supporting Documents have been approved.
+      You may now proceed with payment using Revop.
+    </p>
+
+    <div class="payment-step-list">
+      <div class="payment-step">
+        <span class="payment-step-number">1</span>
+        <div>
+          <strong>Select Licence Fee</strong>
+          <p>Choose <strong>Licence Fee</strong> on the Revop payment portal.</p>
+        </div>
+      </div>
+
+      <div class="payment-step">
+        <span class="payment-step-number">2</span>
+        <div>
+          <strong>Use Registration Fees only if needed</strong>
+          <p>If Licence Fee is not available, select <strong>Registration Fees</strong>.</p>
+        </div>
+      </div>
+
+      <div class="payment-step">
+        <span class="payment-step-number">3</span>
+        <div>
+          <strong>Complete the required details</strong>
+          <p>Provide the remaining information requested on Revop.</p>
+        </div>
+      </div>
+
+      <div class="payment-step">
+        <span class="payment-step-number">4</span>
+        <div>
+          <strong>Pay ₦250,000</strong>
+          <p>Pay the CRFFN Licence application fee of <strong>₦250,000</strong>.</p>
+        </div>
+      </div>
+
+      <div class="payment-step">
+        <span class="payment-step-number">5</span>
+        <div>
+          <strong>Keep your payment details</strong>
+          <p>Keep your payment reference and receipt, then return to this Practitioner Portal to submit them for verification.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+          <div class="payment-action">
+            <a
+              href="https://revop.gov.ng/payments/generate-bill?org=0229006001000"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="button"
+              id="makePaymentButton"
+              style="display:none;"
+            >
+              Open Revop Payment Portal
+            </a>
+          </div>
+
+          <form
+            id="paymentReceiptForm"
+            style="display:none;"
+          >
+            <div class="form-group">
+              <label
+                class="form-label"
+                for="paymentReference"
+              >
+                Revop payment/reference number
+              </label>
+
+              <input
+                type="text"
+                id="paymentReference"
+                class="form-control"
+                placeholder="Enter your Revop payment/reference number"
+                autocomplete="off"
+                required
+              >
+            </div>
+
+            <div class="form-group">
+              <label
+                class="form-label"
+                for="paymentReceiptFile"
+              >
+                Upload payment receipt
+              </label>
+
+              <input
+                type="file"
+                id="paymentReceiptFile"
+                class="form-control"
+                accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
+                required
+              >
+
+              <p class="file-help">
+                Accepted formats: PDF, JPG and PNG.
+                Maximum file size: 5 MB.
+              </p>
+            </div>
+
+            <button
+              type="submit"
+              class="button"
+              id="submitPaymentButton"
+            >
+              Submit Payment Receipt
+            </button>
+          </form>
+
+          <div
+            id="paymentMessage"
+            class="payment-message"
+            role="alert"
+          ></div>
+        </div>
+
+      <? } ?>
+    </section>
+
+    <div class="security-note">
+      This portal link is private. Do not forward or share it with another person.
+      For enquiries, clarification or to report an issue, contact
+      <strong>licensing@crffn.gov.ng</strong> and include your Application ID.
+    </div>
+
+    <? } ?>
+  </main>
+
+  <footer class="page-footer">
+    CRFFN Licensing System
+  </footer>
+  <script>
+    const MAX_PAYMENT_FILE_SIZE =
+    5 * 1024 * 1024;
+
+  const APPLICANT_PORTAL_BASE_URL =
+    '<?= APP_CONFIG.PRODUCTION_WEB_APP_URL ?>';
+
+  function reloadPractitionerPortal_() {
+    const credentials =
+      getPortalCredentials();
+
+    const baseUrl =
+      String(
+        APPLICANT_PORTAL_BASE_URL || ''
+      )
+        .trim()
+        .split('?')[0]
+        .replace(/\/+$/, '');
+
+    if (
+      !baseUrl ||
+      !credentials.applicationId ||
+      !credentials.secureToken
+    ) {
+      window.location.reload();
+      return;
+    }
+
+    const query =
+      new URLSearchParams();
+
+    query.set('view', 'applicant');
+    query.set('ref', credentials.applicationId);
+    query.set('token', credentials.secureToken);
+
+    window.top.location.replace(
+      baseUrl + '?' + query.toString()
+    );
+  }
+
+  const ALLOWED_PAYMENT_FILE_TYPES = [
+    'application/pdf',
+    'image/jpeg',
+    'image/png',
+  ];
+
+  document.addEventListener(
+    'DOMContentLoaded',
+    initializePaymentSection
+  );
+
+  function getPortalCredentials() {
+  return {
+    applicationId:
+      <?!= JSON.stringify(applicationId || '') ?>,
+
+    secureToken:
+      <?!= JSON.stringify(secureToken || '') ?>,
+  };
+}
+
+  function initializePaymentSection() {
+    const credentials =
+      getPortalCredentials();
+
+    if (
+      !credentials.applicationId ||
+      !credentials.secureToken
+    ) {
+      showPaymentError(
+        'Payment information could not be loaded because the portal link is incomplete.'
+      );
+
+      return;
+    }
+
+    google.script.run
+      .withSuccessHandler(
+        handlePaymentDataLoaded
+      )
+      .withFailureHandler(
+        handlePaymentServerError
+      )
+      .getApplicantPaymentData(
+        credentials.applicationId,
+        credentials.secureToken
+      );
+
+    const paymentReceiptForm =
+      document.getElementById(
+        'paymentReceiptForm'
+      );
+
+    if (paymentReceiptForm) {
+      paymentReceiptForm.addEventListener(
+        'submit',
+        submitPaymentReceipt
+      );
+    }
+  }
+
+  function handlePaymentDataLoaded(result) {
+    const paymentLoading =
+      document.getElementById(
+        'paymentLoading'
+      );
+
+    const paymentContent =
+      document.getElementById(
+        'paymentContent'
+      );
+
+    if (paymentLoading) {
+      paymentLoading.style.display =
+        'none';
+    }
+
+    if (paymentContent) {
+      paymentContent.style.display =
+        'block';
+    }
+
+    if (!result || !result.ok) {
+      showPaymentError(
+        result && result.message
+          ? result.message
+          : 'Payment information could not be loaded.'
+      );
+
+      return;
+    }
+
+    document
+      .getElementById('paymentAmount')
+      .textContent =
+        result.amount
+          ? formatNaira(
+              result.amount
+            )
+          : '₦250,000';
+
+    document
+      .getElementById('paymentProvider')
+      .textContent =
+        String(result.provider || 'Revop').trim().toLowerCase() === 'revo'
+          ? 'Revop'
+          : (result.provider || 'Revop');
+
+    const paymentAllowed =
+      result.paymentAllowed ===
+      true;
+
+    const paymentLockedNotice =
+      document.getElementById(
+        'paymentLockedNotice'
+      );
+
+    const paymentAvailableInstructions =
+      document.getElementById(
+        'paymentAvailableInstructions'
+      );
+
+    const paymentButton =
+      document.getElementById(
+        'makePaymentButton'
+      );
+
+    const paymentReceiptForm =
+      document.getElementById(
+        'paymentReceiptForm'
+      );
+
+    if (paymentLockedNotice) {
+      paymentLockedNotice.style.display =
+        paymentAllowed
+          ? 'none'
+          : 'block';
+    }
+
+    if (paymentAvailableInstructions) {
+      paymentAvailableInstructions.style.display =
+        paymentAllowed
+          ? 'block'
+          : 'none';
+    }
+
+    if (paymentButton) {
+      paymentButton.href =
+        result.paymentUrl ||
+        'https://revop.gov.ng/payments/generate-bill?org=0229006001000';
+
+      paymentButton.style.display =
+        paymentAllowed
+          ? 'inline-flex'
+          : 'none';
+    }
+
+    if (paymentReceiptForm) {
+      paymentReceiptForm.style.display =
+        paymentAllowed
+          ? 'block'
+          : 'none';
+    }
+
+    const referenceInput =
+      document.getElementById(
+        'paymentReference'
+      );
+
+    referenceInput.value =
+      result.paymentReference || '';
+
+    updatePaymentStatusView(
+      result.paymentStatus,
+      result.paymentReference
+    );
+  }
+
+  function updatePaymentStatusView(
+    paymentStatus,
+    paymentReference
+  ) {
+    const cleanStatus =
+      String(
+        paymentStatus || 'Not Submitted'
+      ).trim();
+
+    const statusBadge =
+      document.getElementById(
+        'paymentStatusBadge'
+      );
+
+    statusBadge.textContent =
+      cleanStatus;
+
+    statusBadge.className =
+      getPaymentBadgeClass(cleanStatus);
+
+    const confirmedView =
+      document.getElementById(
+        'paymentConfirmedView'
+      );
+
+    const submissionView =
+      document.getElementById(
+        'paymentSubmissionView'
+      );
+
+    if (
+      cleanStatus.toLowerCase() ===
+      'confirmed'
+    ) {
+      confirmedView.style.display =
+        'block';
+
+      submissionView.style.display =
+        'none';
+
+      document
+        .getElementById(
+          'confirmedPaymentReference'
+        )
+        .textContent =
+          paymentReference
+            ? 'Payment reference: ' +
+              paymentReference
+            : '';
+
+      showPaymentMessage(
+        'Your payment has been confirmed.',
+        'success'
+      );
+
+      return;
+    }
+
+    confirmedView.style.display =
+      'none';
+
+    submissionView.style.display =
+      'block';
+
+    if (
+      cleanStatus.toLowerCase() ===
+      'pending verification'
+    ) {
+      showPaymentMessage(
+        'Your payment receipt has been received and is awaiting verification.',
+        'warning'
+      );
+    } else if (
+      cleanStatus.toLowerCase() ===
+      'rejected'
+    ) {
+      showPaymentMessage(
+        'The submitted receipt was not approved. Please confirm your payment information and upload the correct receipt.',
+        'danger'
+      );
+    } else if (
+      cleanStatus.toLowerCase() ===
+      'duplicate reference'
+    ) {
+      showPaymentMessage(
+        'This payment reference is already linked to another application. Please check the reference entered.',
+        'danger'
+      );
+    } else {
+      clearPaymentMessage();
+    }
+  }
+
+  function submitPaymentReceipt(event) {
+    event.preventDefault();
+
+    clearPaymentMessage();
+
+    const credentials =
+      getPortalCredentials();
+
+    const paymentReference =
+      document
+        .getElementById(
+          'paymentReference'
+        )
+        .value
+        .trim();
+
+    const fileInput =
+      document.getElementById(
+        'paymentReceiptFile'
+      );
+
+    const selectedFile =
+      fileInput.files[0];
+
+    if (!paymentReference) {
+      showPaymentMessage(
+        'Please enter your Revop payment/reference number.',
+        'danger'
+      );
+
+      return;
+    }
+
+    if (paymentReference.length < 6) {
+      showPaymentMessage(
+        'The payment reference entered is too short.',
+        'danger'
+      );
+
+      return;
+    }
+
+    if (!selectedFile) {
+      showPaymentMessage(
+        'Please select your payment receipt.',
+        'danger'
+      );
+
+      return;
+    }
+
+    if (
+      !ALLOWED_PAYMENT_FILE_TYPES.includes(
+        selectedFile.type
+      )
+    ) {
+      showPaymentMessage(
+        'Only PDF, JPG and PNG files are allowed.',
+        'danger'
+      );
+
+      return;
+    }
+
+    if (
+      selectedFile.size >
+      MAX_PAYMENT_FILE_SIZE
+    ) {
+      showPaymentMessage(
+        'The payment receipt must not exceed 5 MB.',
+        'danger'
+      );
+
+      return;
+    }
+
+    setPaymentSubmitting(true);
+
+    const reader = new FileReader();
+
+    reader.onload = function () {
+      const dataUrl =
+        String(reader.result || '');
+
+      const commaIndex =
+        dataUrl.indexOf(',');
+
+      if (commaIndex === -1) {
+        setPaymentSubmitting(false);
+
+        showPaymentMessage(
+          'The selected file could not be processed.',
+          'danger'
+        );
+
+        return;
+      }
+
+      const base64Data =
+        dataUrl.substring(
+          commaIndex + 1
+        );
+
+      const filePayload = {
+        fileName:
+          selectedFile.name,
+
+        mimeType:
+          selectedFile.type,
+
+        base64Data:
+          base64Data,
+      };
+
+      google.script.run
+        .withSuccessHandler(
+          handlePaymentSubmissionResult
+        )
+        .withFailureHandler(
+          handlePaymentSubmissionFailure
+        )
+        .submitApplicantPaymentProof(
+          credentials.applicationId,
+          credentials.secureToken,
+          paymentReference,
+          filePayload
+        );
+    };
+
+    reader.onerror = function () {
+      setPaymentSubmitting(false);
+
+      showPaymentMessage(
+        'The selected file could not be read.',
+        'danger'
+      );
+    };
+
+    reader.readAsDataURL(
+      selectedFile
+    );
+  }
+
+  function handlePaymentSubmissionResult(
+    result
+  ) {
+    setPaymentSubmitting(false);
+
+    if (!result || !result.ok) {
+      showPaymentMessage(
+        result && result.message
+          ? result.message
+          : 'The payment receipt could not be submitted.',
+        'danger'
+      );
+
+      return;
+    }
+
+    document
+      .getElementById(
+        'paymentReceiptFile'
+      )
+      .value = '';
+
+    showPaymentMessage(
+      result.message ||
+      'Payment receipt submitted successfully. Refreshing your application status...',
+      'success'
+    );
+
+    window.setTimeout(
+      reloadPractitionerPortal_,
+      250
+    );
+  }
+
+  function handlePaymentSubmissionFailure(
+    error
+  ) {
+    setPaymentSubmitting(false);
+
+    console.error(error);
+
+    showPaymentMessage(
+      'The payment receipt could not be submitted. Please try again.',
+      'danger'
+    );
+  }
+
+  function handlePaymentServerError(
+    error
+  ) {
+    console.error(error);
+
+    showPaymentError(
+      'Payment information could not be loaded. Please refresh the page.'
+    );
+  }
+
+  function setPaymentSubmitting(
+    isSubmitting
+  ) {
+    const button =
+      document.getElementById(
+        'submitPaymentButton'
+      );
+
+    const referenceInput =
+      document.getElementById(
+        'paymentReference'
+      );
+
+    const fileInput =
+      document.getElementById(
+        'paymentReceiptFile'
+      );
+
+    button.disabled =
+      isSubmitting;
+
+    referenceInput.disabled =
+      isSubmitting;
+
+    fileInput.disabled =
+      isSubmitting;
+
+    button.textContent =
+      isSubmitting
+        ? 'Submitting Receipt...'
+        : 'Submit Payment Receipt';
+
+    button.classList.toggle(
+      'button-loading',
+      isSubmitting
+    );
+  }
+
+  function showPaymentError(message) {
+    document
+      .getElementById('paymentLoading')
+      .style.display = 'none';
+
+    document
+      .getElementById('paymentContent')
+      .style.display = 'block';
+
+    document
+      .getElementById(
+        'paymentSubmissionView'
+      )
+      .style.display = 'none';
+
+    showPaymentMessage(
+      message,
+      'danger'
+    );
+  }
+
+  function showPaymentMessage(
+    message,
+    type
+  ) {
+    const element =
+      document.getElementById(
+        'paymentMessage'
+      );
+
+    element.textContent =
+      message || '';
+
+    element.className =
+      'payment-message ' +
+      'payment-message-' +
+      type;
+  }
+
+  function clearPaymentMessage() {
+    const element =
+      document.getElementById(
+        'paymentMessage'
+      );
+
+    element.textContent = '';
+
+    element.className =
+      'payment-message';
+  }
+
+  function getPaymentBadgeClass(
+    paymentStatus
+  ) {
+    const normalized =
+      String(paymentStatus || '')
+        .trim()
+        .toLowerCase();
+
+    if (normalized === 'confirmed') {
+      return 'badge badge-success';
+    }
+
+    if (
+      normalized ===
+        'pending verification' ||
+      normalized ===
+        'not submitted'
+    ) {
+      return 'badge badge-warning';
+    }
+
+    if (
+      normalized === 'rejected' ||
+      normalized ===
+        'duplicate reference'
+    ) {
+      return 'badge badge-danger';
+    }
+
+    return 'badge badge-neutral';
+  }
+
+  function formatNaira(amount) {
+    const numericAmount =
+      Number(amount || 0);
+
+    return new Intl.NumberFormat(
+      'en-NG',
+      {
+        style: 'currency',
+        currency: 'NGN',
+        maximumFractionDigits: 0,
+      }
+    ).format(numericAmount);
+  }
+  </script>
+</body>
+
+</html>

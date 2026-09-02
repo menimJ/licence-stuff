@@ -1,0 +1,7838 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <base target="_top">
+
+  <style>
+    :root {
+      --background: #f4f6f8;
+      --surface: #ffffff;
+      --primary: #183b56;
+      --primary-hover: #102a40;
+      --text-primary: #17202a;
+      --text-secondary: #667085;
+      --border: #e4e7ec;
+      --success-background: #ecfdf3;
+      --success-text: #027a48;
+      --warning-background: #fffaeb;
+      --warning-text: #b54708;
+      --danger-background: #fef3f2;
+      --danger-text: #b42318;
+      --neutral-background: #f2f4f7;
+      --neutral-text: #344054;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--background);
+      color: var(--text-primary);
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.5;
+    }
+
+    .page-header {
+      background: var(--primary);
+      color: #ffffff;
+      padding: 20px;
+    }
+
+    .header-content {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .organisation-name {
+      margin: 0;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      opacity: 0.8;
+    }
+
+    .portal-title {
+      margin: 5px 0 0;
+      font-size: 24px;
+    }
+
+    .admin-email {
+      font-size: 13px;
+      text-align: right;
+      opacity: 0.9;
+    }
+
+    .page-content {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 26px 20px 50px;
+    }
+
+    .card {
+      margin-bottom: 20px;
+      padding: 22px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow:
+        0 2px 8px rgba(16, 24, 40, 0.05);
+    }
+
+    .page-section-title {
+      margin: 0;
+      font-size: 21px;
+    }
+
+    .muted {
+      color: var(--text-secondary);
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns:
+        minmax(220px, 2fr) repeat(3, minmax(150px, 1fr));
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .form-control {
+      width: 100%;
+      min-height: 42px;
+      padding: 9px 12px;
+      border: 1px solid #d0d5dd;
+      border-radius: 7px;
+      background: #ffffff;
+      color: var(--text-primary);
+      font-size: 14px;
+    }
+
+    .form-control:focus {
+      border-color: var(--primary);
+      outline: 2px solid rgba(24, 59, 86, 0.12);
+    }
+
+    .table-container {
+      margin-top: 20px;
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+    }
+
+    table {
+      width: 100%;
+      min-width: 1000px;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      padding: 13px 14px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    th {
+      background: #f8fafc;
+      color: var(--text-secondary);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    td {
+      font-size: 13px;
+    }
+
+    tbody tr:hover {
+      background: #fafbfc;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .application-reference {
+      font-weight: 700;
+    }
+
+    .company-name {
+      margin-top: 2px;
+      color: var(--text-secondary);
+      font-size: 12px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 100px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .badge-success {
+      background: var(--success-background);
+      color: var(--success-text);
+    }
+
+    .badge-warning {
+      background: var(--warning-background);
+      color: var(--warning-text);
+    }
+
+    .badge-danger {
+      background: var(--danger-background);
+      color: var(--danger-text);
+    }
+
+    .badge-neutral {
+      background: var(--neutral-background);
+      color: var(--neutral-text);
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 38px;
+      padding: 8px 14px;
+      border: 0;
+      border-radius: 7px;
+      background: var(--primary);
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .button:hover {
+      background: var(--primary-hover);
+    }
+
+    .button-secondary {
+      border: 1px solid var(--primary);
+      background: #ffffff;
+      color: var(--primary);
+    }
+
+    .button-secondary:hover {
+      background: #f8fafc;
+    }
+
+    .button-disabled {
+      background: #eaecf0;
+      color: #98a2b3;
+      cursor: not-allowed;
+    }
+
+    .error-card {
+      max-width: 650px;
+      margin: 40px auto 0;
+      text-align: center;
+    }
+
+    .error-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 54px;
+      height: 54px;
+      margin: 0 auto 16px;
+      border-radius: 50%;
+      background: var(--danger-background);
+      color: var(--danger-text);
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .summary-item {
+      padding: 15px;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+
+    .summary-label {
+      display: block;
+      color: var(--text-secondary);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .summary-value {
+      display: block;
+      margin-top: 4px;
+      font-size: 23px;
+      font-weight: 700;
+    }
+
+    .details-grid {
+      display: grid;
+      grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 20px;
+    }
+
+    .detail-item {
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+
+    .detail-label {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--text-secondary);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .detail-value {
+      font-size: 14px;
+      font-weight: 600;
+      word-break: break-word;
+    }
+
+    .status-grid {
+      display: grid;
+      grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .status-box {
+      padding: 15px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+
+    .document-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .document-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 14px 15px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+
+    .document-name {
+      font-weight: 700;
+    }
+
+    .document-state {
+      color: var(--text-secondary);
+      font-size: 12px;
+    }
+
+    .notice {
+      padding: 14px 16px;
+      border-left: 4px solid var(--primary);
+      background: #f8fafc;
+      color: var(--text-secondary);
+      font-size: 13px;
+    }
+
+    .final-approval-box {
+      margin-top: 18px;
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #f8fafc;
+    }
+
+    .page-footer {
+      padding: 10px 20px 30px;
+      color: var(--text-secondary);
+      font-size: 12px;
+      text-align: center;
+    }
+
+    .empty-state {
+      padding: 40px 20px;
+      color: var(--text-secondary);
+      text-align: center;
+    }
+
+    .admin-review-list {
+      display: grid;
+      gap: 18px;
+      margin-top: 20px;
+    }
+
+    .admin-review-card {
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      background: #ffffff;
+    }
+
+    .review-notes {
+      min-height: 85px;
+      margin-top: 14px;
+      resize: vertical;
+    }
+
+    .review-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .button-danger {
+      background: #b42318;
+    }
+
+    .button-danger:hover {
+      background: #912018;
+    }
+
+    .admin-action-message {
+      margin-top: 18px;
+      padding: 13px 15px;
+      border-radius: 7px;
+    }
+
+    .admin-action-message.success {
+      background: #ecfdf3;
+      color: #027a48;
+    }
+
+    .admin-action-message.error {
+      background: #fef3f2;
+      color: #b42318;
+    }
+
+    .licence-workflow-grid {
+      display: grid;
+      grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    .licence-panel {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #ffffff;
+    }
+
+    .licence-panel h3 {
+      margin: 0 0 8px;
+      font-size: 15px;
+    }
+
+    .file-input {
+      display: block;
+      width: 100%;
+      margin-top: 12px;
+      padding: 10px;
+      border: 1px solid #d0d5dd;
+      border-radius: 7px;
+      background: #ffffff;
+    }
+
+    .button-warning {
+      background: #b54708;
+    }
+
+    .button-warning:hover {
+      background: #93370d;
+    }
+
+    @media (max-width: 800px) {
+      .header-content {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .admin-email {
+        text-align: left;
+      }
+
+      .toolbar,
+      .summary-grid,
+      .details-grid,
+      .status-grid,
+      .licence-workflow-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .page-content {
+        padding: 20px 14px 40px;
+      }
+
+      .card {
+        padding: 18px;
+      }
+
+      .document-item {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .document-item .button {
+        width: 100%;
+      }
+    }
+
+    .confirmation-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .confirmation-modal.is-visible {
+      display: flex;
+    }
+
+    .confirmation-modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(16, 24, 40, 0.62);
+      backdrop-filter: blur(2px);
+    }
+
+    .confirmation-modal-dialog {
+      position: relative;
+      width: min(720px, 100%);
+      max-height: calc(100vh - 48px);
+      overflow-y: auto;
+      padding: 28px;
+      border-radius: 16px;
+      background: #ffffff;
+      box-shadow:
+        0 24px 60px rgba(16, 24, 40, 0.28);
+    }
+
+    .confirmation-modal-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      margin-bottom: 14px;
+      border-radius: 50%;
+      background: var(--warning-background);
+      color: var(--warning-text);
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .confirmation-modal-content h2 {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.25;
+    }
+
+    .confirmation-modal-content > p {
+      margin: 8px 0 0;
+      color: var(--text-secondary);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .confirmation-modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 10px;
+      margin-top: 22px;
+      padding-top: 18px;
+      border-top: 1px solid #eaecf0;
+    }
+
+    .confirmation-modal-actions .button {
+      min-width: 120px;
+    }
+
+    .confirmation-modal-confirm-danger {
+      background: #b42318;
+    }
+
+    .confirmation-modal-confirm-danger:hover {
+      background: #912018;
+    }
+
+    .confirmation-modal-loader {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      margin-top: 16px;
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .confirmation-modal-loader.is-visible {
+      display: flex;
+    }
+
+    .confirmation-modal-spinner {
+      width: 22px;
+      height: 22px;
+      flex: 0 0 auto;
+      border: 3px solid #e4e7ec;
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: confirmation-modal-spin 0.8s linear infinite;
+    }
+
+    @keyframes confirmation-modal-spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .confirmation-modal.is-busy .confirmation-modal-backdrop,
+    .confirmation-modal.is-busy .confirmation-modal-dialog {
+      cursor: wait;
+    }
+
+    /* Targeted correction builder */
+    #targetedCorrectionFields {
+      margin-top: 18px !important;
+      padding: 16px;
+      border: 1px solid #e4e7ec;
+      border-radius: 12px;
+      background: #f8fafc;
+    }
+
+    .targeted-correction-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .targeted-correction-row {
+      display: grid;
+      grid-template-columns:
+        minmax(0, 1fr)
+        minmax(0, 1fr)
+        auto;
+      gap: 10px;
+      align-items: end;
+      padding: 12px;
+      border: 1px solid #e4e7ec;
+      border-radius: 10px;
+      background: #ffffff;
+    }
+
+    .targeted-correction-row label {
+      min-width: 0;
+      display: grid;
+      gap: 6px;
+      color: var(--text-primary);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .targeted-correction-row select {
+      min-width: 0;
+      width: 100%;
+      height: 42px;
+      padding: 0 36px 0 11px;
+      border: 1px solid #d0d5dd;
+      border-radius: 8px;
+      background: #ffffff;
+      color: var(--text-primary);
+      font: inherit;
+      font-size: 14px;
+    }
+
+    .targeted-remove-button {
+      height: 42px;
+      padding: 0 12px;
+      border: 1px solid #fda29b;
+      border-radius: 8px;
+      background: #ffffff;
+      color: #b42318;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .targeted-remove-button:hover {
+      background: #fef3f2;
+    }
+
+    #targetedCorrectionFields > .button {
+      width: auto;
+      justify-self: start;
+      padding: 9px 14px;
+      margin-top: 2px;
+      background: #ffffff;
+    }
+
+    #targetedCorrectionCustomWrap {
+      margin-top: 2px;
+      padding-top: 12px;
+      border-top: 1px solid #e4e7ec;
+    }
+
+    #targetedCorrectionCustomDetails {
+      box-sizing: border-box;
+      width: 100% !important;
+      min-height: 82px !important;
+      resize: vertical;
+      font: inherit;
+      font-size: 14px;
+    }
+
+    /* Email preview */
+    .email-preview-box {
+      display: none;
+      margin-top: 18px;
+      padding: 18px;
+      border: 1px solid #d0d5dd;
+      border-radius: 12px;
+      background: #f8fafc;
+    }
+
+    .email-preview-box.is-visible {
+      display: block;
+    }
+
+    .email-preview-box > div {
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .email-preview-body {
+      max-height: 360px;
+      overflow-y: auto;
+      margin: 14px 0 0;
+      padding: 14px;
+      border: 1px solid #e4e7ec;
+      border-radius: 8px;
+      background: #ffffff;
+      white-space: pre-wrap;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    /* Standard single-reason fields */
+    .confirmation-modal-reason-fields {
+      display: none;
+      gap: 14px;
+      margin-top: 18px;
+      padding: 16px;
+      border: 1px solid #e4e7ec;
+      border-radius: 12px;
+      background: #f8fafc;
+    }
+
+    .confirmation-modal-reason-fields.is-visible {
+      display: grid;
+    }
+
+    .confirmation-modal-reason-label {
+      display: grid;
+      gap: 7px;
+      color: var(--text-primary);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .confirmation-modal-reason-fields select,
+    .confirmation-modal-reason-fields textarea {
+      box-sizing: border-box;
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #d0d5dd;
+      border-radius: 8px;
+      background: #ffffff;
+      color: var(--text-primary);
+      font: inherit;
+    }
+
+    .confirmation-modal-reason-fields textarea {
+      min-height: 82px;
+      resize: vertical;
+    }
+
+    .confirmation-modal-checkbox-list {
+      display: none;
+      gap: 9px;
+      padding: 11px;
+      border: 1px solid #d0d5dd;
+      border-radius: 8px;
+      background: #ffffff;
+    }
+
+    .confirmation-modal-checkbox-list.is-visible {
+      display: grid;
+    }
+
+    .confirmation-modal-checkbox-option {
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .confirmation-modal-checkbox-option input {
+      margin-top: 2px;
+      flex: 0 0 auto;
+    }
+
+    .confirmation-modal-other-details {
+      display: none;
+    }
+
+    .confirmation-modal-other-details.is-visible {
+      display: grid;
+      gap: 7px;
+    }
+
+    .confirmation-modal-reason-error {
+      display: none;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: var(--danger-background);
+      color: var(--danger-text);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .confirmation-modal-reason-error.is-visible {
+      display: block;
+    }
+
+    body.modal-open {
+      overflow: hidden;
+    }
+
+    @media (max-width: 720px) {
+      .confirmation-modal {
+        align-items: flex-end;
+        padding: 0;
+      }
+
+      .confirmation-modal-dialog {
+        width: 100%;
+        max-height: 92vh;
+        padding: 22px 18px;
+        border-radius: 16px 16px 0 0;
+      }
+
+      .confirmation-modal-content h2 {
+        font-size: 21px;
+      }
+
+      .targeted-correction-row {
+        grid-template-columns: 1fr;
+      }
+
+      .targeted-remove-button {
+        width: 100%;
+      }
+
+      #targetedCorrectionFields > .button {
+        width: 100%;
+      }
+
+      .confirmation-modal-actions {
+        flex-direction: column-reverse;
+      }
+
+      .confirmation-modal-actions .button {
+        width: 100%;
+      }
+    }
+  
+    .admin-auth-shell {
+      max-width: 520px;
+      margin: 48px auto;
+    }
+
+    .admin-auth-card {
+      padding: 28px;
+    }
+
+    .admin-auth-card h2 {
+      margin: 0 0 8px;
+    }
+
+    .admin-auth-form {
+      display: grid;
+      gap: 16px;
+      margin-top: 22px;
+    }
+
+    .admin-auth-form label {
+      display: grid;
+      gap: 7px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .admin-auth-form input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 12px 13px;
+      border: 1px solid #d0d5dd;
+      border-radius: 8px;
+      background: #ffffff;
+      color: var(--text-primary);
+      font: inherit;
+    }
+
+    .admin-auth-message {
+      display: none;
+      padding: 11px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .admin-auth-message.error {
+      display: block;
+      background: var(--danger-background);
+      color: var(--danger-text);
+    }
+
+    .admin-auth-message.success {
+      display: block;
+      background: #ecfdf3;
+      color: #027a48;
+    }
+
+    .admin-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .admin-logout-button {
+      border: 1px solid rgba(255,255,255,.55);
+      border-radius: 8px;
+      padding: 8px 11px;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    @media (max-width: 720px) {
+      .admin-auth-shell {
+        margin: 24px auto;
+      }
+
+      .admin-auth-card {
+        padding: 22px 18px;
+      }
+
+      .admin-header-actions {
+        align-items: flex-end;
+        flex-direction: column;
+      }
+    }
+
+
+    .admin-password-field {
+      position: relative;
+      display: block;
+    }
+
+    .admin-password-field input {
+      padding-right: 48px;
+    }
+
+    .admin-password-toggle {
+      position: absolute;
+      top: 50%;
+      right: 8px;
+      transform: translateY(-50%);
+      width: 34px;
+      height: 34px;
+      border: 0;
+      border-radius: 7px;
+      background: transparent;
+      color: #475467;
+      cursor: pointer;
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    .admin-password-toggle:hover {
+      background: #f2f4f7;
+    }
+
+
+    .super-admin-nav-button {
+      border: 1px solid rgba(255,255,255,.55);
+      border-radius: 8px;
+      padding: 8px 11px;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .admin-settings-panel {
+      display: none;
+    }
+
+    .admin-settings-panel.visible {
+      display: block;
+    }
+
+    .admin-settings-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .admin-settings-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .admin-settings-grid label {
+      display: grid;
+      gap: 7px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .admin-settings-grid input,
+    .admin-settings-grid select {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 11px 12px;
+      border: 1px solid #d0d5dd;
+      border-radius: 8px;
+      background: #fff;
+      font: inherit;
+    }
+
+    .admin-users-table-wrap {
+      overflow-x: auto;
+      margin-top: 18px;
+    }
+
+    .admin-users-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 920px;
+    }
+
+    .admin-users-table th,
+    .admin-users-table td {
+      padding: 12px 10px;
+      border-bottom: 1px solid #eaecf0;
+      text-align: left;
+      vertical-align: top;
+      font-size: 13px;
+    }
+
+    .admin-users-table th {
+      background: #f9fafb;
+      color: #475467;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .02em;
+    }
+
+    .admin-user-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+
+    .admin-action-small {
+      border: 1px solid #d0d5dd;
+      border-radius: 7px;
+      padding: 7px 9px;
+      background: #fff;
+      color: #344054;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .admin-action-small.danger {
+      border-color: #fecdca;
+      color: #b42318;
+      background: #fff5f4;
+    }
+
+    .admin-action-small.success {
+      border-color: #abefc6;
+      color: #067647;
+      background: #ecfdf3;
+    }
+
+    .admin-settings-message {
+      display: none;
+      margin-top: 12px;
+      padding: 11px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .admin-settings-message.success {
+      display: block;
+      background: #ecfdf3;
+      color: #027a48;
+    }
+
+    .admin-settings-message.error {
+      display: block;
+      background: #fef3f2;
+      color: #b42318;
+    }
+
+    .temporary-password-box {
+      margin-top: 10px;
+      padding: 12px;
+      border: 1px dashed #98a2b3;
+      border-radius: 8px;
+      background: #f9fafb;
+      font-family: monospace;
+      overflow-wrap: anywhere;
+    }
+
+    @media (max-width: 820px) {
+      .admin-settings-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+
+    .per-document-review {
+      display: grid;
+      gap: 12px;
+      padding: 14px 0;
+      border-bottom: 1px solid #eaecf0;
+    }
+
+    .per-document-review:last-child {
+      border-bottom: 0;
+    }
+
+    .document-review-status-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .document-review-controls {
+      display: grid;
+      gap: 10px;
+      padding: 12px;
+      border: 1px solid #eaecf0;
+      border-radius: 8px;
+      background: #f9fafb;
+    }
+
+    .document-review-textarea {
+      width: 100%;
+      min-height: 72px;
+      resize: vertical;
+      padding: 10px 12px;
+      border: 1px solid #d0d5dd;
+      border-radius: 7px;
+      font: inherit;
+    }
+
+    .document-review-note {
+      padding: 10px 12px;
+      border-radius: 7px;
+      background: #fff4ed;
+      color: #9c2a10;
+      font-size: 13px;
+    }
+
+    .document-review-summary {
+      margin-top: 6px;
+      font-weight: 700;
+      color: #344054;
+    }
+
+  </style>
+</head>
+
+<body>
+  <?
+    const safeAdminAccess =
+      (
+        typeof adminAccess !== 'undefined' &&
+        adminAccess &&
+        typeof adminAccess === 'object'
+      )
+        ? adminAccess
+        : {
+            ok: false,
+            mustChangePassword: false,
+            email: '',
+            role: ''
+          };
+
+    const safeAdminEmail =
+      typeof adminEmail !== 'undefined'
+        ? String(adminEmail || '')
+        : String(safeAdminAccess.email || '');
+
+    const safeAdminRole =
+      typeof adminRole !== 'undefined'
+        ? String(adminRole || '')
+        : String(safeAdminAccess.role || '');
+  ?>
+  <header class="page-header">
+    <div class="header-content">
+      <div>
+        <p class="organisation-name">
+          CRFFN Licensing System
+        </p>
+
+        <h1 class="portal-title">
+          Administration Portal
+        </h1>
+      </div>
+
+      <? if (safeAdminAccess.ok) { ?>
+      <div class="admin-header-actions">
+        <div class="admin-email">
+          Signed in as<br>
+          <strong><?= safeAdminEmail ?></strong>
+          <? if (adminRole) { ?>
+          <br><?= safeAdminRole ?>
+          <? } ?>
+        </div>
+        <? if (safeAdminRole === 'Super Admin') { ?>
+        <button
+          class="super-admin-nav-button"
+          type="button"
+          onclick="openAdminSettings()"
+        >
+          Admin Settings
+        </button>
+        <? } ?>
+
+        <button
+          class="admin-logout-button"
+          type="button"
+          onclick="logoutAdmin()"
+        >
+          Logout
+        </button>
+      </div>
+      <? } ?>
+    </div>
+  </header>
+
+  <main class="page-content">
+    <? if (!safeAdminAccess.ok && !safeAdminAccess.mustChangePassword) { ?>
+
+    <div class="admin-auth-shell">
+      <section class="card admin-auth-card">
+        <p class="organisation-name">
+          Secure Administration
+        </p>
+
+        <h2>Admin Login</h2>
+
+        <p class="muted">
+          Sign in with your CRFFN administrator account.
+        </p>
+
+        <form
+          id="adminLoginForm"
+          class="admin-auth-form"
+          onsubmit="submitAdminLogin(event)"
+        >
+          <label>
+            Email Address
+            <input
+              id="adminLoginEmail"
+              type="email"
+              autocomplete="username"
+              required
+            >
+          </label>
+
+          <label>
+            Password
+            <span class="admin-password-field">
+              <input
+                id="adminLoginPassword"
+                type="password"
+                autocomplete="current-password"
+                required
+              >
+              <button
+                class="admin-password-toggle"
+                type="button"
+                aria-label="Show password"
+                onclick="toggleAdminPassword('adminLoginPassword', this)"
+              >
+                👁
+              </button>
+            </span>
+          </label>
+
+          <div
+            id="adminLoginMessage"
+            class="admin-auth-message"
+          ></div>
+
+          <button
+            id="adminLoginButton"
+            class="button"
+            type="submit"
+          >
+            Sign In
+          </button>
+        </form>
+
+        <p class="muted" style="margin-top:16px;">
+          If your password has been reset, sign in with the temporary/default password supplied by the Super Admin. You will be required to create a new password.
+        </p>
+      </section>
+    </div>
+
+    <? } else if (safeAdminAccess.mustChangePassword) { ?>
+
+    <div class="admin-auth-shell">
+      <section class="card admin-auth-card">
+        <p class="organisation-name">
+          Password Update Required
+        </p>
+
+        <h2>Create a New Password</h2>
+
+        <p class="muted">
+          You are signed in as
+          <strong><?= safeAdminAccess.email ?></strong>.
+          You must replace the temporary password before entering the Admin Portal.
+        </p>
+
+        <form
+          id="adminPasswordChangeForm"
+          class="admin-auth-form"
+          onsubmit="submitAdminPasswordChange(event)"
+        >
+          <label>
+            Current Temporary Password
+            <span class="admin-password-field">
+              <input
+                id="adminCurrentPassword"
+                type="password"
+                autocomplete="current-password"
+                required
+              >
+              <button
+                class="admin-password-toggle"
+                type="button"
+                aria-label="Show password"
+                onclick="toggleAdminPassword('adminCurrentPassword', this)"
+              >
+                👁
+              </button>
+            </span>
+          </label>
+
+          <label>
+            New Password
+            <span class="admin-password-field">
+              <input
+                id="adminNewPassword"
+                type="password"
+                autocomplete="new-password"
+                minlength="10"
+                required
+              >
+              <button
+                class="admin-password-toggle"
+                type="button"
+                aria-label="Show password"
+                onclick="toggleAdminPassword('adminNewPassword', this)"
+              >
+                👁
+              </button>
+            </span>
+          </label>
+
+          <label>
+            Confirm New Password
+            <span class="admin-password-field">
+              <input
+                id="adminConfirmPassword"
+                type="password"
+                autocomplete="new-password"
+                minlength="10"
+                required
+              >
+              <button
+                class="admin-password-toggle"
+                type="button"
+                aria-label="Show password"
+                onclick="toggleAdminPassword('adminConfirmPassword', this)"
+              >
+                👁
+              </button>
+            </span>
+          </label>
+
+          <p class="muted">
+            Use at least 10 characters with uppercase, lowercase, number and special character.
+          </p>
+
+          <div
+            id="adminPasswordChangeMessage"
+            class="admin-auth-message"
+          ></div>
+
+          <button
+            id="adminPasswordChangeButton"
+            class="button"
+            type="submit"
+          >
+            Change Password
+          </button>
+        </form>
+      </section>
+    </div>
+
+    <? } else if (!adminData.ok) { ?>
+
+    <section class="card error-card">
+      <div class="error-icon">!</div>
+
+      <h2>Unable to load application</h2>
+
+      <p class="muted">
+        <?= adminData.message ?>
+      </p>
+
+      <a class="button" href="<?= APP_CONFIG.PRODUCTION_WEB_APP_URL ?>?view=admin&session=<?= adminSessionTokenEncoded ?>">
+        Return to Applications
+      </a>
+    </section>
+
+    <? } else if (applicationId && adminData.application) { ?>
+
+    <? const application = adminData.application; ?>
+
+    <section class="card">
+      <a class="button button-secondary" href="<?= APP_CONFIG.PRODUCTION_WEB_APP_URL ?>?view=admin&session=<?= adminSessionTokenEncoded ?>">
+        ← Back to Applications
+      </a>
+
+      <div style="margin-top: 20px;">
+        <p class="muted" style="margin: 0;">
+          Application
+        </p>
+
+        <h2 class="page-section-title">
+          <?= application.applicationId ?>
+        </h2>
+
+        <p class="muted" style="margin: 5px 0 0;">
+          <?= application.applicantName ?>
+
+          <? if (application.companyName) { ?>
+          —
+          <?= application.companyName ?>
+          <? } ?>
+        </p>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 class="page-section-title">
+        Application information
+      </h2>
+
+      <div class="details-grid">
+        <?!= renderAdminDetail_(
+          'Application ID',
+          application.applicationId
+        ) ?>
+
+        <?!= renderAdminDetail_(
+          'Serial Number',
+          application.serialNumber
+        ) ?>
+
+        <?!= renderAdminDetail_(
+          'Applicant Name',
+          application.applicantName
+        ) ?>
+
+        <?!= renderAdminDetail_(
+          'Company Name',
+          application.companyName
+        ) ?>
+
+        <?!= renderAdminDetail_(
+          'Company RC Number',
+          application.rcNumber
+        ) ?>
+
+        <?!= renderAdminDetail_(
+          'TIN',
+          application.tin
+        ) ?>
+
+        <?!= renderAdminDetail_(
+          'CRFFN Membership Number',
+          application.crffnMembershipNumber
+        ) ?>
+
+        <?!= renderAdminDetail_(
+          'Office Address',
+          application.officeAddress
+        ) ?>
+
+        <?!= renderAdminDetail_(
+          'Email',
+          application.email
+        ) ?>
+
+        <?!= renderAdminDetail_(
+          'Phone Number',
+          application.phoneNumber
+        ) ?>
+
+        <?!= renderAdminDetail_(
+          'Submitted',
+          application.submittedAt
+        ) ?>
+      </div>
+
+      <div class="admin-review-card">
+        <div>
+          <span class="detail-label">
+            Application Information Review
+          </span>
+
+          <span
+            id="informationStatus"
+            class="<?=
+              getAdminStatusClass_(
+                application.informationStatus
+              )
+            ?>"
+          >
+            <?= application.informationStatus ?>
+          </span>
+        </div>
+
+        <div class="review-actions">
+          <button
+            type="button"
+            class="button"
+            onclick="approveReviewStage('information')"
+          >
+            Confirm Information
+          </button>
+
+          <button
+            type="button"
+            class="button button-danger"
+            onclick="rejectReviewStage('information')"
+          >
+            Request Correction
+          </button>
+        </div>
+      </div>
+
+      <div id="informationActionMessage" class="admin-action-message" style="display: none;"></div>
+    </section>
+
+    <section class="card">
+      <h2 class="page-section-title">
+        Supporting Documents
+      </h2>
+
+      <div class="document-list">
+<?!= renderAdminSupportingDocuments_(
+          application.applicationId,
+          adminSessionToken
+        ) ?>
+
+      </div>
+
+      <?!= renderAdminSupportingDocumentsSummary_(
+        application.applicationId,
+        adminSessionToken
+      ) ?>
+    </section>
+
+
+    <section class="card">
+      <h2 class="page-section-title">
+        Payment information
+      </h2>
+
+      <div class="details-grid">
+        <?!= renderAdminDetail_(
+          'Payment Reference',
+          application.paymentReference
+        ) ?>
+
+        <?!= renderAdminDetail_(
+          'Payment Status',
+          application.paymentStatus
+        ) ?>
+
+        <?!= renderAdminDetail_(
+          'Receipt Uploaded At',
+          application.paymentProofUploadedAt
+        ) ?>
+
+        <?!= renderAdminDetail_(
+          'Verified At',
+          application.paymentVerifiedAt
+        ) ?>
+
+        <?!= renderAdminDetail_(
+          'Verified By',
+          application.paymentVerifiedBy
+        ) ?>
+
+        <?!= renderAdminDetail_(
+          'Review Notes',
+          application.paymentRejectionReason
+        ) ?>
+      </div>
+
+      <div class="document-list">
+        <?!= renderAdminDocument_(
+          'Payment Receipt',
+          application.receiptPdfUrl,
+          application.applicationId,
+          'payment',
+          adminSessionToken
+        ) ?>
+      </div>
+
+      <div class="admin-review-card">
+        <div>
+          <span class="detail-label">
+            Payment Review
+          </span>
+
+          <span
+            id="paymentStatus"
+            class="<?=
+              getAdminStatusClass_(
+                application.paymentStatus
+              )
+            ?>"
+          >
+            <?= application.paymentStatus ?>
+          </span>
+        </div>
+
+        <div class="review-actions">
+          <button
+            type="button"
+            class="button"
+            onclick="approveReviewStage('payment')"
+          >
+            Confirm Payment
+          </button>
+
+          <button
+            type="button"
+            class="button button-danger"
+            onclick="rejectReviewStage('payment')"
+          >
+            Reject Payment
+          </button>
+        </div>
+      </div>
+
+      <div id="paymentActionMessage" class="admin-action-message" style="display: none;"></div>
+    </section>
+    <section class="card">
+      <h2 class="page-section-title">
+        Final Approval
+      </h2>
+
+      <div class="admin-review-card">
+        <div>
+          <span class="detail-label">
+            Final Application Approval
+          </span>
+
+          <span
+            id="verificationStatus"
+            class="<?=
+              getAdminStatusClass_(
+                application.verificationStatus
+              )
+            ?>"
+          >
+            <?= application.verificationStatus ?>
+          </span>
+        </div>
+
+        <div class="review-actions">
+          <button
+            type="button"
+            class="button"
+            onclick="approveReviewStage('verification')"
+          >
+            Approve Application
+          </button>
+
+          <button
+            type="button"
+            class="button button-danger"
+            onclick="rejectReviewStage('verification')"
+          >
+            Reject Application
+          </button>
+        </div>
+      </div>
+
+      <div id="verificationActionMessage" class="admin-action-message" style="display: none;"></div>
+
+      <div
+        class="final-approval-box"
+        id="licenceWorkflowContainer"
+        style="<?=
+          String(application.verificationStatus || '')
+            .trim()
+            .toLowerCase() === 'approved'
+              ? ''
+              : 'display: none;'
+        ?>"
+      >
+        <h3 style="margin-top: 0;">
+          Licence Workflow
+        </h3>
+
+        <div id="licenceActionMessage" class="admin-action-message" style="display: none;"></div>
+
+        <? if (
+          application.canGenerateLicence &&
+          application.licenceStatus === 'Not Generated'
+        ) { ?>
+
+        <div id="licenceGenerationReadyState">
+          <p>
+            All required confirmations have been completed.
+          </p>
+
+          <button
+            type="button"
+            id="generateLicenceButton"
+            class="button"
+            onclick="generateDraftLicence()"
+          >
+            Generate Unstamped Licence
+          </button>
+        </div>
+
+        <? } ?>
+
+        <? if (
+          application.licenceDocumentUrl ||
+          application.licencePdfUrl
+        ) { ?>
+
+        <div id="generatedDraftLicencePanel" class="licence-panel" style="margin-top: 16px;">
+          <h3>
+            Generated Unstamped Licence
+          </h3>
+
+          <p class="muted">
+            Review the generated licence before uploading the stamped copy.
+          </p>
+
+          <div class="review-actions">
+            <? if (application.licencePdfUrl) { ?>
+
+            <a class="button" href="#" onclick="return openSecureAdminDocument_('draftlicence', 'view');">
+              View Draft Licence
+            </a>
+
+            <a class="button button-secondary" href="#" onclick="return openSecureAdminDocument_('draftlicence', 'download');">
+              Download Draft Licence
+            </a>
+
+            <? } ?>
+          </div>
+        </div>
+
+        <? } ?>
+
+        <? if (
+          application.licenceStatus === 'Generated'
+        ) { ?>
+
+        <div id="stampedLicenceWorkflow" class="licence-workflow-grid">
+          <div class="licence-panel">
+            <h3>
+              Upload Stamped Licence
+            </h3>
+
+            <p class="muted">
+              Upload the signed and stamped PDF.
+              The applicant will not receive it until an admin approves and releases it.
+            </p>
+
+            <input
+              id="stampedLicenceFile"
+              class="file-input"
+              type="file"
+              accept="application/pdf,.pdf"
+            >
+
+            <div class="review-actions">
+              <button
+                type="button"
+                id="uploadStampedLicenceButton"
+                class="button"
+                onclick="uploadStampedLicence()"
+              >
+                Upload Stamped Licence
+              </button>
+            </div>
+          </div>
+
+          <div class="licence-panel">
+            <h3>
+              Stamped Licence Review
+            </h3>
+
+            <? if (
+              application.stampedLicencePdfUrl
+            ) { ?>
+
+            <p>
+              Approval status:
+              <strong>
+                <?=
+                  application.stampedLicenceApprovalStatus ||
+                  'Pending Approval'
+                ?>
+              </strong>
+            </p>
+
+            <div class="review-actions">
+              <a class="button" href="#" onclick="return openSecureAdminDocument_('stampedlicence', 'view');">
+                View Stamped Licence
+              </a>
+
+              <a class="button button-secondary" href="#" onclick="return openSecureAdminDocument_('stampedlicence', 'download');">
+                Download Stamped Licence
+              </a>
+
+              <button
+                type="button"
+                id="approveStampedLicenceButton"
+                class="button button-warning"
+                onclick="approveAndReleaseStampedLicence()"
+              >
+                Approve and Send to Applicant
+              </button>
+            </div>
+
+            <? } else { ?>
+
+            <p class="muted">
+              No stamped licence has been uploaded.
+            </p>
+
+            <? } ?>
+          </div>
+        </div>
+
+        <? } ?>
+
+        <? if (
+          application.licenceStatus === 'Released'
+        ) { ?>
+
+        <div id="releasedLicencePanel" class="licence-panel" style="margin-top: 16px;">
+          <h3>
+            Released Licence
+          </h3>
+
+          <p>
+            This stamped licence has been approved and released to the applicant.
+          </p>
+
+          <? if (
+            application.stampedLicencePdfUrl
+          ) { ?>
+
+          <div class="review-actions">
+            <a class="button" href="#" onclick="return openSecureAdminDocument_('stampedlicence', 'view');">
+              View Released Licence
+            </a>
+
+            <a class="button button-secondary" href="#" onclick="return openSecureAdminDocument_('stampedlicence', 'download');">
+              Download Released Licence
+            </a>
+          </div>
+
+          <? } ?>
+        </div>
+
+        <? } ?>
+
+        <? if (
+          !application.canGenerateLicence &&
+          application.licenceStatus === 'Not Generated'
+        ) { ?>
+
+        <div id="licenceGenerationLockedState">
+          <p style="margin-top: 0;">
+            This application is not ready for licence generation.
+          </p>
+
+          <div class="notice">
+            Required before licence generation:
+            Payment Confirmed, Documents Complete,
+            Information Confirmed and Verification Approved.
+          </div>
+        </div>
+
+        <? } ?>
+      </div>
+    </section>
+
+    <? } else { ?>
+
+    <section class="card">
+      <h2 class="page-section-title">
+        Applications
+      </h2>
+
+      <p class="muted">
+        Review submitted applications, payments,
+        documents and licence status.
+      </p>
+
+      <div class="summary-grid">
+        <div class="summary-item">
+          <span class="summary-label">
+            Total displayed
+          </span>
+
+          <span class="summary-value">
+            <?= adminData.total ?>
+          </span>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <input
+          type="search"
+          id="applicationSearch"
+          class="form-control"
+          placeholder="Search ID, applicant or company"
+        >
+
+        <select
+          id="paymentFilter"
+          class="form-control"
+        >
+          <option value="">
+            All payments
+          </option>
+
+          <option value="not submitted">
+            Not Submitted
+          </option>
+
+          <option value="pending verification">
+            Pending Verification
+          </option>
+
+          <option value="confirmed">
+            Confirmed
+          </option>
+
+          <option value="rejected">
+            Rejected
+          </option>
+        </select>
+
+        <select
+          id="verificationFilter"
+          class="form-control"
+        >
+          <option value="">
+            All verification
+          </option>
+
+          <option value="pending">
+            Pending
+          </option>
+
+          <option value="under review">
+            Under Review
+          </option>
+
+          <option value="approved">
+            Approved
+          </option>
+
+          <option value="rejected">
+            Rejected
+          </option>
+        </select>
+
+        <select
+          id="licenceFilter"
+          class="form-control"
+        >
+          <option value="">
+            All licences
+          </option>
+
+          <option value="not generated">
+            Not Generated
+          </option>
+
+          <option value="generated">
+            Generated
+          </option>
+
+          <option value="released">
+            Released
+          </option>
+
+          <option value="suspended">
+            Suspended
+          </option>
+
+          <option value="revoked">
+            Revoked
+          </option>
+        </select>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Application</th>
+              <th>Applicant</th>
+              <th>Submitted</th>
+              <th>Documents</th>
+              <th>Payment</th>
+              <th>Verification</th>
+              <th>Licence</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+
+          <tbody id="applicationTableBody">
+            <? for (
+              let index = 0;
+              index < adminData.applications.length;
+              index++
+            ) { ?>
+
+            <? const item =
+              adminData.applications[index]; ?>
+
+            <tr class="application-row" data-search="<?=
+                (
+                  item.applicationId + ' ' +
+                  item.applicantName + ' ' +
+                  item.companyName
+                ).toLowerCase()
+              ?>" data-payment="<?=
+                item.paymentStatus.toLowerCase()
+              ?>" data-verification="<?=
+                item.verificationStatus.toLowerCase()
+              ?>" data-licence="<?=
+                item.licenceStatus.toLowerCase()
+              ?>">
+              <td>
+                <div class="application-reference">
+                  <?= item.applicationId ?>
+                </div>
+
+                <? if (item.companyName) { ?>
+
+                <div class="company-name">
+                  <?= item.companyName ?>
+                </div>
+
+                <? } ?>
+              </td>
+
+              <td>
+                <?= item.applicantName ?>
+              </td>
+
+              <td>
+                <?= item.submittedAt || '—' ?>
+              </td>
+
+              <td>
+                <span class="<?=
+                  getAdminStatusClass_(
+                    item.documentStatus
+                  )
+                ?>">
+                  <?= item.documentStatus ?>
+                </span>
+              </td>
+
+              <td>
+                <span class="<?=
+                  getAdminStatusClass_(
+                    item.paymentStatus
+                  )
+                ?>">
+                  <?= item.paymentStatus ?>
+                </span>
+              </td>
+
+              <td>
+                <span class="<?=
+                  getAdminStatusClass_(
+                    item.verificationStatus
+                  )
+                ?>">
+                  <?= item.verificationStatus ?>
+                </span>
+              </td>
+
+              <td>
+                <span class="<?=
+                  getAdminStatusClass_(
+                    item.licenceStatus
+                  )
+                ?>">
+                  <?= item.licenceStatus ?>
+                </span>
+              </td>
+
+              <td>
+                <a class="button" href="<?=
+                    APP_CONFIG.PRODUCTION_WEB_APP_URL
+                  ?>?view=admin&session=<?= adminSessionTokenEncoded ?>&applicationId=<?=
+                    encodeURIComponent(
+                      item.applicationId
+                    )
+                  ?>">
+                  Review
+                </a>
+              </td>
+            </tr>
+
+            <? } ?>
+          </tbody>
+        </table>
+
+        <div id="emptyFilterState" class="empty-state" style="display: none;">
+          No applications match the selected filters.
+        </div>
+      </div>
+    </section>
+
+    <? } ?>
+
+    <? if (safeAdminAccess.ok && safeAdminRole === 'Super Admin') { ?>
+    <section
+      id="adminSettingsPanel"
+      class="card admin-settings-panel"
+    >
+      <div class="admin-settings-toolbar">
+        <div>
+          <p class="organisation-name">
+            Super Admin
+          </p>
+
+          <h2 class="page-section-title" style="margin-bottom:6px;">
+            Admin Settings
+          </h2>
+
+          <p class="muted" style="margin:0;">
+            Add administrators, reset passwords, change roles, and enable or disable access.
+          </p>
+        </div>
+
+        <button
+          class="button button-secondary"
+          type="button"
+          onclick="closeAdminSettings()"
+        >
+          Close Settings
+        </button>
+      </div>
+
+      <div
+        id="adminSettingsMessage"
+        class="admin-settings-message"
+      ></div>
+
+      <div class="notice">
+        New administrators use the system temporary/default password for their first sign-in and must immediately create a new password. Password hashes and salts are not displayed here.
+      </div>
+
+      <form
+        id="createAdminForm"
+        onsubmit="submitCreateAdmin(event)"
+      >
+        <div class="admin-settings-grid">
+          <label>
+            Administrator Name
+            <input
+              id="newAdminName"
+              type="text"
+              required
+            >
+          </label>
+
+          <label>
+            Email Address
+            <input
+              id="newAdminEmail"
+              type="email"
+              required
+            >
+          </label>
+
+          <label>
+            Role
+            <select
+              id="newAdminRole"
+              required
+            >
+              <option value="Admin">
+                Admin
+              </option>
+              <option value="Super Admin">
+                Super Admin
+              </option>
+            </select>
+          </label>
+        </div>
+
+        <button
+          id="createAdminButton"
+          class="button"
+          type="submit"
+          style="margin-top:14px;"
+        >
+          Add Admin
+        </button>
+      </form>
+
+      <div
+        id="temporaryPasswordArea"
+        style="display:none;"
+      >
+        <p class="muted" style="margin:18px 0 4px;">
+          Temporary/default password to give the administrator:
+        </p>
+
+        <div
+          id="temporaryPasswordValue"
+          class="temporary-password-box"
+        ></div>
+      </div>
+
+      <div class="admin-users-table-wrap">
+        <table class="admin-users-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Password Change</th>
+              <th>Last Login</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+
+          <tbody id="adminUsersTableBody">
+            <tr>
+              <td colspan="7" class="muted">
+                Open Admin Settings to load administrator accounts.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <? } ?>
+  </main>
+
+  <footer class="page-footer">
+    CRFFN Licensing System
+  </footer>
+  <script>
+    const CURRENT_APPLICATION_ID =
+      '<?= applicationId ? String(applicationId) : "" ?>';
+
+    const ADMIN_SESSION_TOKEN =
+      '<?= adminSessionToken ? String(adminSessionToken) : "" ?>';
+
+    const CURRENT_ADMIN_ROLE =
+      '<?= adminRole ? String(adminRole) : "" ?>';
+
+    const ADMIN_PORTAL_BASE_URL =
+      '<?= APP_CONFIG.PRODUCTION_WEB_APP_URL ?>';
+
+    const MAX_STAMPED_LICENCE_SIZE =
+      10 * 1024 * 1024;
+
+
+    document.addEventListener(
+      'DOMContentLoaded',
+      function() {
+        initialiseApplicationFilters();
+        initialiseSupportingDocumentReviewActions_();
+        scrubAdminSessionFromUrl_();
+      }
+    );
+
+
+    function openAdminSettings() {
+      if (
+        CURRENT_ADMIN_ROLE !==
+          'Super Admin'
+      ) {
+        return;
+      }
+
+      const panel =
+        document.getElementById(
+          'adminSettingsPanel'
+        );
+
+      if (!panel) {
+        return;
+      }
+
+      panel.classList.add(
+        'visible'
+      );
+
+      panel.scrollIntoView({
+        behavior:
+          'smooth',
+        block:
+          'start'
+      });
+
+      loadAdminUsers();
+    }
+
+
+    function closeAdminSettings() {
+      const panel =
+        document.getElementById(
+          'adminSettingsPanel'
+        );
+
+      if (panel) {
+        panel.classList.remove(
+          'visible'
+        );
+      }
+
+      clearAdminSettingsMessage_();
+    }
+
+
+    function loadAdminUsers() {
+      const body =
+        document.getElementById(
+          'adminUsersTableBody'
+        );
+
+      if (!body) {
+        return;
+      }
+
+      body.innerHTML =
+        '<tr><td colspan="7" class="muted">Loading administrators...</td></tr>';
+
+      google.script.run
+        .withSuccessHandler(
+          function(result) {
+            if (
+              !result ||
+              result.ok !== true
+            ) {
+              showAdminSettingsMessage_(
+                result &&
+                result.message
+                  ? result.message
+                  : 'Unable to load administrators.',
+                'error'
+              );
+
+              return;
+            }
+
+            renderAdminUsers_(
+              result.users || []
+            );
+          }
+        )
+        .withFailureHandler(
+          function(error) {
+            showAdminSettingsMessage_(
+              getErrorMessage_(
+                error
+              ),
+              'error'
+            );
+          }
+        )
+        .getAdminUsers(
+          ADMIN_SESSION_TOKEN
+        );
+    }
+
+
+    function renderAdminUsers_(
+      users
+    ) {
+      const body =
+        document.getElementById(
+          'adminUsersTableBody'
+        );
+
+      if (!body) {
+        return;
+      }
+
+      if (!users.length) {
+        body.innerHTML =
+          '<tr><td colspan="7" class="muted">No administrator accounts found.</td></tr>';
+
+        return;
+      }
+
+      body.innerHTML =
+        users
+          .map(
+            function(user) {
+              const safeEmail =
+                escapeAdminHtml_(
+                  user.email
+                );
+
+              const safeName =
+                escapeAdminHtml_(
+                  user.name || '—'
+                );
+
+              const safeRole =
+                escapeAdminHtml_(
+                  user.role || 'Admin'
+                );
+
+              const safeStatus =
+                escapeAdminHtml_(
+                  user.status || 'Active'
+                );
+
+              const passwordChange =
+                String(
+                  user.mustChangePassword || ''
+                ).toLowerCase() ===
+                  'yes'
+                  ? 'Required'
+                  : 'Completed';
+
+              const lastLogin =
+                escapeAdminHtml_(
+                  user.lastLogin ||
+                  'Never'
+                );
+
+              const alternateRole =
+                String(
+                  user.role || ''
+                ) ===
+                  'Super Admin'
+                  ? 'Admin'
+                  : 'Super Admin';
+
+              const safeAlternateRole =
+                escapeAdminHtml_(
+                  alternateRole
+                );
+
+              const statusButton =
+                String(
+                  user.status || ''
+                ) ===
+                  'Active'
+                  ? (
+                    '<button ' +
+                      'class="admin-action-small danger" ' +
+                      'type="button" ' +
+                      'data-email="' +
+                      safeEmail +
+                      '" ' +
+                      'onclick="changeAdminStatus(this.dataset.email, \'Disabled\')">' +
+                      'Disable' +
+                    '</button>'
+                  )
+                  : (
+                    '<button ' +
+                      'class="admin-action-small success" ' +
+                      'type="button" ' +
+                      'data-email="' +
+                      safeEmail +
+                      '" ' +
+                      'onclick="changeAdminStatus(this.dataset.email, \'Active\')">' +
+                      'Enable' +
+                    '</button>'
+                  );
+
+              return (
+                '<tr>' +
+                  '<td>' +
+                    safeName +
+                  '</td>' +
+                  '<td>' +
+                    safeEmail +
+                  '</td>' +
+                  '<td>' +
+                    safeRole +
+                  '</td>' +
+                  '<td>' +
+                    safeStatus +
+                  '</td>' +
+                  '<td>' +
+                    passwordChange +
+                  '</td>' +
+                  '<td>' +
+                    lastLogin +
+                  '</td>' +
+                  '<td><div class="admin-user-actions">' +
+                    '<button ' +
+                      'class="admin-action-small" ' +
+                      'type="button" ' +
+                      'data-email="' +
+                      safeEmail +
+                      '" ' +
+                      'onclick="resetManagedAdminPassword(this.dataset.email)">' +
+                      'Reset Password' +
+                    '</button>' +
+                    statusButton +
+                    '<button ' +
+                      'class="admin-action-small" ' +
+                      'type="button" ' +
+                      'data-email="' +
+                      safeEmail +
+                      '" ' +
+                      'data-role="' +
+                      safeAlternateRole +
+                      '" ' +
+                      'onclick="changeAdminRole(this.dataset.email, this.dataset.role)">' +
+                      'Make ' +
+                      safeAlternateRole +
+                    '</button>' +
+                  '</div></td>' +
+                '</tr>'
+              );
+            }
+          )
+          .join('');
+    }
+
+    function submitCreateAdmin(
+      event
+    ) {
+      event.preventDefault();
+
+      const name =
+        document.getElementById(
+          'newAdminName'
+        ).value.trim();
+
+      const email =
+        document.getElementById(
+          'newAdminEmail'
+        ).value.trim();
+
+      const role =
+        document.getElementById(
+          'newAdminRole'
+        ).value;
+
+      const button =
+        document.getElementById(
+          'createAdminButton'
+        );
+
+      button.disabled =
+        true;
+
+      button.textContent =
+        'Adding...';
+
+      clearAdminSettingsMessage_();
+
+      google.script.run
+        .withSuccessHandler(
+          function(result) {
+            button.disabled =
+              false;
+
+            button.textContent =
+              'Add Admin';
+
+            if (
+              !result ||
+              result.ok !== true
+            ) {
+              showAdminSettingsMessage_(
+                result &&
+                result.message
+                  ? result.message
+                  : 'Unable to add administrator.',
+                'error'
+              );
+
+              return;
+            }
+
+            document
+              .getElementById(
+                'createAdminForm'
+              )
+              .reset();
+
+            showAdminSettingsMessage_(
+              result.message ||
+              'Administrator created.',
+              'success'
+            );
+
+            showTemporaryPassword_(
+              result.temporaryPassword ||
+              ''
+            );
+
+            loadAdminUsers();
+          }
+        )
+        .withFailureHandler(
+          function(error) {
+            button.disabled =
+              false;
+
+            button.textContent =
+              'Add Admin';
+
+            showAdminSettingsMessage_(
+              getErrorMessage_(
+                error
+              ),
+              'error'
+            );
+          }
+        )
+        .createAdminUser(
+          ADMIN_SESSION_TOKEN,
+          name,
+          email,
+          role
+        );
+    }
+
+
+    function resetManagedAdminPassword(
+      email
+    ) {
+      if (
+        !window.confirm(
+          'Reset the password for ' +
+          email +
+          ' to the temporary/default password? Existing sessions for this administrator will be signed out.'
+        )
+      ) {
+        return;
+      }
+
+      clearAdminSettingsMessage_();
+
+      google.script.run
+        .withSuccessHandler(
+          function(result) {
+            if (
+              !result ||
+              result.ok !== true
+            ) {
+              showAdminSettingsMessage_(
+                result &&
+                result.message
+                  ? result.message
+                  : 'Unable to reset password.',
+                'error'
+              );
+
+              return;
+            }
+
+            showAdminSettingsMessage_(
+              result.message,
+              'success'
+            );
+
+            showTemporaryPassword_(
+              result.temporaryPassword ||
+              ''
+            );
+
+            loadAdminUsers();
+          }
+        )
+        .withFailureHandler(
+          function(error) {
+            showAdminSettingsMessage_(
+              getErrorMessage_(
+                error
+              ),
+              'error'
+            );
+          }
+        )
+        .resetAdminPassword(
+          ADMIN_SESSION_TOKEN,
+          email
+        );
+    }
+
+
+    function changeAdminStatus(
+      email,
+      status
+    ) {
+      const action =
+        status ===
+          'Active'
+          ? 'enable'
+          : 'disable';
+
+      if (
+        !window.confirm(
+          'Are you sure you want to ' +
+          action +
+          ' ' +
+          email +
+          '?'
+        )
+      ) {
+        return;
+      }
+
+      google.script.run
+        .withSuccessHandler(
+          function(result) {
+            showAdminSettingsMessage_(
+              'Administrator ' +
+              (
+                result.status ===
+                  'Active'
+                  ? 'enabled.'
+                  : 'disabled.'
+              ),
+              'success'
+            );
+
+            loadAdminUsers();
+          }
+        )
+        .withFailureHandler(
+          function(error) {
+            showAdminSettingsMessage_(
+              getErrorMessage_(
+                error
+              ),
+              'error'
+            );
+          }
+        )
+        .setAdminUserStatus(
+          ADMIN_SESSION_TOKEN,
+          email,
+          status
+        );
+    }
+
+
+    function changeAdminRole(
+      email,
+      role
+    ) {
+      if (
+        !window.confirm(
+          'Change ' +
+          email +
+          ' to ' +
+          role +
+          '? The administrator will be signed out and must sign in again.'
+        )
+      ) {
+        return;
+      }
+
+      google.script.run
+        .withSuccessHandler(
+          function(result) {
+            showAdminSettingsMessage_(
+              result.message ||
+              'Administrator role updated.',
+              'success'
+            );
+
+            loadAdminUsers();
+          }
+        )
+        .withFailureHandler(
+          function(error) {
+            showAdminSettingsMessage_(
+              getErrorMessage_(
+                error
+              ),
+              'error'
+            );
+          }
+        )
+        .updateAdminUserRole(
+          ADMIN_SESSION_TOKEN,
+          email,
+          role
+        );
+    }
+
+
+    function showTemporaryPassword_(
+      password
+    ) {
+      const area =
+        document.getElementById(
+          'temporaryPasswordArea'
+        );
+
+      const value =
+        document.getElementById(
+          'temporaryPasswordValue'
+        );
+
+      if (
+        !area ||
+        !value
+      ) {
+        return;
+      }
+
+      if (!password) {
+        area.style.display =
+          'none';
+
+        value.textContent =
+          '';
+
+        return;
+      }
+
+      value.textContent =
+        password;
+
+      area.style.display =
+        'block';
+    }
+
+
+    function showAdminSettingsMessage_(
+      message,
+      type
+    ) {
+      if (
+        type !== 'success' &&
+        handleAdminSessionMessage_(
+          message
+        )
+      ) {
+        return;
+      }
+
+      const box =
+        document.getElementById(
+          'adminSettingsMessage'
+        );
+
+      if (!box) {
+        return;
+      }
+
+      box.textContent =
+        message || '';
+
+      box.className =
+        'admin-settings-message ' +
+        (
+          type ===
+            'success'
+            ? 'success'
+            : 'error'
+        );
+    }
+
+
+    function clearAdminSettingsMessage_() {
+      const box =
+        document.getElementById(
+          'adminSettingsMessage'
+        );
+
+      if (!box) {
+        return;
+      }
+
+      box.textContent =
+        '';
+
+      box.className =
+        'admin-settings-message';
+    }
+
+
+    function escapeAdminHtml_(
+      value
+    ) {
+      return String(
+        value == null
+          ? ''
+          : value
+      )
+        .replace(
+          /&/g,
+          '&amp;'
+        )
+        .replace(
+          /</g,
+          '&lt;'
+        )
+        .replace(
+          />/g,
+          '&gt;'
+        )
+        .replace(
+          /"/g,
+          '&quot;'
+        )
+        .replace(
+          /'/g,
+          '&#39;'
+        );
+    }
+
+
+    function escapeAdminJs_(
+      value
+    ) {
+      return String(
+        value == null
+          ? ''
+          : value
+      )
+        .replace(
+          /\\/g,
+          '\\\\'
+        )
+        .replace(
+          /'/g,
+          "\\'"
+        );
+    }
+
+
+    function toggleAdminPassword(
+      inputId,
+      button
+    ) {
+      const input =
+        document.getElementById(
+          inputId
+        );
+
+      if (!input) {
+        return;
+      }
+
+      const showing =
+        input.type ===
+        'text';
+
+      input.type =
+        showing
+          ? 'password'
+          : 'text';
+
+      if (button) {
+        button.setAttribute(
+          'aria-label',
+          showing
+            ? 'Show password'
+            : 'Hide password'
+        );
+
+        button.textContent =
+          showing
+            ? '👁'
+            : '🙈';
+      }
+    }
+
+
+    function submitAdminLogin(
+      event
+    ) {
+      event.preventDefault();
+
+      const email =
+        document.getElementById(
+          'adminLoginEmail'
+        ).value.trim();
+
+      const password =
+        document.getElementById(
+          'adminLoginPassword'
+        ).value;
+
+      const button =
+        document.getElementById(
+          'adminLoginButton'
+        );
+
+      const message =
+        document.getElementById(
+          'adminLoginMessage'
+        );
+
+      button.disabled =
+        true;
+
+      button.textContent =
+        'Signing In...';
+
+      message.className =
+        'admin-auth-message';
+
+      message.textContent =
+        '';
+
+      let settled =
+        false;
+
+      const timeoutId =
+        window.setTimeout(
+          function() {
+            if (settled) {
+              return;
+            }
+
+            button.disabled =
+              false;
+
+            button.textContent =
+              'Sign In';
+
+            message.className =
+              'admin-auth-message error';
+
+            message.textContent =
+              'Sign-in is taking longer than expected. You can try again. If the first request completes, this page will continue automatically.';
+          },
+          20000
+        );
+
+      google.script.run
+        .withSuccessHandler(
+          function(result) {
+            settled =
+              true;
+
+            window.clearTimeout(
+              timeoutId
+            );
+
+            if (
+              !result ||
+              result.ok !== true
+            ) {
+              button.disabled =
+                false;
+
+              button.textContent =
+                'Sign In';
+
+              message.className =
+                'admin-auth-message error';
+
+              message.textContent =
+                result &&
+                result.message
+                  ? result.message
+                  : 'Unable to sign in.';
+
+              return;
+            }
+
+            navigateToAdminSession_(
+              result.sessionToken,
+              CURRENT_APPLICATION_ID
+            );
+          }
+        )
+        .withFailureHandler(
+          function(error) {
+            settled =
+              true;
+
+            window.clearTimeout(
+              timeoutId
+            );
+
+            button.disabled =
+              false;
+
+            button.textContent =
+              'Sign In';
+
+            message.className =
+              'admin-auth-message error';
+
+            message.textContent =
+              getErrorMessage_(
+                error
+              );
+          }
+        )
+        .adminLogin(
+          email,
+          password
+        );
+    }
+
+
+    function submitAdminPasswordChange(
+      event
+    ) {
+      event.preventDefault();
+
+      const currentPassword =
+        document.getElementById(
+          'adminCurrentPassword'
+        ).value;
+
+      const newPassword =
+        document.getElementById(
+          'adminNewPassword'
+        ).value;
+
+      const confirmPassword =
+        document.getElementById(
+          'adminConfirmPassword'
+        ).value;
+
+      const button =
+        document.getElementById(
+          'adminPasswordChangeButton'
+        );
+
+      const message =
+        document.getElementById(
+          'adminPasswordChangeMessage'
+        );
+
+      button.disabled =
+        true;
+
+      button.textContent =
+        'Changing Password...';
+
+      message.className =
+        'admin-auth-message';
+
+      message.textContent =
+        '';
+
+      google.script.run
+        .withSuccessHandler(
+          function(result) {
+            if (
+              !result ||
+              result.ok !==
+                true
+            ) {
+              button.disabled =
+                false;
+
+              button.textContent =
+                'Change Password';
+
+              message.className =
+                'admin-auth-message error';
+
+              message.textContent =
+                result &&
+                result.message
+                  ? result.message
+                  : 'Unable to change password.';
+
+              return;
+            }
+
+            message.className =
+              'admin-auth-message success';
+
+            message.textContent =
+              result.message ||
+              'Password changed successfully. Sign in with your new password.';
+
+            button.disabled =
+              false;
+
+            button.type =
+              'button';
+
+            button.textContent =
+              'Sign In';
+
+            button.onclick =
+              function() {
+                window.top.location.href =
+                  ADMIN_PORTAL_BASE_URL +
+                  '?view=admin';
+              };
+          }
+        )
+        .withFailureHandler(
+          function(error) {
+            button.disabled =
+              false;
+
+            button.textContent =
+              'Change Password';
+
+            message.className =
+              'admin-auth-message error';
+
+            message.textContent =
+              getErrorMessage_(
+                error
+              );
+          }
+        )
+        .changeAdminPassword(
+          ADMIN_SESSION_TOKEN,
+          currentPassword,
+          newPassword,
+          confirmPassword
+        );
+    }
+
+
+    function logoutAdmin() {
+      if (
+        !ADMIN_SESSION_TOKEN
+      ) {
+        window.top.location.href =
+          ADMIN_PORTAL_BASE_URL +
+          '?view=admin';
+
+        return;
+      }
+
+      google.script.run
+        .withSuccessHandler(
+          function() {
+            window.top.location.href =
+              ADMIN_PORTAL_BASE_URL +
+              '?view=admin';
+          }
+        )
+        .withFailureHandler(
+          function() {
+            window.top.location.href =
+              ADMIN_PORTAL_BASE_URL +
+              '?view=admin';
+          }
+        )
+        .adminLogout(
+          ADMIN_SESSION_TOKEN
+        );
+    }
+
+
+    function navigateToAdminSession_(
+      sessionToken,
+      applicationId
+    ) {
+      const newToken =
+        String(
+          sessionToken || ''
+        ).trim();
+
+      if (!newToken) {
+        return;
+      }
+
+      let returnApplicationId =
+        String(
+          applicationId || ''
+        ).trim();
+
+      try {
+        if (!returnApplicationId) {
+          returnApplicationId =
+            String(
+              window.sessionStorage.getItem(
+                'CRFFN_ADMIN_RETURN_APPLICATION_ID'
+              ) || ''
+            ).trim();
+        }
+
+        window.sessionStorage.removeItem(
+          'CRFFN_ADMIN_RETURN_APPLICATION_ID'
+        );
+      } catch (error) {
+        // sessionStorage is only a convenience.
+      }
+
+      let url =
+        ADMIN_PORTAL_BASE_URL +
+        '?view=admin&session=' +
+        encodeURIComponent(
+          newToken
+        );
+
+      if (
+        returnApplicationId
+      ) {
+        url +=
+          '&applicationId=' +
+          encodeURIComponent(
+            returnApplicationId
+          );
+      }
+
+      /*
+       * replace() prevents the expired-session page from staying
+       * in browser history and being reopened accidentally.
+       */
+      window.top.location.replace(
+        url
+      );
+    }
+
+
+    function scrubAdminSessionFromUrl_() {
+      if (
+        !ADMIN_SESSION_TOKEN ||
+        !window.history ||
+        !window.history.replaceState
+      ) {
+        return;
+      }
+
+      const cleanUrl =
+        ADMIN_PORTAL_BASE_URL +
+        '?view=admin' +
+        (
+          CURRENT_APPLICATION_ID
+            ? '&applicationId=' +
+              encodeURIComponent(
+                CURRENT_APPLICATION_ID
+              )
+            : ''
+        );
+
+      window.history.replaceState(
+        {},
+        document.title,
+        cleanUrl
+      );
+    }
+
+
+    const TARGETED_CORRECTION_OPTIONS =
+      Object.freeze({
+        information: {
+          targets: [
+            ['company_name', 'Company Name'],
+            ['company_rc_number', 'Company RC Number'],
+            ['company_tin', 'Company TIN'],
+            ['crffn_membership_number', 'CRFFN Membership Number'],
+            ['company_address', 'Company Address'],
+            ['full_name', 'Full Name'],
+            ['phone_number', 'Phone Number'],
+            ['email_address', 'Email Address'],
+            ['residential_address', 'Residential Address'],
+            ['means_of_identification', 'Means of Identification'],
+            ['id_number', 'ID Number'],
+            ['position_held', 'Position Held'],
+            ['area_of_practice', 'Area of Practice'],
+            ['other', 'Other Application Information']
+          ],
+          issues: [
+            ['incomplete', 'Incomplete'],
+            ['incorrect', 'Requires correction'],
+            ['mismatch', 'Does not match submitted records'],
+            ['invalid', 'Invalid'],
+            ['missing', 'Missing'],
+            ['other', 'Other']
+          ]
+        },
+
+        documents: {
+          targets: [
+            ['cac_document', 'CAC Document'],
+            ['passport_photograph', 'Passport Photograph of Director or Company Owner'],
+            ['educational_certificates', 'Educational Certificates'],
+            ['proof_of_experience', 'Proof of Experience (CV of CEO)'],
+            ['means_of_identification', 'Valid Means of Identification'],
+            ['other', 'Other Supporting Document']
+          ],
+          issues: [
+            ['missing', 'Missing'],
+            ['unreadable', 'Unclear or unreadable'],
+            ['incorrect', 'Incorrect document'],
+            ['expired', 'Expired'],
+            ['mismatch', 'Does not match application information'],
+            ['incomplete', 'Incomplete'],
+            ['other', 'Other']
+          ]
+        }
+      });
+
+
+    const REVIEW_REJECTION_REASONS =
+      Object.freeze({
+        payment: [
+          {
+            value: 'unreadable',
+            label:
+              'Payment proof is unclear or unreadable'
+          },
+          {
+            value: 'invalid_reference',
+            label:
+              'Payment reference is invalid'
+          },
+          {
+            value: 'incorrect_amount',
+            label:
+              'Payment amount is incorrect'
+          },
+          {
+            value: 'duplicate_reference',
+            label:
+              'Payment reference has already been used'
+          },
+          {
+            value: 'unverifiable',
+            label:
+              'Payment could not be verified'
+          },
+          {
+            value: 'other',
+            label:
+              'Other'
+          }
+        ],
+
+        documents: [
+          {
+            value: 'missing_document',
+            label:
+              'Required document is missing'
+          },
+          {
+            value: 'unreadable',
+            label:
+              'Document is unclear or unreadable'
+          },
+          {
+            value: 'incorrect_document',
+            label:
+              'Incorrect document was uploaded'
+          },
+          {
+            value: 'expired_document',
+            label:
+              'Document has expired'
+          },
+          {
+            value: 'mismatch',
+            label:
+              'Document information does not match the application'
+          },
+          {
+            value: 'other',
+            label:
+              'Other'
+          }
+        ],
+
+        information: [
+          {
+            value: 'incomplete',
+            label:
+              'Application information is incomplete'
+          },
+          {
+            value: 'rc_number',
+            label:
+              'Company RC Number requires correction'
+          },
+          {
+            value: 'tin',
+            label:
+              'Company TIN requires correction'
+          },
+          {
+            value: 'membership_number',
+            label:
+              'CRFFN Membership Number requires correction'
+          },
+          {
+            value: 'contact_information',
+            label:
+              'Contact information requires correction'
+          },
+          {
+            value: 'mismatch',
+            label:
+              'Information does not match the submitted records'
+          },
+          {
+            value: 'other',
+            label:
+              'Other'
+          }
+        ],
+
+        verification: [
+          {
+            value: 'outstanding_issue',
+            label:
+              'Outstanding verification issue'
+          },
+          {
+            value: 'unable_to_validate',
+            label:
+              'Application information could not be validated'
+          },
+          {
+            value: 'regulatory_requirement',
+            label:
+              'A regulatory requirement has not been satisfied'
+          },
+          {
+            value: 'earlier_stage',
+            label:
+              'An earlier review stage requires further attention'
+          },
+          {
+            value: 'other',
+            label:
+              'Other'
+          }
+        ]
+      });
+
+
+    let confirmationModalCallback_ =
+      null;
+
+    let confirmationModalBusyText_ =
+      'Processing...';
+
+    let confirmationModalIsBusy_ =
+      false;
+
+
+    function showConfirmationModal_(
+      options
+    ) {
+      const config =
+        options || {};
+
+      const modal =
+        document.getElementById(
+          'confirmationModal'
+        );
+
+      const titleElement =
+        document.getElementById(
+          'confirmationModalTitle'
+        );
+
+      const messageElement =
+        document.getElementById(
+          'confirmationModalMessage'
+        );
+
+      const confirmButton =
+        document.getElementById(
+          'confirmationModalConfirmButton'
+        );
+
+      const cancelButton =
+        document.getElementById(
+          'confirmationModalCancelButton'
+        );
+
+      if (
+        !modal ||
+        !titleElement ||
+        !messageElement ||
+        !confirmButton
+      ) {
+        return;
+      }
+
+      titleElement.textContent =
+        config.title ||
+        'Confirm action';
+
+      messageElement.textContent =
+        config.message ||
+        'Are you sure you want to continue?';
+
+      confirmButton.textContent =
+        config.confirmText ||
+        'Confirm';
+
+      confirmButton.className =
+        'button';
+
+      confirmButton.disabled =
+        false;
+
+      confirmButton.style.display =
+        'inline-flex';
+
+      if (
+        config.type === 'danger'
+      ) {
+        confirmButton.classList.add(
+          'confirmation-modal-confirm-danger'
+        );
+      }
+
+      if (cancelButton) {
+        cancelButton.disabled =
+          false;
+
+        cancelButton.textContent =
+          'Cancel';
+      }
+
+      confirmationModalBusyText_ =
+        config.busyText ||
+        'Processing...';
+
+      confirmationModalIsBusy_ =
+        false;
+
+      modal.classList.remove(
+        'is-busy'
+      );
+
+      const loader =
+        document.getElementById(
+          'confirmationModalLoader'
+        );
+
+      if (loader) {
+        loader.classList.remove(
+          'is-visible'
+        );
+      }
+
+      configureConfirmationReasonFields_(
+        config.reasonOptions ||
+        null,
+        {
+          multiSelect:
+            config.reasonMultiSelect ===
+            true
+        }
+      );
+
+      confirmationModalCallback_ =
+        typeof config.onConfirm ===
+          'function'
+          ? config.onConfirm
+          : null;
+
+      modal.classList.add(
+        'is-visible'
+      );
+
+      modal.setAttribute(
+        'aria-hidden',
+        'false'
+      );
+
+      document.body.classList.add(
+        'modal-open'
+      );
+
+      window.setTimeout(
+        function() {
+          confirmButton.focus();
+        },
+        0
+      );
+    }
+
+
+    function cancelConfirmationModal_() {
+      if (confirmationModalIsBusy_) {
+        return;
+      }
+
+      closeConfirmationModal_();
+    }
+
+
+    function confirmConfirmationModal_() {
+      if (confirmationModalIsBusy_) {
+        return;
+      }
+
+      const callback =
+        confirmationModalCallback_;
+
+      if (
+        typeof callback !==
+        'function'
+      ) {
+        return;
+      }
+
+      const selection =
+        getConfirmationReasonSelection_();
+
+      if (
+        selection.required &&
+        !selection.valid
+      ) {
+        showConfirmationReasonError_(
+          selection.message
+        );
+
+        return;
+      }
+
+      confirmationModalIsBusy_ =
+        true;
+
+      confirmationModalCallback_ =
+        null;
+
+      setConfirmationModalBusy_(
+        true,
+        confirmationModalBusyText_
+      );
+
+      callback(
+        selection
+      );
+    }
+
+
+    function configureConfirmationReasonFields_(
+      options,
+      config
+    ) {
+      const container =
+        document.getElementById(
+          'confirmationModalReasonFields'
+        );
+
+      const select =
+        document.getElementById(
+          'confirmationModalReasonSelect'
+        );
+
+      const checkboxList =
+        document.getElementById(
+          'confirmationModalReasonCheckboxList'
+        );
+
+      const detailsWrap =
+        document.getElementById(
+          'confirmationModalOtherDetails'
+        );
+
+      const detailsField =
+        document.getElementById(
+          'confirmationModalReasonDetails'
+        );
+
+      if (
+        !container ||
+        !select ||
+        !checkboxList ||
+        !detailsWrap ||
+        !detailsField
+      ) {
+        return;
+      }
+
+      const reasonOptions =
+        Array.isArray(options)
+          ? options
+          : [];
+
+      const settings =
+        config || {};
+
+      const multiSelect =
+        settings.multiSelect ===
+        true;
+
+      container.dataset.required =
+        reasonOptions.length > 0
+          ? 'true'
+          : 'false';
+
+      container.dataset.multiSelect =
+        multiSelect
+          ? 'true'
+          : 'false';
+
+      container.classList.toggle(
+        'is-visible',
+        reasonOptions.length > 0
+      );
+
+      select.innerHTML =
+        '<option value="">Select a reason</option>';
+
+      checkboxList.innerHTML =
+        '';
+
+      reasonOptions.forEach(
+        function(option) {
+          const value =
+            String(
+              option.value || ''
+            );
+
+          const label =
+            String(
+              option.label || ''
+            );
+
+          if (multiSelect) {
+            const optionLabel =
+              document.createElement(
+                'label'
+              );
+
+            optionLabel.className =
+              'confirmation-modal-checkbox-option';
+
+            const checkbox =
+              document.createElement(
+                'input'
+              );
+
+            checkbox.type =
+              'checkbox';
+
+            checkbox.value =
+              value;
+
+            checkbox.className =
+              'confirmation-modal-reason-checkbox';
+
+            checkbox.addEventListener(
+              'change',
+              updateConfirmationOtherDetailsVisibility_
+            );
+
+            const text =
+              document.createElement(
+                'span'
+              );
+
+            text.textContent =
+              label;
+
+            optionLabel.appendChild(
+              checkbox
+            );
+
+            optionLabel.appendChild(
+              text
+            );
+
+            checkboxList.appendChild(
+              optionLabel
+            );
+          } else {
+            const element =
+              document.createElement(
+                'option'
+              );
+
+            element.value =
+              value;
+
+            element.textContent =
+              label;
+
+            select.appendChild(
+              element
+            );
+          }
+        }
+      );
+
+      select.style.display =
+        multiSelect
+          ? 'none'
+          : 'block';
+
+      checkboxList.classList.toggle(
+        'is-visible',
+        multiSelect &&
+        reasonOptions.length > 0
+      );
+
+      detailsField.value =
+        '';
+
+      detailsWrap.classList.remove(
+        'is-visible'
+      );
+
+      select.onchange =
+        updateConfirmationOtherDetailsVisibility_;
+
+      showConfirmationReasonError_(
+        ''
+      );
+    }
+
+
+    function updateConfirmationOtherDetailsVisibility_() {
+      const container =
+        document.getElementById(
+          'confirmationModalReasonFields'
+        );
+
+      const select =
+        document.getElementById(
+          'confirmationModalReasonSelect'
+        );
+
+      const detailsWrap =
+        document.getElementById(
+          'confirmationModalOtherDetails'
+        );
+
+      if (
+        !container ||
+        !detailsWrap
+      ) {
+        return;
+      }
+
+      const multiSelect =
+        container.dataset.multiSelect ===
+        'true';
+
+      let otherSelected =
+        false;
+
+      if (multiSelect) {
+        const checked =
+          container.querySelectorAll(
+            '.confirmation-modal-reason-checkbox:checked'
+          );
+
+        otherSelected =
+          Array.from(
+            checked
+          ).some(
+            function(item) {
+              return (
+                String(
+                  item.value || ''
+                ) ===
+                'other'
+              );
+            }
+          );
+      } else {
+        otherSelected =
+          Boolean(
+            select &&
+            select.value ===
+              'other'
+          );
+      }
+
+      detailsWrap.classList.toggle(
+        'is-visible',
+        otherSelected
+      );
+    }
+
+
+    function getConfirmationReasonSelection_() {
+      const container =
+        document.getElementById(
+          'confirmationModalReasonFields'
+        );
+
+      const select =
+        document.getElementById(
+          'confirmationModalReasonSelect'
+        );
+
+      const detailsField =
+        document.getElementById(
+          'confirmationModalReasonDetails'
+        );
+
+      const required =
+        Boolean(
+          container &&
+          container.dataset.required ===
+            'true'
+        );
+
+      if (!required) {
+        return {
+          required: false,
+          valid: true,
+          reasonCodes: [],
+          details: ''
+        };
+      }
+
+      const multiSelect =
+        container.dataset.multiSelect ===
+        'true';
+
+      let reasonCodes =
+        [];
+
+      if (multiSelect) {
+        reasonCodes =
+          Array.from(
+            container.querySelectorAll(
+              '.confirmation-modal-reason-checkbox:checked'
+            )
+          )
+            .map(
+              function(item) {
+                return String(
+                  item.value || ''
+                ).trim();
+              }
+            )
+            .filter(Boolean);
+      } else {
+        const selectedValue =
+          String(
+            select
+              ? select.value
+              : ''
+          ).trim();
+
+        if (selectedValue) {
+          reasonCodes = [
+            selectedValue
+          ];
+        }
+      }
+
+      const details =
+        String(
+          detailsField
+            ? detailsField.value
+            : ''
+        ).trim();
+
+      if (!reasonCodes.length) {
+        return {
+          required: true,
+          valid: false,
+          reasonCodes: [],
+          details:
+            details,
+          message:
+            multiSelect
+              ? 'Select at least one rejection or correction reason.'
+              : 'Select a rejection or correction reason.'
+        };
+      }
+
+      if (
+        reasonCodes.includes(
+          'other'
+        ) &&
+        !details
+      ) {
+        return {
+          required: true,
+          valid: false,
+          reasonCodes:
+            reasonCodes,
+          details:
+            details,
+          message:
+            'Enter the custom reason for Other.'
+        };
+      }
+
+      return {
+        required: true,
+        valid: true,
+        reasonCodes:
+          reasonCodes,
+        details:
+          details,
+        message: ''
+      };
+    }
+
+
+    function showConfirmationReasonError_(
+      message
+    ) {
+      const element =
+        document.getElementById(
+          'confirmationModalReasonError'
+        );
+
+      if (!element) {
+        return;
+      }
+
+      element.textContent =
+        message || '';
+
+      element.classList.toggle(
+        'is-visible',
+        Boolean(message)
+      );
+    }
+
+
+    function setConfirmationModalBusy_(
+      busy,
+      buttonText
+    ) {
+      const modal =
+        document.getElementById(
+          'confirmationModal'
+        );
+
+      const confirmButton =
+        document.getElementById(
+          'confirmationModalConfirmButton'
+        );
+
+      const cancelButton =
+        document.getElementById(
+          'confirmationModalCancelButton'
+        );
+
+      const loader =
+        document.getElementById(
+          'confirmationModalLoader'
+        );
+
+      const loaderText =
+        document.getElementById(
+          'confirmationModalLoaderText'
+        );
+
+      confirmationModalIsBusy_ =
+        Boolean(busy);
+
+      if (modal) {
+        modal.classList.toggle(
+          'is-busy',
+          confirmationModalIsBusy_
+        );
+      }
+
+      if (confirmButton) {
+        confirmButton.disabled =
+          confirmationModalIsBusy_;
+
+        if (confirmationModalIsBusy_) {
+          confirmButton.textContent =
+            buttonText ||
+            'Processing...';
+
+          confirmButton.classList.add(
+            'button-disabled'
+          );
+        } else {
+          confirmButton.classList.remove(
+            'button-disabled'
+          );
+        }
+      }
+
+      if (cancelButton) {
+        cancelButton.disabled =
+          confirmationModalIsBusy_;
+      }
+
+      if (loader) {
+        loader.classList.toggle(
+          'is-visible',
+          confirmationModalIsBusy_
+        );
+      }
+
+      if (loaderText) {
+        loaderText.textContent =
+          buttonText ||
+          'Processing...';
+      }
+    }
+
+
+    function failModalAction_(
+      message
+    ) {
+      if (
+        handleAdminSessionMessage_(
+          message
+        )
+      ) {
+        return;
+      }
+
+      const titleElement =
+        document.getElementById(
+          'confirmationModalTitle'
+        );
+
+      const messageElement =
+        document.getElementById(
+          'confirmationModalMessage'
+        );
+
+      const confirmButton =
+        document.getElementById(
+          'confirmationModalConfirmButton'
+        );
+
+      const cancelButton =
+        document.getElementById(
+          'confirmationModalCancelButton'
+        );
+
+      setConfirmationModalBusy_(
+        false
+      );
+
+      if (titleElement) {
+        titleElement.textContent =
+          'Action unsuccessful';
+      }
+
+      if (messageElement) {
+        messageElement.textContent =
+          message ||
+          'The action could not be completed.';
+      }
+
+      if (confirmButton) {
+        confirmButton.disabled =
+          false;
+
+        confirmButton.style.display =
+          'none';
+
+        confirmButton.classList.remove(
+          'button-disabled'
+        );
+      }
+
+      if (cancelButton) {
+        cancelButton.disabled =
+          false;
+
+        cancelButton.textContent =
+          'Close';
+
+        cancelButton.focus();
+      }
+
+      confirmationModalCallback_ =
+        null;
+    }
+
+
+
+    /**
+     * Normal review actions no longer reload the full page.
+     * The backend returns the changed authoritative statuses and
+     * we update only the affected UI.
+     */
+    function completeModalActionWithoutRefresh_(
+      stage,
+      result
+    ) {
+      setConfirmationModalBusy_(
+        false
+      );
+
+      closeConfirmationModal_();
+
+      applyAdminActionResult_(
+        stage,
+        result || {}
+      );
+
+      showStageMessage_(
+        stage,
+        result && result.message
+          ? result.message
+          : 'The action was saved.',
+        'success'
+      );
+    }
+
+
+    function applyAdminActionResult_(
+      stage,
+      result
+    ) {
+      if (!result) {
+        return;
+      }
+
+      if (
+        result.informationStatus
+      ) {
+        updateStageStatus_(
+          'information',
+          result.informationStatus
+        );
+      }
+
+      if (
+        result.documentStatus &&
+        stage !== 'documents'
+      ) {
+        updateStageStatus_(
+          'documents',
+          result.documentStatus
+        );
+      }
+
+      if (
+        result.overallDocumentStatus
+      ) {
+        updateStageStatus_(
+          'documents',
+          result.overallDocumentStatus
+        );
+      }
+
+      if (
+        result.paymentStatus
+      ) {
+        updateStageStatus_(
+          'payment',
+          result.paymentStatus
+        );
+      }
+
+      if (
+        result.verificationStatus
+      ) {
+        updateStageStatus_(
+          'verification',
+          result.verificationStatus
+        );
+      }
+
+      if (
+        result.licenceStatus
+      ) {
+        updateStageStatus_(
+          'licence',
+          result.licenceStatus
+        );
+      }
+
+      if (
+        stage === 'verification'
+      ) {
+        applyFinalApprovalLicenceAvailability_(
+          result
+        );
+      }
+
+      if (
+        stage === 'documents'
+      ) {
+        applySupportingDocumentReviewResult_(
+          result
+        );
+      }
+    }
+
+
+    function applyFinalApprovalLicenceAvailability_(
+      result
+    ) {
+      const verificationStatus =
+        String(
+          result &&
+          result.verificationStatus ||
+          ''
+        )
+          .trim()
+          .toLowerCase();
+
+      if (
+        verificationStatus !==
+        'approved'
+      ) {
+        return;
+      }
+
+      /*
+       * Licence generation is unlocked only when the authoritative
+       * backend response explicitly confirms eligibility.
+       */
+      if (
+        !result ||
+        result.canGenerateLicence !==
+          true
+      ) {
+        return;
+      }
+
+      const licenceStatus =
+        String(
+          result &&
+          result.licenceStatus ||
+          'Not Generated'
+        )
+          .trim()
+          .toLowerCase();
+
+      if (
+        licenceStatus &&
+        licenceStatus !==
+          'not generated'
+      ) {
+        return;
+      }
+
+      const container =
+        document.getElementById(
+          'licenceWorkflowContainer'
+        );
+
+      if (!container) {
+        return;
+      }
+
+      /*
+       * The Licence Workflow is hidden before Final Approval.
+       * Reveal it only after the authoritative backend response
+       * confirms Verification Approved + licence eligibility.
+       */
+      container.style.display =
+        'block';
+
+      const lockedState =
+        document.getElementById(
+          'licenceGenerationLockedState'
+        );
+
+      if (lockedState) {
+        lockedState.remove();
+      }
+
+      let readyState =
+        document.getElementById(
+          'licenceGenerationReadyState'
+        );
+
+      if (!readyState) {
+        readyState =
+          document.createElement(
+            'div'
+          );
+
+        readyState.id =
+          'licenceGenerationReadyState';
+
+        readyState.innerHTML =
+          '<p><strong>Ready to Generate</strong></p>' +
+          '<p>All required confirmations have been completed.</p>' +
+          '<button type="button" id="generateLicenceButton" class="button">Generate Unstamped Licence</button>';
+
+        const actionMessage =
+          document.getElementById(
+            'licenceActionMessage'
+          );
+
+        if (
+          actionMessage &&
+          actionMessage.nextSibling
+        ) {
+          container.insertBefore(
+            readyState,
+            actionMessage.nextSibling
+          );
+        } else {
+          container.appendChild(
+            readyState
+          );
+        }
+
+        const button =
+          readyState.querySelector(
+            '#generateLicenceButton'
+          );
+
+        if (button) {
+          button.addEventListener(
+            'click',
+            generateDraftLicence
+          );
+        }
+      }
+
+      readyState.style.display =
+        'block';
+
+      showLicenceMessage_(
+        'Final approval completed. Licence generation is now available.',
+        'success'
+      );
+    }
+
+
+    function applySupportingDocumentReviewResult_(
+      result
+    ) {
+      const type =
+        String(
+          result.documentType || ''
+        )
+          .trim()
+          .toLowerCase();
+
+      if (type) {
+        const button =
+          document.querySelector(
+            '.document-review-action[data-document-type="' +
+            CSS.escape(type) +
+            '"]'
+          );
+
+        const card =
+          button
+            ? button.closest(
+                '.per-document-review'
+              )
+            : null;
+
+        if (card) {
+          const statusBadge =
+            card.querySelector(
+              '.document-review-status-row .badge'
+            );
+
+          if (statusBadge) {
+            statusBadge.textContent =
+              result.documentStatus ||
+              statusBadge.textContent;
+
+            statusBadge.className =
+              getClientStatusClass_(
+                result.documentStatus ||
+                ''
+              );
+          }
+        }
+      }
+
+      const summary =
+        document.querySelector(
+          '.document-review-summary'
+        );
+
+      if (
+        summary &&
+        Number.isFinite(
+          Number(
+            result.approvedCount
+          )
+        )
+      ) {
+        const approved =
+          Number(
+            result.approvedCount || 0
+          );
+
+        const total =
+          Number(
+            result.totalCount || 5
+          );
+
+        const corrections =
+          Number(
+            result.correctionCount || 0
+          );
+
+        const pending =
+          Number(
+            result.pendingCount || 0
+          );
+
+        let text =
+          approved +
+          ' of ' +
+          total +
+          ' documents approved';
+
+        if (corrections) {
+          text +=
+            ' · ' +
+            corrections +
+            ' correction required';
+        }
+
+        if (pending) {
+          text +=
+            ' · ' +
+            pending +
+            ' pending review';
+        }
+
+        summary.textContent =
+          text;
+      }
+
+      if (
+        String(
+          result.overallDocumentStatus || ''
+        ).toLowerCase() ===
+        'complete'
+      ) {
+        document
+          .querySelectorAll(
+            '.document-review-action'
+          )
+          .forEach(
+            function(button) {
+              button.disabled =
+                true;
+
+              button.classList.add(
+                'button-disabled'
+              );
+            }
+          );
+      }
+    }
+
+
+    function startAdminActionTimeout_(
+      onTimeout
+    ) {
+      return window.setTimeout(
+        function() {
+          if (
+            typeof onTimeout ===
+            'function'
+          ) {
+            onTimeout();
+          }
+        },
+        20000
+      );
+    }
+
+
+    function handleSlowAdminAction_(
+      stage
+    ) {
+      window.__crffnDocumentReviewBusy =
+        false;
+
+      setConfirmationModalBusy_(
+        false
+      );
+
+      closeConfirmationModal_();
+
+      showStageMessage_(
+        stage,
+        'This action is taking longer than expected. The server may still finish it. Wait a moment, then use Refresh Status before repeating the action.',
+        'warning'
+      );
+    }
+
+    let pageRefreshStarted_ =
+      false;
+
+
+    function completeModalActionAndRefresh_() {
+      if (pageRefreshStarted_) {
+        return;
+      }
+
+      pageRefreshStarted_ =
+        true;
+
+      const loaderText =
+        document.getElementById(
+          'confirmationModalLoaderText'
+        );
+
+      if (loaderText) {
+        loaderText.textContent =
+          'Refreshing application...';
+      }
+
+      refreshAdminApplicationPage_();
+    }
+
+
+    function refreshAdminApplicationPage_() {
+      const baseUrl =
+        String(
+          ADMIN_PORTAL_BASE_URL || ''
+        )
+          .trim()
+          .split('?')[0]
+          .replace(/\/+$/, '');
+
+      const applicationId =
+        String(
+          CURRENT_APPLICATION_ID || ''
+        ).trim();
+
+      const sessionToken =
+        String(
+          ADMIN_SESSION_TOKEN || ''
+        ).trim();
+
+      if (!baseUrl) {
+        pageRefreshStarted_ =
+          false;
+
+        failModalAction_(
+          'The action completed, but the admin portal URL could not be determined. Please refresh the page manually.'
+        );
+
+        return;
+      }
+
+      if (!sessionToken) {
+        pageRefreshStarted_ =
+          false;
+
+        showAdminSessionExpired_();
+
+        return;
+      }
+
+      const query =
+        new URLSearchParams();
+
+      query.set(
+        'view',
+        'admin'
+      );
+
+      query.set(
+        'session',
+        sessionToken
+      );
+
+      if (applicationId) {
+        query.set(
+          'applicationId',
+          applicationId
+        );
+      }
+
+      const targetUrl =
+        baseUrl +
+        '?' +
+        query.toString();
+
+      window.top.location.href =
+        targetUrl;
+    }
+
+
+    function closeConfirmationModal_() {
+      if (confirmationModalIsBusy_) {
+        return;
+      }
+
+      pendingRejectionPayload_ =
+        null;
+
+      const targeted =
+        document.getElementById(
+          'targetedCorrectionFields'
+        );
+
+      if (targeted) {
+        targeted.style.display =
+          'none';
+      }
+
+      const preview =
+        document.getElementById(
+          'correctionEmailPreview'
+        );
+
+      if (preview) {
+        preview.classList.remove(
+          'is-visible'
+        );
+      }
+
+      const modal =
+        document.getElementById(
+          'confirmationModal'
+        );
+
+      if (!modal) {
+        return;
+      }
+
+      modal.classList.remove(
+        'is-visible'
+      );
+
+      modal.setAttribute(
+        'aria-hidden',
+        'true'
+      );
+
+      document.body.classList.remove(
+        'modal-open'
+      );
+
+      confirmationModalCallback_ =
+        null;
+
+      confirmationModalBusyText_ =
+        'Processing...';
+
+      confirmationModalIsBusy_ =
+        false;
+
+      modal.classList.remove(
+        'is-busy'
+      );
+
+      const loader =
+        document.getElementById(
+          'confirmationModalLoader'
+        );
+
+      if (loader) {
+        loader.classList.remove(
+          'is-visible'
+        );
+      }
+    }
+
+
+    document.addEventListener(
+      'keydown',
+      function(event) {
+        if (
+          event.key === 'Escape'
+        ) {
+          cancelConfirmationModal_();
+        }
+      }
+    );
+
+
+    function initialiseApplicationFilters() {
+      const searchInput =
+        document.getElementById(
+          'applicationSearch'
+        );
+
+      const paymentFilter =
+        document.getElementById(
+          'paymentFilter'
+        );
+
+      const verificationFilter =
+        document.getElementById(
+          'verificationFilter'
+        );
+
+      const licenceFilter =
+        document.getElementById(
+          'licenceFilter'
+        );
+
+      if (searchInput) {
+        searchInput.addEventListener(
+          'input',
+          filterApplications
+        );
+      }
+
+      if (paymentFilter) {
+        paymentFilter.addEventListener(
+          'change',
+          filterApplications
+        );
+      }
+
+      if (verificationFilter) {
+        verificationFilter.addEventListener(
+          'change',
+          filterApplications
+        );
+      }
+
+      if (licenceFilter) {
+        licenceFilter.addEventListener(
+          'change',
+          filterApplications
+        );
+      }
+    }
+
+
+    function filterApplications() {
+      const searchValue =
+        getElementValue_(
+          'applicationSearch'
+        ).toLowerCase();
+
+      const paymentValue =
+        getElementValue_(
+          'paymentFilter'
+        ).toLowerCase();
+
+      const verificationValue =
+        getElementValue_(
+          'verificationFilter'
+        ).toLowerCase();
+
+      const licenceValue =
+        getElementValue_(
+          'licenceFilter'
+        ).toLowerCase();
+
+      const rows =
+        document.querySelectorAll(
+          '.application-row'
+        );
+
+      let visibleCount = 0;
+
+      rows.forEach(
+        function(row) {
+          const searchText =
+            String(
+              row.dataset.search || ''
+            ).toLowerCase();
+
+          const paymentStatus =
+            String(
+              row.dataset.payment || ''
+            ).toLowerCase();
+
+          const verificationStatus =
+            String(
+              row.dataset.verification || ''
+            ).toLowerCase();
+
+          const licenceStatus =
+            String(
+              row.dataset.licence || ''
+            ).toLowerCase();
+
+          const searchMatches =
+            !searchValue ||
+            searchText.includes(
+              searchValue
+            );
+
+          const paymentMatches =
+            !paymentValue ||
+            paymentStatus ===
+              paymentValue;
+
+          const verificationMatches =
+            !verificationValue ||
+            verificationStatus ===
+              verificationValue;
+
+          const licenceMatches =
+            !licenceValue ||
+            licenceStatus ===
+              licenceValue;
+
+          const shouldDisplay =
+            searchMatches &&
+            paymentMatches &&
+            verificationMatches &&
+            licenceMatches;
+
+          row.style.display =
+            shouldDisplay
+              ? ''
+              : 'none';
+
+          if (shouldDisplay) {
+            visibleCount++;
+          }
+        }
+      );
+
+      const emptyState =
+        document.getElementById(
+          'emptyFilterState'
+        );
+
+      if (emptyState) {
+        emptyState.style.display =
+          visibleCount === 0
+            ? 'block'
+            : 'none';
+      }
+    }
+
+
+
+    const SUPPORTING_DOCUMENT_CORRECTION_REASONS =
+      Object.freeze({
+        cac: [
+          { value: 'unreadable', label: 'CAC document is unclear or unreadable' },
+          { value: 'incorrect', label: 'Incorrect CAC document was uploaded' },
+          { value: 'incomplete', label: 'CAC document is incomplete or has missing pages' },
+          { value: 'mismatch', label: 'CAC details do not match the application' },
+          { value: 'other', label: 'Other' }
+        ],
+        passport: [
+          { value: 'poor_quality', label: 'Passport photograph is unclear or poor quality' },
+          { value: 'wrong_person', label: 'Photograph does not appear to be for the Director or Company Owner' },
+          { value: 'invalid_photo', label: 'Uploaded file is not an acceptable passport photograph' },
+          { value: 'mismatch', label: 'Photograph details do not match the application' },
+          { value: 'other', label: 'Other' }
+        ],
+        education: [
+          { value: 'unreadable', label: 'Educational certificate is unclear or unreadable' },
+          { value: 'incorrect', label: 'Incorrect educational certificate was uploaded' },
+          { value: 'incomplete', label: 'Educational certificate submission is incomplete' },
+          { value: 'mismatch', label: 'Certificate details do not match the application' },
+          { value: 'other', label: 'Other' }
+        ],
+        experience: [
+          { value: 'unreadable', label: 'CV / proof of experience is unclear or unreadable' },
+          { value: 'incorrect', label: 'Incorrect proof of experience was uploaded' },
+          { value: 'incomplete', label: 'CV / proof of experience is incomplete' },
+          { value: 'wrong_person', label: 'CV is not for the CEO / required responsible person' },
+          { value: 'mismatch', label: 'Experience details do not match the application' },
+          { value: 'other', label: 'Other' }
+        ],
+        identification: [
+          { value: 'unreadable', label: 'Means of identification is unclear or unreadable' },
+          { value: 'incorrect', label: 'Incorrect means of identification was uploaded' },
+          { value: 'incomplete', label: 'Identification document is incomplete' },
+          { value: 'mismatch', label: 'Identification details do not match the application' },
+          { value: 'other', label: 'Other' }
+        ]
+      });
+
+
+    function initialiseSupportingDocumentReviewActions_() {
+      if (window.__crffnDocumentReviewActionsInitialised === true) {
+        return;
+      }
+
+      window.__crffnDocumentReviewActionsInitialised = true;
+
+      document.addEventListener(
+        'click',
+        function(event) {
+          const target =
+            event && event.target
+              ? event.target
+              : null;
+
+          const button =
+            target && target.closest
+              ? target.closest('.document-review-action')
+              : null;
+
+          if (!button) {
+            return;
+          }
+
+          event.preventDefault();
+
+          const documentType =
+            String(
+              button.dataset.documentType || ''
+            )
+              .trim()
+              .toLowerCase();
+
+          const decision =
+            String(
+              button.dataset.reviewDecision || ''
+            )
+              .trim()
+              .toLowerCase();
+
+          if (
+            !documentType ||
+            !['approve', 'correction'].includes(decision)
+          ) {
+            showStageMessage_(
+              'documents',
+              'The document review action could not be identified.',
+              'error'
+            );
+            return;
+          }
+
+          reviewSupportingDocument(
+            documentType,
+            decision
+          );
+        }
+      );
+    }
+
+
+    function reviewSupportingDocument(
+      documentType,
+      decision
+    ) {
+      if (!CURRENT_APPLICATION_ID) {
+        showStageMessage_(
+          'documents',
+          'Unable to identify the application.',
+          'error'
+        );
+        return;
+      }
+
+      if (window.__crffnDocumentReviewBusy === true) {
+        return;
+      }
+
+      const cleanDocumentType =
+        String(documentType || '')
+          .trim()
+          .toLowerCase();
+
+      const cleanDecision =
+        String(decision || '')
+          .trim()
+          .toLowerCase();
+
+      if (
+        !cleanDocumentType ||
+        !['approve', 'correction'].includes(cleanDecision)
+      ) {
+        showStageMessage_(
+          'documents',
+          'The document review action is invalid.',
+          'error'
+        );
+        return;
+      }
+
+      const reasonOptions =
+        cleanDecision === 'correction'
+          ? (
+              SUPPORTING_DOCUMENT_CORRECTION_REASONS[
+                cleanDocumentType
+              ] || []
+            )
+          : [];
+
+      showConfirmationModal_({
+        title:
+          cleanDecision === 'approve'
+            ? 'Approve Document'
+            : 'Request Document Correction',
+
+        message:
+          cleanDecision === 'approve'
+            ? 'Approve this supporting document?'
+            : 'Select the reason this document requires correction.',
+
+        confirmText:
+          cleanDecision === 'approve'
+            ? 'Approve Document'
+            : 'Request Correction',
+
+        type:
+          cleanDecision === 'correction'
+            ? 'danger'
+            : 'default',
+
+        busyText:
+          cleanDecision === 'approve'
+            ? 'Approving...'
+            : 'Saving...',
+
+        reasonOptions:
+          reasonOptions,
+
+        onConfirm:
+          function(selection) {
+            let notes = '';
+
+            if (cleanDecision === 'correction') {
+              const reasonCode =
+                selection &&
+                Array.isArray(selection.reasonCodes) &&
+                selection.reasonCodes.length
+                  ? String(selection.reasonCodes[0] || '')
+                  : '';
+
+              const selectedReason =
+                reasonOptions.find(
+                  function(item) {
+                    return String(item.value || '') === reasonCode;
+                  }
+                );
+
+              notes =
+                reasonCode === 'other'
+                  ? String(
+                      selection && selection.details
+                        ? selection.details
+                        : ''
+                    ).trim()
+                  : String(
+                      selectedReason && selectedReason.label
+                        ? selectedReason.label
+                        : ''
+                    ).trim();
+
+              if (!notes) {
+                setConfirmationModalBusy_(false);
+                showConfirmationReasonError_(
+                  'Select a correction reason.'
+                );
+                return;
+              }
+            }
+
+            window.__crffnDocumentReviewBusy =
+              true;
+
+            let settled =
+              false;
+
+            const timeoutId =
+              startAdminActionTimeout_(
+                function() {
+                  if (settled) {
+                    return;
+                  }
+
+                  handleSlowAdminAction_(
+                    'documents'
+                  );
+                }
+              );
+
+            google.script.run
+              .withSuccessHandler(
+                function(result) {
+                  settled =
+                    true;
+
+                  window.clearTimeout(
+                    timeoutId
+                  );
+
+                  window.__crffnDocumentReviewBusy =
+                    false;
+
+                  if (
+                    !result ||
+                    result.ok !== true
+                  ) {
+                    failModalAction_(
+                      result && result.message
+                        ? result.message
+                        : 'The document review could not be saved.'
+                    );
+                    return;
+                  }
+
+                  completeModalActionWithoutRefresh_(
+                    'documents',
+                    result
+                  );
+                }
+              )
+              .withFailureHandler(
+                function(error) {
+                  settled =
+                    true;
+
+                  window.clearTimeout(
+                    timeoutId
+                  );
+
+                  window.__crffnDocumentReviewBusy =
+                    false;
+
+                  failModalAction_(
+                    getErrorMessage_(error)
+                  );
+                }
+              )
+              .reviewSupportingDocument(
+                CURRENT_APPLICATION_ID,
+                cleanDocumentType,
+                cleanDecision,
+                notes,
+                ADMIN_SESSION_TOKEN
+              );
+          }
+      });
+    }
+    function approveReviewStage(stage) {
+  if (!CURRENT_APPLICATION_ID) {
+    showStageMessage_(
+      stage,
+      'Unable to identify the application.',
+      'error'
+    );
+
+    return;
+  }
+
+  const stageDetails =
+    getReviewStageDetails_(stage);
+
+  if (!stageDetails) {
+    return;
+  }
+
+  showConfirmationModal_({
+    title:
+      getApprovalModalTitle_(stage),
+
+    message:
+      stageDetails.approvalConfirmation,
+
+    confirmText:
+      getApprovalButtonText_(stage),
+
+    busyText:
+      'Saving Approval...',
+
+    onConfirm:
+      function() {
+        executeApproveReviewStage_(
+          stage,
+          stageDetails
+        );
+      }
+  });
+}
+function executeUploadStampedLicence_(
+  file,
+  fileInput
+) {
+  const fileName =
+    String(file.name || '');
+
+  const mimeType =
+    String(file.type || '');
+
+  const button =
+    document.getElementById(
+      'uploadStampedLicenceButton'
+    );
+
+  setButtonBusy_(
+    button,
+    true,
+    'Reading PDF...'
+  );
+
+  const reader =
+    new FileReader();
+
+  reader.onload =
+    function(event) {
+      const result =
+        String(
+          event.target.result || ''
+        );
+
+      const base64Data =
+        result.indexOf(',') >= 0
+          ? result.split(',')[1]
+          : result;
+
+      if (!base64Data) {
+        setButtonBusy_(
+          button,
+          false
+        );
+
+        failModalAction_(
+          'The selected PDF could not be read.'
+        );
+
+        return;
+      }
+
+      setButtonBusy_(
+        button,
+        true,
+        'Uploading...'
+      );
+
+      google.script.run
+        .withSuccessHandler(
+          function(response) {
+            setButtonBusy_(
+              button,
+              false
+            );
+
+            if (
+              !response ||
+              response.ok !== true
+            ) {
+              failModalAction_(
+                response &&
+                response.message
+                  ? response.message
+                  : 'The stamped licence could not be uploaded.'
+              );
+
+              return;
+            }
+
+            fileInput.value = '';
+
+            setConfirmationModalBusy_(
+              false
+            );
+
+            closeConfirmationModal_();
+
+            applyStampedLicenceUploadResult_(
+              response
+            );
+
+            showLicenceMessage_(
+              response.message ||
+              'Stamped licence uploaded successfully.',
+              'success'
+            );
+          }
+        )
+        .withFailureHandler(
+          function(error) {
+            setButtonBusy_(
+              button,
+              false
+            );
+
+            failModalAction_(
+              getErrorMessage_(error)
+            );
+          }
+        )
+        .uploadStampedLicence({
+          applicationId:
+            CURRENT_APPLICATION_ID,
+
+          fileName:
+            fileName,
+
+          mimeType:
+            mimeType ||
+            'application/pdf',
+
+          base64Data:
+            base64Data,
+
+          sessionToken:
+            ADMIN_SESSION_TOKEN
+        });
+    };
+
+  reader.onerror =
+    function() {
+      setButtonBusy_(
+        button,
+        false
+      );
+
+      failModalAction_(
+        'The selected PDF could not be read.'
+      );
+    };
+
+  reader.readAsDataURL(file);
+}
+
+
+function executeApproveReviewStage_(
+  stage,
+  stageDetails
+) {
+  setReviewButtonsDisabled_(
+    stage,
+    true
+  );
+
+  let settled =
+    false;
+
+  const timeoutId =
+    startAdminActionTimeout_(
+      function() {
+        if (settled) {
+          return;
+        }
+
+        setReviewButtonsDisabled_(
+          stage,
+          false
+        );
+
+        handleSlowAdminAction_(
+          stage
+        );
+      }
+    );
+
+  google.script.run
+    .withSuccessHandler(
+      function(result) {
+        settled =
+          true;
+
+        window.clearTimeout(
+          timeoutId
+        );
+
+        setReviewButtonsDisabled_(
+          stage,
+          false
+        );
+
+        if (
+          !result ||
+          result.ok !== true
+        ) {
+          failModalAction_(
+            result &&
+            result.message
+              ? result.message
+              : 'The approval could not be saved.'
+          );
+
+          return;
+        }
+
+        /*
+         * Final Approval must immediately expose the authoritative
+         * Licence Workflow. Reload this same application after the
+         * verification write so canGenerateLicence is recalculated
+         * from the saved Sheet values on the server.
+         */
+        if (stage === 'verification') {
+          completeModalActionAndRefresh_();
+          return;
+        }
+
+        completeModalActionWithoutRefresh_(
+          stage,
+          result
+        );
+      }
+    )
+    .withFailureHandler(
+      function(error) {
+        settled =
+          true;
+
+        window.clearTimeout(
+          timeoutId
+        );
+
+        setReviewButtonsDisabled_(
+          stage,
+          false
+        );
+
+        failModalAction_(
+          getErrorMessage_(error)
+        );
+      }
+    )
+    .approveAdminReviewStage(
+      CURRENT_APPLICATION_ID,
+      stage,
+      '',
+      ADMIN_SESSION_TOKEN
+    );
+}
+    let pendingRejectionPayload_ =
+      null;
+
+
+    function rejectReviewStage(stage) {
+      const stageDetails =
+        getReviewStageDetails_(
+          stage
+        );
+
+      const targeted =
+        stage ===
+          'information' ||
+        stage ===
+          'documents';
+
+      showConfirmationModal_({
+        title:
+          getRejectionModalTitle_(
+            stage
+          ),
+        message:
+          stageDetails
+            .rejectionConfirmation,
+        confirmText:
+          'Preview Email',
+        type:
+          'danger',
+        busyText:
+          'Preparing Preview...',
+        reasonOptions:
+          targeted
+            ? []
+            : (
+              REVIEW_REJECTION_REASONS[
+                stage
+              ] || []
+            ),
+        onConfirm:
+          function(selection) {
+            let payload;
+
+            try {
+              payload =
+                targeted
+                  ? getTargetedCorrectionPayload_()
+                  : {
+                      correctionItems:
+                        selection.reasonCodes,
+                      details:
+                        selection.details
+                    };
+            } catch (error) {
+              return;
+            }
+
+            previewRejectionEmail_(
+              stage,
+              payload
+            );
+          }
+      });
+
+      if (targeted) {
+        configureTargetedCorrectionFields_(
+          stage
+        );
+      }
+    }
+
+
+    function configureTargetedCorrectionFields_(
+      stage
+    ) {
+      const normal =
+        document.getElementById(
+          'confirmationModalReasonFields'
+        );
+
+      normal.classList.remove(
+        'is-visible'
+      );
+
+      normal.dataset.required =
+        'false';
+
+      const container =
+        document.getElementById(
+          'targetedCorrectionFields'
+        );
+
+      const list =
+        document.getElementById(
+          'targetedCorrectionList'
+        );
+
+      container.dataset.stage =
+        stage;
+
+      container.style.display =
+        'grid';
+
+      list.innerHTML =
+        '';
+
+      document.getElementById(
+        'targetedCorrectionCustomDetails'
+      ).value =
+        '';
+
+      document.getElementById(
+        'targetedCorrectionCustomWrap'
+      ).style.display =
+        'none';
+
+      addTargetedCorrectionRow_(
+        stage
+      );
+    }
+
+
+    function addTargetedCorrectionRow_(
+      stage
+    ) {
+      const list =
+        document.getElementById(
+          'targetedCorrectionList'
+        );
+
+      const config =
+        TARGETED_CORRECTION_OPTIONS[
+          stage
+        ];
+
+      const row =
+        document.createElement(
+          'div'
+        );
+
+      row.className =
+        'targeted-correction-row';
+
+      row.innerHTML =
+        '<label>Affected Item<select class="targeted-correction-target"></select></label>' +
+        '<label>Issue<select class="targeted-correction-issue"></select></label>' +
+        '<button type="button" class="targeted-remove-button">Remove</button>';
+
+      const target =
+        row.querySelector(
+          '.targeted-correction-target'
+        );
+
+      const issue =
+        row.querySelector(
+          '.targeted-correction-issue'
+        );
+
+      populateCorrectionSelect_(
+        target,
+        config.targets,
+        'Select item'
+      );
+
+      populateCorrectionSelect_(
+        issue,
+        config.issues,
+        'Select issue'
+      );
+
+      target.onchange =
+        updateTargetedCustomVisibility_;
+
+      issue.onchange =
+        updateTargetedCustomVisibility_;
+
+      row
+        .querySelector(
+          '.targeted-remove-button'
+        )
+        .onclick =
+          function() {
+            if (
+              list.children.length ===
+                1
+            ) {
+              target.value =
+                '';
+              issue.value =
+                '';
+            } else {
+              row.remove();
+            }
+
+            updateTargetedCustomVisibility_();
+          };
+
+      list.appendChild(
+        row
+      );
+    }
+
+
+    function populateCorrectionSelect_(
+      select,
+      values,
+      placeholder
+    ) {
+      select.innerHTML =
+        '<option value="">' +
+        placeholder +
+        '</option>';
+
+      values.forEach(
+        function(pair) {
+          const option =
+            document.createElement(
+              'option'
+            );
+
+          option.value =
+            pair[0];
+
+          option.textContent =
+            pair[1];
+
+          select.appendChild(
+            option
+          );
+        }
+      );
+    }
+
+
+    function updateTargetedCustomVisibility_() {
+      const list =
+        document.getElementById(
+          'targetedCorrectionList'
+        );
+
+      const rows =
+        Array.from(
+          list.querySelectorAll(
+            '.targeted-correction-row'
+          )
+        );
+
+      const show =
+        rows.some(
+          function(row) {
+            return (
+              row.querySelector(
+                '.targeted-correction-target'
+              ).value ===
+                'other' ||
+              row.querySelector(
+                '.targeted-correction-issue'
+              ).value ===
+                'other'
+            );
+          }
+        );
+
+      document.getElementById(
+        'targetedCorrectionCustomWrap'
+      ).style.display =
+        show
+          ? 'grid'
+          : 'none';
+    }
+
+
+    function getTargetedCorrectionPayload_() {
+      const rows =
+        Array.from(
+          document.querySelectorAll(
+            '#targetedCorrectionList .targeted-correction-row'
+          )
+        );
+
+      const correctionItems =
+        [];
+
+      for (
+        const row of rows
+      ) {
+        const targetCode =
+          row.querySelector(
+            '.targeted-correction-target'
+          ).value;
+
+        const issueCode =
+          row.querySelector(
+            '.targeted-correction-issue'
+          ).value;
+
+        if (
+          !targetCode ||
+          !issueCode
+        ) {
+          showConfirmationReasonError_(
+            'Select both the affected item and the issue for every row.'
+          );
+
+          throw new Error(
+            'INVALID_TARGETED_REASON'
+          );
+        }
+
+        correctionItems.push({
+          targetCode:
+            targetCode,
+          issueCode:
+            issueCode
+        });
+      }
+
+      const details =
+        String(
+          document.getElementById(
+            'targetedCorrectionCustomDetails'
+          ).value ||
+          ''
+        ).trim();
+
+      const needsDetails =
+        correctionItems.some(
+          function(item) {
+            return (
+              item.targetCode ===
+                'other' ||
+              item.issueCode ===
+                'other'
+            );
+          }
+        );
+
+      if (
+        needsDetails &&
+        !details
+      ) {
+        showConfirmationReasonError_(
+          'Enter the specific custom reason for the item marked Other.'
+        );
+
+        throw new Error(
+          'CUSTOM_REASON_REQUIRED'
+        );
+      }
+
+      return {
+        correctionItems:
+          correctionItems,
+        details:
+          details
+      };
+    }
+
+
+    function previewRejectionEmail_(
+      stage,
+      payload
+    ) {
+      pendingRejectionPayload_ = {
+        stage:
+          stage,
+        correctionItems:
+          payload.correctionItems,
+        details:
+          payload.details
+      };
+
+      setConfirmationModalBusy_(
+        true,
+        'Preparing Preview...'
+      );
+
+      google.script.run
+        .withSuccessHandler(
+          function(result) {
+            setConfirmationModalBusy_(
+              false
+            );
+
+            showEmailPreview_(
+              result
+            );
+          }
+        )
+        .withFailureHandler(
+          function(error) {
+            setConfirmationModalBusy_(
+              false
+            );
+
+            failModalAction_(
+              getErrorMessage_(
+                error
+              )
+            );
+          }
+        )
+        .previewAdminReviewCorrectionEmail(
+          CURRENT_APPLICATION_ID,
+          stage,
+          payload.correctionItems,
+          payload.details,
+          ADMIN_SESSION_TOKEN
+        );
+    }
+
+
+    function showEmailPreview_(
+      result
+    ) {
+      const targeted =
+        document.getElementById(
+          'targetedCorrectionFields'
+        );
+
+      const normalReasons =
+        document.getElementById(
+          'confirmationModalReasonFields'
+        );
+
+      const preview =
+        document.getElementById(
+          'correctionEmailPreview'
+        );
+
+      const confirm =
+        document.getElementById(
+          'confirmationModalConfirmButton'
+        );
+
+      const cancel =
+        document.getElementById(
+          'confirmationModalCancelButton'
+        );
+
+      if (targeted) {
+        targeted.style.display =
+          'none';
+      }
+
+      if (normalReasons) {
+        normalReasons.classList.remove(
+          'is-visible'
+        );
+      }
+
+      document.getElementById(
+        'correctionEmailPreviewTo'
+      ).textContent =
+        result.to ||
+        'Applicant';
+
+      document.getElementById(
+        'correctionEmailPreviewSubject'
+      ).textContent =
+        result.subject ||
+        '';
+
+      document.getElementById(
+        'correctionEmailPreviewBody'
+      ).textContent =
+        result.body ||
+        '';
+
+      if (preview) {
+        preview.classList.add(
+          'is-visible'
+        );
+      }
+
+      /*
+       * The modal action buttons use the IDs ending in "Button".
+       * Explicitly restore them after preview generation.
+       */
+      if (confirm) {
+        confirm.style.display =
+          'inline-flex';
+
+        confirm.disabled =
+          false;
+
+        confirm.classList.remove(
+          'button-disabled'
+        );
+
+        confirm.textContent =
+          'Confirm & Send';
+
+        confirm.onclick =
+          confirmPreviewedRejection_;
+      }
+
+      if (cancel) {
+        cancel.style.display =
+          'inline-flex';
+
+        cancel.disabled =
+          false;
+
+        cancel.textContent =
+          'Back';
+
+        cancel.onclick =
+          backFromEmailPreview_;
+      }
+
+      confirmationModalIsBusy_ =
+        false;
+    }
+
+
+    function backFromEmailPreview_() {
+      const preview =
+        document.getElementById(
+          'correctionEmailPreview'
+        );
+
+      if (preview) {
+        preview.classList.remove(
+          'is-visible'
+        );
+      }
+
+      const stage =
+        pendingRejectionPayload_
+          ? pendingRejectionPayload_.stage
+          : '';
+
+      if (
+        stage ===
+          'information' ||
+        stage ===
+          'documents'
+      ) {
+        const targeted =
+          document.getElementById(
+            'targetedCorrectionFields'
+          );
+
+        if (targeted) {
+          targeted.style.display =
+            'grid';
+        }
+      } else {
+        const normalReasons =
+          document.getElementById(
+            'confirmationModalReasonFields'
+          );
+
+        if (normalReasons) {
+          normalReasons.classList.add(
+            'is-visible'
+          );
+        }
+      }
+
+      const confirm =
+        document.getElementById(
+          'confirmationModalConfirmButton'
+        );
+
+      if (confirm) {
+        confirm.style.display =
+          'inline-flex';
+
+        confirm.disabled =
+          false;
+
+        confirm.textContent =
+          'Preview Email';
+
+        confirm.onclick =
+          confirmConfirmationModal_;
+      }
+
+      const cancel =
+        document.getElementById(
+          'confirmationModalCancelButton'
+        );
+
+      if (cancel) {
+        cancel.style.display =
+          'inline-flex';
+
+        cancel.disabled =
+          false;
+
+        cancel.textContent =
+          'Cancel';
+
+        cancel.onclick =
+          closeConfirmationModal_;
+      }
+    }
+
+
+    function confirmPreviewedRejection_() {
+      const payload =
+        pendingRejectionPayload_;
+
+      setConfirmationModalBusy_(
+        true,
+        'Saving Decision...'
+      );
+
+      let settled =
+        false;
+
+      const timeoutId =
+        startAdminActionTimeout_(
+          function() {
+            if (settled) {
+              return;
+            }
+
+            handleSlowAdminAction_(
+              payload && payload.stage
+                ? payload.stage
+                : 'information'
+            );
+          }
+        );
+
+      google.script.run
+        .withSuccessHandler(
+          function(result) {
+            settled =
+              true;
+
+            window.clearTimeout(
+              timeoutId
+            );
+
+            if (
+              !result ||
+              result.ok !== true
+            ) {
+              failModalAction_(
+                result &&
+                result.message
+                  ? result.message
+                  : 'The review decision could not be saved.'
+              );
+
+              return;
+            }
+
+            completeModalActionWithoutRefresh_(
+              payload.stage,
+              result
+            );
+          }
+        )
+        .withFailureHandler(
+          function(error) {
+            settled =
+              true;
+
+            window.clearTimeout(
+              timeoutId
+            );
+
+            failModalAction_(
+              getErrorMessage_(
+                error
+              )
+            );
+          }
+        )
+        .rejectAdminReviewStage(
+          CURRENT_APPLICATION_ID,
+          payload.stage,
+          payload.correctionItems,
+          payload.details,
+          ADMIN_SESSION_TOKEN
+        );
+    }
+
+
+    function generateDraftLicence() {
+  if (!CURRENT_APPLICATION_ID) {
+    showLicenceMessage_(
+      'Unable to identify the application.',
+      'error'
+    );
+
+    return;
+  }
+
+  showConfirmationModal_({
+    title:
+      'Generate unstamped licence',
+
+    message:
+      'Generate the unstamped licence for this application?',
+
+    confirmText:
+      'Generate Licence',
+
+    busyText:
+      'Generating Licence...',
+
+    onConfirm:
+      executeGenerateDraftLicence_
+  });
+}
+
+
+function executeGenerateDraftLicence_() {
+  const button =
+    document.getElementById(
+      'generateLicenceButton'
+    );
+
+  setButtonBusy_(
+    button,
+    true,
+    'Generating Licence...'
+  );
+
+  google.script.run
+    .withSuccessHandler(
+      function(result) {
+        setButtonBusy_(
+          button,
+          false
+        );
+
+        if (
+          !result ||
+          result.ok !== true
+        ) {
+          failModalAction_(
+            result &&
+            result.message
+              ? result.message
+              : 'The licence could not be generated.'
+          );
+
+          return;
+        }
+
+        completeLicenceModalWithoutRefresh_(
+          result
+        );
+      }
+    )
+    .withFailureHandler(
+      function(error) {
+        setButtonBusy_(
+          button,
+          false
+        );
+
+        failModalAction_(
+          getErrorMessage_(error)
+        );
+      }
+    )
+    .approveAndGenerateLicence(
+      CURRENT_APPLICATION_ID,
+      ADMIN_SESSION_TOKEN
+    );
+}
+
+
+function completeLicenceModalWithoutRefresh_(
+  result
+) {
+  setConfirmationModalBusy_(
+    false
+  );
+
+  closeConfirmationModal_();
+
+  applyGeneratedLicenceResult_(
+    result || {}
+  );
+
+  showLicenceMessage_(
+    result && result.message
+      ? result.message
+      : 'Unstamped licence generated successfully.',
+    'success'
+  );
+}
+
+
+function buildSecureAdminDocumentUrl_(
+  documentType,
+  action
+) {
+  const query =
+    new URLSearchParams();
+
+  query.set(
+    'view',
+    'adminDocument'
+  );
+
+  query.set(
+    'applicationId',
+    CURRENT_APPLICATION_ID
+  );
+
+  query.set(
+    'documentType',
+    String(
+      documentType || ''
+    )
+  );
+
+  query.set(
+    'session',
+    ADMIN_SESSION_TOKEN
+  );
+
+  query.set(
+    'action',
+    String(
+      action || 'view'
+    )
+  );
+
+  return (
+    ADMIN_PORTAL_BASE_URL +
+    '?' +
+    query.toString()
+  );
+}
+
+
+function openSecureAdminDocument_(
+  documentType,
+  action
+) {
+  if (
+    !CURRENT_APPLICATION_ID ||
+    !ADMIN_SESSION_TOKEN
+  ) {
+    showAdminSessionExpired_(
+      'Your administrator session has expired for security reasons. Sign in again to continue reviewing this application.'
+    );
+
+    return false;
+  }
+
+  const url =
+    buildSecureAdminDocumentUrl_(
+      documentType,
+      action
+    );
+
+  window.open(
+    url,
+    '_blank',
+    'noopener,noreferrer'
+  );
+
+  return false;
+}
+
+
+function applyGeneratedLicenceResult_(
+  result
+) {
+  const container =
+    document.getElementById(
+      'licenceWorkflowContainer'
+    );
+
+  if (!container) {
+    return;
+  }
+
+  const readyState =
+    document.getElementById(
+      'licenceGenerationReadyState'
+    );
+
+  if (readyState) {
+    readyState.style.display =
+      'none';
+  }
+
+  const lockedState =
+    document.getElementById(
+      'licenceGenerationLockedState'
+    );
+
+  if (lockedState) {
+    lockedState.remove();
+  }
+
+  const generateButton =
+    document.getElementById(
+      'generateLicenceButton'
+    );
+
+  if (generateButton) {
+    generateButton.style.display =
+      'none';
+
+    const intro =
+      generateButton.previousElementSibling;
+
+    if (
+      intro &&
+      intro.tagName === 'P'
+    ) {
+      intro.style.display =
+        'none';
+    }
+  }
+
+  let draftPanel =
+    document.getElementById(
+      'dynamicGeneratedDraftLicencePanel'
+    );
+
+  if (!draftPanel) {
+    draftPanel =
+      document.createElement(
+        'div'
+      );
+
+    draftPanel.id =
+      'dynamicGeneratedDraftLicencePanel';
+
+    draftPanel.className =
+      'licence-panel';
+
+    draftPanel.style.marginTop =
+      '16px';
+
+    draftPanel.innerHTML =
+      '<h3>Generated Unstamped Licence</h3>' +
+      '<p class="muted">Review the generated licence before uploading the stamped copy.</p>' +
+      '<div class="review-actions">' +
+        '<a class="button" href="#" data-secure-licence="draft-view">View Draft Licence</a>' +
+        '<a class="button button-secondary" href="#" data-secure-licence="draft-download">Download Draft Licence</a>' +
+      '</div>';
+
+    container.appendChild(
+      draftPanel
+    );
+
+    draftPanel
+      .querySelector(
+        '[data-secure-licence="draft-view"]'
+      )
+      .addEventListener(
+        'click',
+        function(event) {
+          event.preventDefault();
+          openSecureAdminDocument_(
+            'draftlicence',
+            'view'
+          );
+        }
+      );
+
+    draftPanel
+      .querySelector(
+        '[data-secure-licence="draft-download"]'
+      )
+      .addEventListener(
+        'click',
+        function(event) {
+          event.preventDefault();
+          openSecureAdminDocument_(
+            'draftlicence',
+            'download'
+          );
+        }
+      );
+  }
+
+  if (
+    !document.getElementById(
+      'dynamicStampedLicenceWorkflow'
+    )
+  ) {
+    const workflow =
+      document.createElement(
+        'div'
+      );
+
+    workflow.id =
+      'dynamicStampedLicenceWorkflow';
+
+    workflow.className =
+      'licence-workflow-grid';
+
+    workflow.innerHTML =
+      '<div class="licence-panel">' +
+        '<h3>Upload Stamped Licence</h3>' +
+        '<p class="muted">Upload the signed and stamped PDF. The applicant will not receive it until an admin approves and releases it.</p>' +
+        '<input id="stampedLicenceFile" class="file-input" type="file" accept="application/pdf,.pdf">' +
+        '<div class="review-actions"><button type="button" id="uploadStampedLicenceButton" class="button">Upload Stamped Licence</button></div>' +
+      '</div>' +
+      '<div class="licence-panel">' +
+        '<h3>Stamped Licence Review</h3>' +
+        '<p class="muted">No stamped licence has been uploaded.</p>' +
+      '</div>';
+
+    container.appendChild(
+      workflow
+    );
+
+    document
+      .getElementById(
+        'uploadStampedLicenceButton'
+      )
+      .addEventListener(
+        'click',
+        uploadStampedLicence
+      );
+  }
+
+  const licenceStatus =
+    document.getElementById(
+      'licenceStatus'
+    );
+
+  if (licenceStatus) {
+    licenceStatus.textContent =
+      result.licenceStatus ||
+      'Generated';
+  }
+}
+
+
+function applyStampedLicenceUploadResult_(
+  result
+) {
+  const workflow =
+    document.getElementById(
+      'dynamicStampedLicenceWorkflow'
+    ) ||
+    document.querySelector(
+      '#licenceWorkflowContainer .licence-workflow-grid'
+    );
+
+  if (!workflow) {
+    return;
+  }
+
+  const panels =
+    workflow.querySelectorAll(
+      '.licence-panel'
+    );
+
+  if (panels.length < 2) {
+    return;
+  }
+
+  const reviewPanel =
+    panels[1];
+
+  reviewPanel.innerHTML =
+    '<h3>Stamped Licence Review</h3>' +
+    '<p>Approval status: <strong>' +
+      escapeAdminHtml_(
+        result.approvalStatus ||
+        'Pending Approval'
+      ) +
+    '</strong></p>' +
+    '<div class="review-actions">' +
+      '<a class="button" href="#" data-stamped-action="view">View Stamped Licence</a>' +
+      '<a class="button button-secondary" href="#" data-stamped-action="download">Download Stamped Licence</a>' +
+      '<button type="button" id="approveStampedLicenceButton" class="button button-warning">Approve and Send to Applicant</button>' +
+    '</div>';
+
+  reviewPanel
+    .querySelectorAll(
+      '[data-stamped-action]'
+    )
+    .forEach(function(link) {
+      link.addEventListener(
+        'click',
+        function(event) {
+          event.preventDefault();
+          openSecureAdminDocument_(
+            'stampedlicence',
+            link.dataset.stampedAction
+          );
+        }
+      );
+    });
+
+  const approveButton =
+    document.getElementById(
+      'approveStampedLicenceButton'
+    );
+
+  if (approveButton) {
+    approveButton.addEventListener(
+      'click',
+      approveAndReleaseStampedLicence
+    );
+  }
+
+  const draftPanels = [
+    document.getElementById(
+      'dynamicGeneratedDraftLicencePanel'
+    ),
+    document.getElementById(
+      'generatedDraftLicencePanel'
+    )
+  ];
+
+  draftPanels.forEach(function(draftPanel) {
+    if (draftPanel) {
+      draftPanel.remove();
+    }
+  });
+}
+
+
+function applyReleasedLicenceResult_(
+  result
+) {
+  const container =
+    document.getElementById(
+      'licenceWorkflowContainer'
+    );
+
+  if (!container) {
+    return;
+  }
+
+  const workflow =
+    document.getElementById(
+      'dynamicStampedLicenceWorkflow'
+    ) ||
+    document.getElementById(
+      'stampedLicenceWorkflow'
+    ) ||
+    container.querySelector(
+      '.licence-workflow-grid'
+    );
+
+  if (workflow) {
+    workflow.remove();
+  }
+
+  [
+    document.getElementById(
+      'dynamicGeneratedDraftLicencePanel'
+    ),
+    document.getElementById(
+      'generatedDraftLicencePanel'
+    )
+  ].forEach(function(draftPanel) {
+    if (draftPanel) {
+      draftPanel.remove();
+    }
+  });
+
+  const staticReleasedPanel =
+    document.getElementById(
+      'releasedLicencePanel'
+    );
+
+  if (staticReleasedPanel) {
+    staticReleasedPanel.remove();
+  }
+
+  let releasedPanel =
+    document.getElementById(
+      'dynamicReleasedLicencePanel'
+    );
+
+  if (!releasedPanel) {
+    releasedPanel =
+      document.createElement(
+        'div'
+      );
+
+    releasedPanel.id =
+      'dynamicReleasedLicencePanel';
+
+    releasedPanel.className =
+      'licence-panel';
+
+    releasedPanel.style.marginTop =
+      '16px';
+
+    releasedPanel.innerHTML =
+      '<h3>Released Licence</h3>' +
+      '<p>This stamped licence has been approved and released to the applicant.</p>' +
+      '<div class="review-actions">' +
+        '<a class="button" href="#" data-released-action="view">View Released Licence</a>' +
+        '<a class="button button-secondary" href="#" data-released-action="download">Download Released Licence</a>' +
+      '</div>';
+
+    container.appendChild(
+      releasedPanel
+    );
+
+    releasedPanel
+      .querySelectorAll(
+        '[data-released-action]'
+      )
+      .forEach(function(link) {
+        link.addEventListener(
+          'click',
+          function(event) {
+            event.preventDefault();
+            openSecureAdminDocument_(
+              'stampedlicence',
+              link.dataset.releasedAction
+            );
+          }
+        );
+      });
+  }
+
+  showLicenceMessage_(
+    result && result.message
+      ? result.message
+      : 'The stamped licence was approved and released.',
+    'success'
+  );
+}
+
+
+    function uploadStampedLicence() {
+      if (!CURRENT_APPLICATION_ID) {
+        showLicenceMessage_(
+          'Unable to identify the application.',
+          'error'
+        );
+
+        return;
+      }
+
+      const fileInput =
+        document.getElementById(
+          'stampedLicenceFile'
+        );
+
+      if (
+        !fileInput ||
+        !fileInput.files ||
+        !fileInput.files.length
+      ) {
+        showLicenceMessage_(
+          'Select the signed and stamped PDF before uploading.',
+          'error'
+        );
+
+        return;
+      }
+
+      const file =
+        fileInput.files[0];
+
+      const fileName =
+        String(
+          file.name || ''
+        );
+
+      const mimeType =
+        String(
+          file.type || ''
+        );
+
+      const isPdf =
+        mimeType ===
+          'application/pdf' ||
+        fileName
+          .toLowerCase()
+          .endsWith('.pdf');
+
+      if (!isPdf) {
+        showLicenceMessage_(
+          'Only PDF files are allowed.',
+          'error'
+        );
+
+        fileInput.value = '';
+
+        return;
+      }
+
+      if (
+        file.size >
+        MAX_STAMPED_LICENCE_SIZE
+      ) {
+        showLicenceMessage_(
+          'The stamped licence must not exceed 10 MB.',
+          'error'
+        );
+
+        fileInput.value = '';
+
+        return;
+      }
+
+      showConfirmationModal_({
+  title:
+    'Upload stamped licence',
+
+  message:
+    'Upload this stamped licence? Any previously uploaded stamped licence will be replaced.',
+
+  confirmText:
+    'Upload Licence',
+
+  busyText:
+    'Uploading Licence...',
+
+  onConfirm:
+    function() {
+      executeUploadStampedLicence_(
+        file,
+        fileInput
+      );
+    }
+});
+
+}
+      
+    function approveAndReleaseStampedLicence() {
+        if (!CURRENT_APPLICATION_ID) {
+          showLicenceMessage_(
+            'Unable to identify the application.',
+            'error'
+          );
+
+          return;
+        }
+
+        showConfirmationModal_({
+          title:
+            'Approve and release licence',
+
+          message:
+            'This will release the approved licence and email it to the applicant. This action should only be completed after confirming that the signed and stamped PDF is correct.',
+
+          confirmText:
+            'Approve and Send',
+
+          busyText:
+            'Approving and Sending...',
+
+          onConfirm:
+            executeApproveAndReleaseStampedLicence_
+        });
+  }
+  function executeApproveAndReleaseStampedLicence_() {
+  const button =
+    document.getElementById(
+      'approveStampedLicenceButton'
+    );
+
+  setButtonBusy_(
+    button,
+    true,
+    'Approving and Sending...'
+  );
+
+  google.script.run
+    .withSuccessHandler(
+      function(result) {
+        setButtonBusy_(
+          button,
+          false
+        );
+
+        if (
+          !result ||
+          result.ok !== true
+        ) {
+          failModalAction_(
+            result &&
+            result.message
+              ? result.message
+              : 'The licence could not be released.'
+          );
+
+          return;
+        }
+
+        setConfirmationModalBusy_(
+          false
+        );
+
+        closeConfirmationModal_();
+
+        applyReleasedLicenceResult_(
+          result
+        );
+      }
+    )
+    .withFailureHandler(
+      function(error) {
+        setButtonBusy_(
+          button,
+          false
+        );
+
+        failModalAction_(
+          getErrorMessage_(error)
+        );
+      }
+    )
+    .approveAndReleaseStampedLicence(
+      CURRENT_APPLICATION_ID,
+      ADMIN_SESSION_TOKEN
+    );
+}
+function getApprovalModalTitle_(stage) {
+  const titles = {
+    information:
+      'Confirm application information',
+
+    payment:
+      'Confirm payment',
+
+    documents:
+      'Confirm documents',
+
+    verification:
+      'Approve application'
+  };
+
+  return titles[stage] ||
+    'Confirm approval';
+}
+
+
+function getApprovalButtonText_(stage) {
+  const labels = {
+    information:
+      'Confirm Information',
+
+    payment:
+      'Confirm Payment',
+
+    documents:
+      'Confirm Documents',
+
+    verification:
+      'Approve Application'
+  };
+
+  return labels[stage] ||
+    'Confirm';
+}
+
+
+function getRejectionModalTitle_(stage) {
+  const titles = {
+    information:
+      'Request information correction',
+
+    payment:
+      'Reject payment',
+
+    documents:
+      'Request document correction',
+
+    verification:
+      'Reject application'
+  };
+
+  return titles[stage] ||
+    'Confirm rejection';
+}
+
+
+function getRejectionButtonText_(stage) {
+  const labels = {
+    information:
+      'Request Correction',
+
+    payment:
+      'Reject Payment',
+
+    documents:
+      'Request Correction',
+
+    verification:
+      'Reject Application'
+  };
+
+  return labels[stage] ||
+    'Continue';
+}
+    function getReviewStageDetails_(
+      stage
+    ) {
+      const details = {
+        information: {
+          approvedStatus:
+            'Confirmed',
+
+          rejectedStatus:
+            'Correction Required',
+
+          approvalConfirmation:
+            'Confirm that the application information is correct?',
+
+          rejectionConfirmation:
+            'Request a correction to the application information?',
+
+          approvalSuccess:
+            'The application information was confirmed.',
+
+          rejectionSuccess:
+            'The information correction request was saved.'
+        },
+
+        payment: {
+          approvedStatus:
+            'Confirmed',
+
+          rejectedStatus:
+            'Rejected',
+
+          approvalConfirmation:
+            'Confirm that this payment has been verified?',
+
+          rejectionConfirmation:
+            'Reject this payment record?',
+
+          approvalSuccess:
+            'The payment was confirmed.',
+
+          rejectionSuccess:
+            'The payment was rejected.'
+        },
+
+        documents: {
+          approvedStatus:
+            'Complete',
+
+          rejectedStatus:
+            'Correction Required',
+
+          approvalConfirmation:
+            'Confirm that all required documents are complete?',
+
+          rejectionConfirmation:
+            'Request a correction or replacement document?',
+
+          approvalSuccess:
+            'The documents were confirmed as complete.',
+
+          rejectionSuccess:
+            'The document correction request was saved.'
+        },
+
+        verification: {
+          approvedStatus:
+            'Approved',
+
+          rejectedStatus:
+            'Rejected',
+
+          approvalConfirmation:
+            'Give final approval to this application?',
+
+          rejectionConfirmation:
+            'Reject this application at the verification stage?',
+
+          approvalSuccess:
+            'The application received final approval.',
+
+          rejectionSuccess:
+            'The application was rejected.'
+        }
+      };
+
+      return details[stage] || null;
+    }
+
+
+    function setReviewButtonsDisabled_(
+      stage,
+      disabled
+    ) {
+      const messageElement =
+        document.getElementById(
+          stage +
+          'ActionMessage'
+        );
+
+      if (!messageElement) {
+        return;
+      }
+
+      const reviewCard =
+        messageElement
+          .previousElementSibling;
+
+      if (!reviewCard) {
+        return;
+      }
+
+      const buttons =
+        reviewCard.querySelectorAll(
+          'button'
+        );
+
+      buttons.forEach(
+        function(button) {
+          button.disabled =
+            disabled;
+
+          if (disabled) {
+            button.classList.add(
+              'button-disabled'
+            );
+          } else {
+            button.classList.remove(
+              'button-disabled'
+            );
+          }
+        }
+      );
+    }
+
+
+    function updateStageStatus_(
+      stage,
+      status
+    ) {
+      const statusElement =
+        document.getElementById(
+          stage + 'Status'
+        );
+
+      if (!statusElement) {
+        return;
+      }
+
+      statusElement.textContent =
+        status || '—';
+
+      statusElement.className =
+        getClientStatusClass_(
+          status
+        );
+    }
+
+
+    function getClientStatusClass_(
+      status
+    ) {
+      const value =
+        String(
+          status || ''
+        ).toLowerCase();
+
+      if (
+        value.includes('confirmed') ||
+        value.includes('approved') ||
+        value.includes('complete') ||
+        value.includes('released') ||
+        value.includes('generated') ||
+        value.includes('verified')
+      ) {
+        return 'badge badge-success';
+      }
+
+      if (
+        value.includes('rejected') ||
+        value.includes('revoked') ||
+        value.includes('failed') ||
+        value.includes('correction')
+      ) {
+        return 'badge badge-danger';
+      }
+
+      if (
+        value.includes('pending') ||
+        value.includes('review') ||
+        value.includes('submitted') ||
+        value.includes('suspended')
+      ) {
+        return 'badge badge-warning';
+      }
+
+      return 'badge badge-neutral';
+    }
+
+
+    function showStageMessage_(
+      stage,
+      message,
+      type
+    ) {
+      showActionMessage_(
+        stage +
+        'ActionMessage',
+        message,
+        type
+      );
+    }
+
+
+    function showLicenceMessage_(
+      message,
+      type
+    ) {
+      showActionMessage_(
+        'licenceActionMessage',
+        message,
+        type
+      );
+    }
+
+
+    function showActionMessage_(
+      elementId,
+      message,
+      type
+    ) {
+      if (
+        type !== 'success' &&
+        handleAdminSessionMessage_(
+          message
+        )
+      ) {
+        return;
+      }
+
+      const element =
+        document.getElementById(
+          elementId
+        );
+
+      if (!element) {
+        return;
+      }
+
+      element.textContent =
+        message || '';
+
+      element.className =
+        'admin-action-message';
+
+      if (type) {
+        element.classList.add(
+          type
+        );
+      }
+
+      element.style.display =
+        message
+          ? 'block'
+          : 'none';
+    }
+
+
+    function setButtonBusy_(
+      button,
+      busy,
+      busyText
+    ) {
+      if (!button) {
+        return;
+      }
+
+      if (busy) {
+        if (
+          !button.dataset.originalText
+        ) {
+          button.dataset.originalText =
+            button.textContent.trim();
+        }
+
+        button.disabled = true;
+
+        button.classList.add(
+          'button-disabled'
+        );
+
+        button.textContent =
+          busyText ||
+          'Please wait...';
+
+        return;
+      }
+
+      button.disabled = false;
+
+      button.classList.remove(
+        'button-disabled'
+      );
+
+      if (
+        button.dataset.originalText
+      ) {
+        button.textContent =
+          button.dataset.originalText;
+      }
+    }
+
+
+    function getElementValue_(
+      elementId
+    ) {
+      const element =
+        document.getElementById(
+          elementId
+        );
+
+      return element
+        ? String(
+            element.value || ''
+          )
+        : '';
+    }
+
+
+
+    function isAdminSessionExpiredMessage_(
+      message
+    ) {
+      const value =
+        String(
+          message || ''
+        )
+          .trim()
+          .toLowerCase();
+
+      return (
+        value.includes(
+          'administrator session has expired'
+        ) ||
+        value.includes(
+          'admin session has expired'
+        ) ||
+        value.includes(
+          'session has expired'
+        ) ||
+        value.includes(
+          'invalid administrator session'
+        ) ||
+        value.includes(
+          'invalid admin session'
+        ) ||
+        (
+          value.includes('session') &&
+          value.includes('sign in again')
+        )
+      );
+    }
+
+
+    function getAdminSessionExpiredLoginUrl_() {
+      const baseUrl =
+        String(
+          ADMIN_PORTAL_BASE_URL || ''
+        )
+          .trim()
+          .split('?')[0]
+          .replace(/\/+$/, '');
+
+      const query =
+        new URLSearchParams();
+
+      query.set(
+        'view',
+        'admin'
+      );
+
+      if (
+        CURRENT_APPLICATION_ID
+      ) {
+        query.set(
+          'applicationId',
+          CURRENT_APPLICATION_ID
+        );
+      }
+
+      return (
+        baseUrl +
+        '?' +
+        query.toString()
+      );
+    }
+
+
+    function showAdminSessionExpired_() {
+      window.__crffnDocumentReviewBusy =
+        false;
+
+      pageRefreshStarted_ =
+        false;
+
+      if (
+        window.__crffnSessionExpiredModalShown === true
+      ) {
+        return;
+      }
+
+      window.__crffnSessionExpiredModalShown =
+        true;
+
+      try {
+        if (CURRENT_APPLICATION_ID) {
+          window.sessionStorage.setItem(
+            'CRFFN_ADMIN_RETURN_APPLICATION_ID',
+            CURRENT_APPLICATION_ID
+          );
+        }
+      } catch (error) {
+        // sessionStorage is optional.
+      }
+
+      showConfirmationModal_({
+        title:
+          'Session expired',
+
+        message:
+          'Your administrator session has expired for security reasons. Sign in again to continue reviewing this application.',
+
+        confirmText:
+          'Sign In Again',
+
+        type:
+          'default',
+
+        busyText:
+          'Opening sign in...',
+
+        onConfirm:
+          function() {
+            setConfirmationModalBusy_(
+              true,
+              'Opening sign in...'
+            );
+
+            /*
+             * IMPORTANT:
+             * Never carry the expired token into the login request.
+             */
+            const loginUrl =
+              getAdminSessionExpiredLoginUrl_();
+
+            window.top.location.replace(
+              loginUrl
+            );
+          }
+      });
+
+      const cancelButton =
+        document.getElementById(
+          'confirmationModalCancelButton'
+        );
+
+      if (cancelButton) {
+        cancelButton.style.display =
+          'none';
+      }
+    }
+
+
+    function handleAdminSessionMessage_(
+      message
+    ) {
+      if (
+        !isAdminSessionExpiredMessage_(
+          message
+        )
+      ) {
+        return false;
+      }
+
+      showAdminSessionExpired_();
+
+      return true;
+    }
+
+
+    function getErrorMessage_(
+      error
+    ) {
+      if (!error) {
+        return (
+          'An unexpected error occurred.'
+        );
+      }
+
+      if (error.message) {
+        return String(
+          error.message
+        );
+      }
+
+      return String(error);
+    }
+
+
+    function reloadCurrentApplication_() {
+      refreshAdminApplicationPage_();
+    }
+  </script>
+  <div id="confirmationModal" class="confirmation-modal" aria-hidden="true">
+    <div class="confirmation-modal-backdrop"></div>
+
+    <div class="confirmation-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="confirmationModalTitle"
+      aria-describedby="confirmationModalMessage">
+      <div class="confirmation-modal-icon">
+        !
+      </div>
+
+      <div class="confirmation-modal-content">
+        <h2 id="confirmationModalTitle">
+          Confirm action
+        </h2>
+
+        <p id="confirmationModalMessage">
+          Are you sure you want to continue?
+        </p>
+
+        <div
+          id="confirmationModalReasonFields"
+          class="confirmation-modal-reason-fields"
+          data-required="false"
+          data-multi-select="false"
+        >
+          <div
+            class="confirmation-modal-reason-label"
+          >
+            Rejection / Correction Reason
+
+            <select
+              id="confirmationModalReasonSelect"
+            >
+              <option value="">
+                Select a reason
+              </option>
+            </select>
+
+            <div
+              id="confirmationModalReasonCheckboxList"
+              class="confirmation-modal-checkbox-list"
+            ></div>
+          </div>
+
+          <label
+            id="confirmationModalOtherDetails"
+            class="confirmation-modal-other-details"
+          >
+            Other reason
+
+            <textarea
+              id="confirmationModalReasonDetails"
+              placeholder="Enter the custom reason."
+            ></textarea>
+          </label>
+
+          <div
+            id="confirmationModalReasonError"
+            class="confirmation-modal-reason-error"
+            role="alert"
+          ></div>
+        </div>
+
+        <div
+          id="targetedCorrectionFields"
+          style="display:none; gap:12px; margin-top:16px;"
+        >
+          <div
+            id="targetedCorrectionList"
+            class="targeted-correction-list"
+          ></div>
+
+          <button
+            type="button"
+            class="button button-secondary"
+            onclick="addTargetedCorrectionRow_(document.getElementById('targetedCorrectionFields').dataset.stage)"
+          >
+            + Add Another Item
+          </button>
+
+          <label
+            id="targetedCorrectionCustomWrap"
+            style="display:none; gap:6px; font-size:13px; font-weight:700;"
+          >
+            Specific custom reason
+
+            <textarea
+              id="targetedCorrectionCustomDetails"
+              placeholder="Be specific, e.g. The Company Name entered does not match the CAC document."
+              style="width:100%; min-height:88px; padding:10px; border:1px solid #d0d5dd; border-radius:7px;"
+            ></textarea>
+          </label>
+        </div>
+
+        <div
+          id="correctionEmailPreview"
+          class="email-preview-box"
+        >
+          <div>
+            <strong>To:</strong>
+            <span id="correctionEmailPreviewTo"></span>
+          </div>
+
+          <div style="margin-top:6px;">
+            <strong>Subject:</strong>
+            <span id="correctionEmailPreviewSubject"></span>
+          </div>
+
+          <pre
+            id="correctionEmailPreviewBody"
+            class="email-preview-body"
+          ></pre>
+        </div>
+
+        <div
+          id="confirmationModalLoader"
+          class="confirmation-modal-loader"
+          role="status"
+          aria-live="polite"
+        >
+          <span
+            class="confirmation-modal-spinner"
+            aria-hidden="true"
+          ></span>
+
+          <span id="confirmationModalLoaderText">
+            Processing...
+          </span>
+        </div>
+      </div>
+
+      <div class="confirmation-modal-actions">
+        <button
+        type="button"
+        id="confirmationModalCancelButton"
+        class="button button-secondary"
+        onclick="cancelConfirmationModal_()"
+      >
+        Cancel
+      </button>
+
+        <button
+        type="button"
+        id="confirmationModalConfirmButton"
+        class="button"
+        onclick="confirmConfirmationModal_()"
+      >
+        Confirm
+      </button>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>
