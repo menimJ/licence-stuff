@@ -1,0 +1,6 @@
+deploy.sh
+.git/**
+.gitignore
+.clasp.json
+.claspignore
+README.md
