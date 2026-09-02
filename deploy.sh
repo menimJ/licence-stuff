@@ -16,30 +16,8 @@ echo " CRFFN Licensing Deployment"
 echo "======================================================"
 echo
 
-read -r -p "What changed in this deployment? " CHANGE_DESCRIPTION
-
-if [[ -z "$CHANGE_DESCRIPTION" ]]; then
-  echo
-  echo "ERROR: Deployment description cannot be empty."
-  exit 1
-fi
-
-DESCRIPTION="${CHANGE_DESCRIPTION} - ${TIMESTAMP}"
-COMMIT_MESSAGE="Deploy: ${DESCRIPTION}"
-
-echo
-echo "Deployment ID:"
-echo "$DEPLOYMENT_ID"
-echo
-echo "Change description:"
-echo "$CHANGE_DESCRIPTION"
-echo
-echo "Commit message:"
-echo "$COMMIT_MESSAGE"
-echo
-
 # ==========================================================
-# 1. Git status
+# 1. Check Git status FIRST
 # ==========================================================
 
 echo "------------------------------------------------------"
@@ -55,7 +33,58 @@ echo "------------------------------------------------------"
 
 git diff --stat
 
+# Check tracked + untracked changes.
+if [[ -n "$(git status --porcelain)" ]]; then
+  HAS_CHANGES=true
+else
+  HAS_CHANGES=false
+fi
+
+# ==========================================================
+# 2. Build deployment description
+# ==========================================================
+
+if [[ "$HAS_CHANGES" == true ]]; then
+
+  echo
+  echo "Local changes detected."
+  echo
+
+  read -r -p "What changed in this deployment? " CHANGE_DESCRIPTION
+
+  if [[ -z "$CHANGE_DESCRIPTION" ]]; then
+    echo
+    echo "ERROR: Deployment description cannot be empty."
+    exit 1
+  fi
+
+  DESCRIPTION="${CHANGE_DESCRIPTION} - ${TIMESTAMP}"
+  COMMIT_MESSAGE="Deploy: ${DESCRIPTION}"
+
+else
+
+  echo
+  echo "No local Git changes detected."
+  echo "No new Git commit is required."
+  echo
+
+  CHANGE_DESCRIPTION="Redeploy existing source"
+  DESCRIPTION="${CHANGE_DESCRIPTION} - ${TIMESTAMP}"
+  COMMIT_MESSAGE=""
+
+fi
+
+echo "Deployment ID:"
+echo "$DEPLOYMENT_ID"
 echo
+echo "Deployment description:"
+echo "$DESCRIPTION"
+echo
+
+# ==========================================================
+# 3. Show clasp files
+# ==========================================================
+
 echo "------------------------------------------------------"
 echo "3. Files clasp will push"
 echo "------------------------------------------------------"
@@ -63,7 +92,12 @@ echo "------------------------------------------------------"
 clasp status
 
 echo
-read -r -p "Commit and deploy these changes? [y/N]: " CONFIRM
+
+if [[ "$HAS_CHANGES" == true ]]; then
+  read -r -p "Commit and deploy these changes? [y/N]: " CONFIRM
+else
+  read -r -p "No Git changes. Deploy the current source anyway? [y/N]: " CONFIRM
+fi
 
 if [[ ! "$CONFIRM" =~ ^[Yy]$ ]]; then
   echo
@@ -72,21 +106,18 @@ if [[ ! "$CONFIRM" =~ ^[Yy]$ ]]; then
 fi
 
 # ==========================================================
-# 2. Git commit
+# 4. Git commit only when there are changes
 # ==========================================================
 
-echo
-echo "------------------------------------------------------"
-echo "4. Creating Git commit"
-echo "------------------------------------------------------"
+if [[ "$HAS_CHANGES" == true ]]; then
 
-git add -A
-
-if git diff --cached --quiet; then
   echo
-  echo "No new Git changes to commit."
-  echo "Continuing with the latest existing commit."
-else
+  echo "------------------------------------------------------"
+  echo "4. Creating Git commit"
+  echo "------------------------------------------------------"
+
+  git add -A
+
   echo
   echo "Files being committed:"
   git status --short
@@ -100,10 +131,21 @@ else
 
   echo
   echo "Git commit created successfully."
+
+else
+
+  echo
+  echo "------------------------------------------------------"
+  echo "4. Git commit"
+  echo "------------------------------------------------------"
+  echo
+  echo "No changes detected."
+  echo "Skipping Git commit."
+
 fi
 
 # ==========================================================
-# 3. Show commit being deployed
+# 5. Show commit being deployed
 # ==========================================================
 
 echo
@@ -114,7 +156,7 @@ echo "------------------------------------------------------"
 git log -1 --oneline
 
 # ==========================================================
-# 4. Push source
+# 6. Push source
 # ==========================================================
 
 echo
@@ -125,7 +167,7 @@ echo "------------------------------------------------------"
 clasp push
 
 # ==========================================================
-# 5. Create Apps Script version
+# 7. Create Apps Script version
 # ==========================================================
 
 echo
@@ -146,7 +188,7 @@ VERSION_NUMBER="$(
 if [[ -z "$VERSION_NUMBER" ]]; then
   echo
   echo "ERROR: Could not determine newly-created version number."
-  echo "The Git commit exists, but the deployment was NOT updated."
+  echo "The deployment was NOT updated."
   exit 1
 fi
 
@@ -154,7 +196,7 @@ echo
 echo "Created Apps Script version: $VERSION_NUMBER"
 
 # ==========================================================
-# 6. Update existing deployment
+# 8. Update existing deployment
 # ==========================================================
 
 echo
@@ -168,7 +210,7 @@ clasp deploy \
   --description "$DESCRIPTION"
 
 # ==========================================================
-# 7. Verify deployment
+# 9. Verify deployment
 # ==========================================================
 
 echo
