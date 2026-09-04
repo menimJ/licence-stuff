@@ -256,3 +256,28 @@ function testGetZohoAccount_() {
     response.getContentText()
   );
 }
+function testGetZohoAccount() {
+  const config = getZohoMailConfig_();
+  const accessToken = getZohoAccessToken_();
+
+  const response = UrlFetchApp.fetch(
+    config.mailApiUrl + '/api/accounts',
+    {
+      method: 'get',
+      headers: {
+        Authorization:
+          'Zoho-oauthtoken ' + accessToken,
+      },
+      muteHttpExceptions: true,
+    }
+  );
+
+  Logger.log(
+    'HTTP Status: ' +
+      response.getResponseCode()
+  );
+
+  Logger.log(
+    response.getContentText()
+  );
+}
