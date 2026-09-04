@@ -1016,7 +1016,7 @@ function sendReleasedLicenceEmail_(
       '\n'
     );
 
-  MailApp.sendEmail({
+  sendSystemEmail_({
     to:
       data.recipientEmail,
 
@@ -1027,14 +1027,7 @@ function sendReleasedLicenceEmail_(
       plainBody,
 
     htmlBody:
-      htmlBody,
-
-    name:
-      organisation,
-
-    replyTo:
-      STAMPED_LICENCE_CONFIG
-        .SUPPORT_EMAIL
+      htmlBody
   });
 }
 

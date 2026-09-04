@@ -164,14 +164,12 @@ function sendAdminReviewCorrectionEmail_(payload) {
   const built = buildAdminReviewCorrectionEmail_(payload);
   if (!built.to) throw new Error('The applicant email address is missing.');
 
-  MailApp.sendEmail({
+  sendSystemEmail_({
     to: built.to,
     subject: built.subject,
     body: built.body,
-    htmlBody: built.htmlBody,
-    name: 'CRFFN Licensing System',
-    replyTo: LICENSING_SUPPORT_EMAIL
-  });
+    htmlBody: built.htmlBody
+   });
 
   return { ok: true, email: built.to };
 }
@@ -265,14 +263,12 @@ function buildSupportingDocumentsCorrectionSummaryEmail_(payload) {
 
 function sendSupportingDocumentsCorrectionSummaryEmail_(payload) {
   const built = buildSupportingDocumentsCorrectionSummaryEmail_(payload);
-  MailApp.sendEmail({
+  sendSystemEmail_({
     to: built.to,
     subject: built.subject,
     body: built.body,
-    htmlBody: built.htmlBody,
-    name: 'CRFFN Licensing System',
-    replyTo: LICENSING_SUPPORT_EMAIL
-  });
+    htmlBody: built.htmlBody
+ }); 
   return { ok: true, email: built.to };
 }
 
@@ -379,13 +375,11 @@ function buildCrffnPaymentInvitationEmail_(payload) {
 
 function sendCrffnPaymentInvitationEmail_(payload) {
   const built = buildCrffnPaymentInvitationEmail_(payload);
-  MailApp.sendEmail({
+  sendSystemEmail_({
     to: built.to,
     subject: built.subject,
     body: built.body,
-    htmlBody: built.htmlBody,
-    name: 'CRFFN Licensing System',
-    replyTo: LICENSING_SUPPORT_EMAIL
+    htmlBody: built.htmlBody
   });
   return { ok: true, email: built.to };
 }
