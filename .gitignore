@@ -1,3 +1,4 @@
 .clasp.json
 .DS_Store
+/credentials.md
 node_modules/
