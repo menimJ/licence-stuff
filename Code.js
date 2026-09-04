@@ -3442,24 +3442,18 @@ function sendApplicantPortalEmail_(
       '</body>' +
     '</html>';
 
-  MailApp.sendEmail({
-    to:
-      email,
+  sendSystemEmail_({
+  to:
+    email,
 
-    subject:
-      subject,
+  subject:
+    subject,
 
-    body:
-      message,
+  body:
+    message,
 
-    htmlBody:
-      htmlBody,
-
-    name:
-      'CRFFN Licensing System',
-
-    replyTo:
-      'licensing@crffn.gov.ng'
+  htmlBody:
+    htmlBody
   });
 }
 
