@@ -2172,9 +2172,7 @@
     document
       .getElementById('paymentProvider')
       .textContent =
-        String(result.provider || 'Revop').trim().toLowerCase() === 'revo'
-          ? 'Revop'
-          : (result.provider || 'Revop');
+        result.provider || 'Revop';
 
     const paymentAllowed =
       result.paymentAllowed ===
