@@ -281,3 +281,19 @@ function testGetZohoAccount() {
     response.getContentText()
   );
 }
+function testZohoEmail() {
+  sendSystemEmail_({
+    to: 'sammymenim@gmail.com',
+    subject: 'CRFFN Zoho Mail Test',
+    body: 'This is a test email from the CRFFN Licensing System through Zoho Mail.',
+    htmlBody: [
+      '<div style="font-family:Arial,sans-serif;">',
+      '<h2>CRFFN Zoho Mail Test</h2>',
+      '<p>This email was sent from the CRFFN Licensing System through Zoho Mail.</p>',
+      '<p>If you received this, the Zoho integration is working.</p>',
+      '</div>'
+    ].join('')
+  });
+
+  Logger.log('Zoho test email request completed.');
+}
