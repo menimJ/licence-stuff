@@ -1,131 +1,41 @@
-function getZohoMailConfig_() {
+function getZeptoMailConfig_() {
   const props =
     PropertiesService
       .getScriptProperties();
 
   return {
-    clientId:
+    apiKey:
       props.getProperty(
-        'ZOHO_CLIENT_ID'
-      ),
-
-    clientSecret:
-      props.getProperty(
-        'ZOHO_CLIENT_SECRET'
-      ),
-
-    refreshToken:
-      props.getProperty(
-        'ZOHO_REFRESH_TOKEN'
-      ),
-
-    accountId:
-      props.getProperty(
-        'ZOHO_ACCOUNT_ID'
+        'ZEPTOMAIL_API_KEY'
       ),
 
     fromEmail:
       props.getProperty(
-        'ZOHO_FROM_EMAIL'
+        'ZEPTOMAIL_FROM_EMAIL'
       ) ||
       'licensing@crffn.gov.ng',
 
-    accountsUrl:
+    fromName:
       props.getProperty(
-        'ZOHO_ACCOUNTS_URL'
-      ),
-
-    mailApiUrl:
-      props.getProperty(
-        'ZOHO_MAIL_API_URL'
+        'ZEPTOMAIL_FROM_NAME'
       ) ||
-      'https://mail.zoho.com',
+      'CRFFN Licensing System',
+
+    apiUrl:
+      'https://api.zeptomail.com/v1.1/email'
   };
 }
-
-
-function getZohoAccessToken_() {
-  const config =
-    getZohoMailConfig_();
-
-  if (
-    !config.clientId ||
-    !config.clientSecret ||
-    !config.refreshToken ||
-    !config.accountsUrl
-  ) {
-    throw new Error(
-      'Zoho Mail OAuth configuration is incomplete.'
-    );
-  }
-
-  const response =
-    UrlFetchApp.fetch(
-      config.accountsUrl +
-      '/oauth/v2/token',
-      {
-        method: 'post',
-
-        payload: {
-          refresh_token:
-            config.refreshToken,
-
-          client_id:
-            config.clientId,
-
-          client_secret:
-            config.clientSecret,
-
-          grant_type:
-            'refresh_token',
-        },
-
-        muteHttpExceptions: true,
-      }
-    );
-
-  const status =
-    response.getResponseCode();
-
-  const body =
-    response.getContentText();
-
-  if (
-    status < 200 ||
-    status >= 300
-  ) {
-    throw new Error(
-      'Zoho access-token request failed: ' +
-      body
-    );
-  }
-
-  const data =
-    JSON.parse(body);
-
-  if (!data.access_token) {
-    throw new Error(
-      'Zoho did not return an access token.'
-    );
-  }
-
-  return data.access_token;
-}
-
 
 function sendSystemEmail_(options) {
   const input =
     options || {};
 
   const config =
-    getZohoMailConfig_();
+    getZeptoMailConfig_();
 
-  if (
-    !config.accountId ||
-    !config.fromEmail
-  ) {
+  if (!config.apiKey) {
     throw new Error(
-      'Zoho Mail account configuration is incomplete.'
+      'ZeptoMail API key is missing.'
     );
   }
 
@@ -157,37 +67,37 @@ function sendSystemEmail_(options) {
     );
   }
 
-  const accessToken =
-    getZohoAccessToken_();
-
-  const url =
-    config.mailApiUrl +
-    '/api/accounts/' +
-    encodeURIComponent(
-      config.accountId
-    ) +
-    '/messages';
-
   const payload = {
-    fromAddress:
-      config.fromEmail,
+    from: {
+      address:
+        config.fromEmail,
 
-    toAddress:
-      to,
+      name:
+        config.fromName
+    },
+
+    to: [
+      {
+        email_address: {
+          address:
+            to
+        }
+      }
+    ],
 
     subject:
       subject,
 
-    content:
+    htmlbody:
       htmlBody,
 
-    mailFormat:
-      'html',
+    textbody:
+      body
   };
 
   const response =
     UrlFetchApp.fetch(
-      url,
+      config.apiUrl,
       {
         method: 'post',
 
@@ -196,8 +106,8 @@ function sendSystemEmail_(options) {
 
         headers: {
           Authorization:
-            'Zoho-oauthtoken ' +
-            accessToken,
+            'zoho-enczapikey ' +
+            config.apiKey
         },
 
         payload:
@@ -206,7 +116,7 @@ function sendSystemEmail_(options) {
           ),
 
         muteHttpExceptions:
-          true,
+          true
       }
     );
 
@@ -221,79 +131,36 @@ function sendSystemEmail_(options) {
     status >= 300
   ) {
     throw new Error(
-      'Zoho Mail send failed: ' +
+      'ZeptoMail send failed: ' +
       responseBody
     );
   }
 
   return {
     ok: true,
-    email: to,
+    email: to
   };
 }
-function testGetZohoAccount_() {
-  const config = getZohoMailConfig_();
-  const accessToken = getZohoAccessToken_();
-
-  const response = UrlFetchApp.fetch(
-    config.mailApiUrl + '/api/accounts',
-    {
-      method: 'get',
-      headers: {
-        Authorization:
-          'Zoho-oauthtoken ' + accessToken,
-      },
-      muteHttpExceptions: true,
-    }
-  );
-
-  Logger.log(
-    'HTTP Status: ' +
-      response.getResponseCode()
-  );
-
-  Logger.log(
-    response.getContentText()
-  );
-}
-function testGetZohoAccount() {
-  const config = getZohoMailConfig_();
-  const accessToken = getZohoAccessToken_();
-
-  const response = UrlFetchApp.fetch(
-    config.mailApiUrl + '/api/accounts',
-    {
-      method: 'get',
-      headers: {
-        Authorization:
-          'Zoho-oauthtoken ' + accessToken,
-      },
-      muteHttpExceptions: true,
-    }
-  );
-
-  Logger.log(
-    'HTTP Status: ' +
-      response.getResponseCode()
-  );
-
-  Logger.log(
-    response.getContentText()
-  );
-}
-function testZohoEmail() {
+function testZeptoMailEmail() {
   sendSystemEmail_({
     to: 'sammymenim@gmail.com',
-    subject: 'CRFFN Zoho Mail Test',
-    body: 'This is a test email from the CRFFN Licensing System through Zoho Mail.',
+
+    subject:
+      'CRFFN ZeptoMail Test',
+
+    body:
+      'This is a test email from the CRFFN Licensing System through ZeptoMail.',
+
     htmlBody: [
       '<div style="font-family:Arial,sans-serif;">',
-      '<h2>CRFFN Zoho Mail Test</h2>',
-      '<p>This email was sent from the CRFFN Licensing System through Zoho Mail.</p>',
-      '<p>If you received this, the Zoho integration is working.</p>',
+      '<h2>CRFFN ZeptoMail Test</h2>',
+      '<p>This email was sent through the CRFFN transactional email service.</p>',
+      '<p>If you received this, the ZeptoMail integration is working.</p>',
       '</div>'
     ].join('')
   });
 
-  Logger.log('Zoho test email request completed.');
+  Logger.log(
+    'ZeptoMail test email request completed.'
+  );
 }
