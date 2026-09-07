@@ -106,7 +106,7 @@ function sendSystemEmail_(options) {
 
         headers: {
           Authorization:
-            'zoho-enczapikey ' +
+            'Zoho-enczapikey ' +
             config.apiKey
         },
 
