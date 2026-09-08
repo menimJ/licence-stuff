@@ -527,7 +527,7 @@ function renderAdminPrivateDocumentDownload_(
  */
 const APP_CONFIG = Object.freeze({
   PRODUCTION_WEB_APP_URL:
-    'https://script.google.com/macros/s/AKfycbxnpEmnzekbkbSdTiQKixvGSiJvvN0ScdN6PH2KiFWLMdYi6FF2NgX2aaw968nCu2YXHw/exec',
+    'https://script.google.com/macros/s/AKfycbz19WiC1nq8ieMvjf9AraQ83mlv_wVCJNQRzWlJMdk8fVLOEFOlPSxH1hKgGuZetfm2eg/exec',
 });
 /**
  * Renders the applicant portal.
