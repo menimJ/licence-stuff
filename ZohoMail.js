@@ -143,7 +143,7 @@ function sendSystemEmail_(options) {
 }
 function testZeptoMailEmail() {
   sendSystemEmail_({
-    to: 'sammymenim@gmail.com',
+    to: 'alonzychris@gmail.com',
 
     subject:
       'CRFFN ZeptoMail Test',
