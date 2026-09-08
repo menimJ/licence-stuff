@@ -6,7 +6,7 @@ set -euo pipefail
 # CRFFN Licensing - Apps Script Deployment
 # ==========================================================
 
-DEPLOYMENT_ID="AKfycbxnpEmnzekbkbSdTiQKixvGSiJvvN0ScdN6PH2KiFWLMdYi6FF2NgX2aaw968nCu2YXHw"
+DEPLOYMENT_ID="AKfycbz19WiC1nq8ieMvjf9AraQ83mlv_wVCJNQRzWlJMdk8fVLOEFOlPSxH1hKgGuZetfm2eg"
 
 TIMESTAMP="$(date '+%Y-%m-%d %H:%M:%S')"
 
