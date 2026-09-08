@@ -3583,3 +3583,34 @@ function checkGmailAliases() {
   const aliases = GmailApp.getAliases();
   Logger.log(aliases);
 }
+function restoreExistingFormId() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+
+  if (!ss) {
+    throw new Error(
+      'Could not open the active spreadsheet.'
+    );
+  }
+
+  const formUrl = ss.getFormUrl();
+
+  if (!formUrl) {
+    throw new Error(
+      'This spreadsheet is not linked to an existing Google Form.'
+    );
+  }
+
+  const form = FormApp.openByUrl(formUrl);
+
+  PropertiesService
+    .getDocumentProperties()
+    .setProperty(
+      PROP_KEYS.FORM_ID,
+      form.getId()
+    );
+
+  Logger.log(
+    'Existing Form ID restored: ' +
+    form.getId()
+  );
+}
