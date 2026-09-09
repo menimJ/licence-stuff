@@ -2183,3 +2183,202 @@ function crffnResetV4_extractResetDriveFileId_(
 
   return '';
 }
+function freshStartSystem() {
+  const ss =
+    SpreadsheetApp.getActiveSpreadsheet();
+
+  if (!ss) {
+    throw new Error(
+      'Could not open the active spreadsheet.'
+    );
+  }
+
+  const lock =
+    LockService.getDocumentLock();
+
+  lock.waitLock(30000);
+
+  try {
+    const responseSheet =
+      getResponseSheet_(ss);
+
+    /*
+     * 1. Trash files referenced by old test rows.
+     *    Keeps folders/templates themselves.
+     */
+    const fileCleanup =
+      crffnResetV4_trashFilesReferencedByTestRows_(
+        responseSheet
+      );
+
+    /*
+     * 2. Clear application data only.
+     *    Row 1 / headers remain.
+     */
+    const clearedRows =
+      crffnResetV4_clearAllApplicationRows_(
+        responseSheet
+      );
+
+    /*
+     * 3. Clear old applicant memory.
+     */
+    const clearedApplicantProperties =
+      crffnResetV4_clearApplicantMemoryProperties_();
+
+    /*
+     * 4. Clear queued system jobs.
+     */
+    const clearedJobs =
+      crffnResetV4_clearAllResetSystemJobs_(
+        ss
+      );
+
+    /*
+     * 5. Reset numbering.
+     *
+     * Next application:
+     * APP-0001
+     *
+     * Next S/N:
+     * 1
+     */
+    const documentProperties =
+      PropertiesService
+        .getDocumentProperties();
+
+    documentProperties.setProperty(
+      PROP_KEYS.APP_COUNTER,
+      '0'
+    );
+
+    documentProperties.setProperty(
+      PROP_KEYS.SN_COUNTER,
+      '0'
+    );
+
+    /*
+     * 6. Clear Admin Users data,
+     *    but preserve headers.
+     */
+    const adminUsers =
+      ss.getSheetByName(
+        ADMIN_AUTH_CONFIG.USERS_SHEET
+      );
+
+    if (
+      adminUsers &&
+      adminUsers.getLastRow() > 1
+    ) {
+      adminUsers
+        .getRange(
+          2,
+          1,
+          adminUsers.getLastRow() - 1,
+          adminUsers.getLastColumn()
+        )
+        .clearContent();
+    }
+
+    /*
+     * 7. Clear Admin Sessions data,
+     *    but preserve headers.
+     */
+    const adminSessions =
+      ss.getSheetByName(
+        ADMIN_AUTH_CONFIG.SESSIONS_SHEET
+      );
+
+    if (
+      adminSessions &&
+      adminSessions.getLastRow() > 1
+    ) {
+      adminSessions
+        .getRange(
+          2,
+          1,
+          adminSessions.getLastRow() - 1,
+          adminSessions.getLastColumn()
+        )
+        .clearContent();
+    }
+
+    /*
+     * 8. Reset admin-auth secrets only.
+     *
+     * Do NOT touch ZeptoMail,
+     * WEB_APP_URL, etc.
+     */
+    const scriptProperties =
+      PropertiesService
+        .getScriptProperties();
+
+    scriptProperties.deleteProperty(
+      ADMIN_AUTH_CONFIG.PROP_PEPPER
+    );
+
+    scriptProperties.deleteProperty(
+      ADMIN_AUTH_CONFIG.PROP_DEFAULT_PASSWORD
+    );
+
+    /*
+     * 9. Create fresh admin authentication.
+     */
+    const adminSetup =
+      setupAdminAuthentication();
+
+    SpreadsheetApp.flush();
+
+    /*
+     * 10. Refresh Setup tab.
+     */
+    refreshSetupTab();
+
+    Logger.log(
+      'FRESH START COMPLETE'
+    );
+
+    Logger.log(
+      'Rows cleared: ' +
+      clearedRows
+    );
+
+    Logger.log(
+      'Files moved to Trash: ' +
+      fileCleanup.trashed
+    );
+
+    Logger.log(
+      'System Jobs cleared: ' +
+      clearedJobs
+    );
+
+    Logger.log(
+      'Applicant properties cleared: ' +
+      clearedApplicantProperties
+    );
+
+    Logger.log(
+      'Next Application: APP-0001'
+    );
+
+    Logger.log(
+      'Next S/N: 1'
+    );
+
+    Logger.log(
+      'TEMPORARY ADMIN PASSWORD: ' +
+      adminSetup.defaultPassword
+    );
+
+    return {
+      ok: true,
+      nextApplication: 'APP-0001',
+      nextSerialNumber: 1,
+      temporaryAdminPassword:
+        adminSetup.defaultPassword
+    };
+  } finally {
+    lock.releaseLock();
+  }
+}
