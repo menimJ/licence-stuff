@@ -8,6 +8,8 @@ set -euo pipefail
 
 DEPLOYMENT_ID="AKfycbz19WiC1nq8ieMvjf9AraQ83mlv_wVCJNQRzWlJMdk8fVLOEFOlPSxH1hKgGuZetfm2eg"
 
+CLASP_USER="crffn-new-owner"
+
 TIMESTAMP="$(date '+%Y-%m-%d %H:%M:%S')"
 
 echo
@@ -17,7 +19,20 @@ echo "======================================================"
 echo
 
 # ==========================================================
-# 1. Check Git status FIRST
+# 0. Confirm clasp account
+# ==========================================================
+
+echo "------------------------------------------------------"
+echo "0. Authorized clasp account"
+echo "------------------------------------------------------"
+
+clasp show-authorized-user \
+  --user "$CLASP_USER"
+
+echo
+
+# ==========================================================
+# 1. Check Git working tree
 # ==========================================================
 
 echo "------------------------------------------------------"
@@ -27,13 +42,13 @@ echo "------------------------------------------------------"
 git status --short
 
 echo
+
 echo "------------------------------------------------------"
 echo "2. Git change summary"
 echo "------------------------------------------------------"
 
 git diff --stat
 
-# Check tracked + untracked changes.
 if [[ -n "$(git status --porcelain)" ]]; then
   HAS_CHANGES=true
 else
@@ -74,22 +89,29 @@ else
 
 fi
 
+echo
 echo "Deployment ID:"
 echo "$DEPLOYMENT_ID"
+
+echo
+echo "Clasp profile:"
+echo "$CLASP_USER"
+
 echo
 echo "Deployment description:"
 echo "$DESCRIPTION"
 echo
 
 # ==========================================================
-# 3. Show clasp files
+# 3. Show files clasp will push
 # ==========================================================
 
 echo "------------------------------------------------------"
 echo "3. Files clasp will push"
 echo "------------------------------------------------------"
 
-clasp status
+clasp show-file-status \
+  --user "$CLASP_USER"
 
 echo
 
@@ -106,7 +128,7 @@ if [[ ! "$CONFIRM" =~ ^[Yy]$ ]]; then
 fi
 
 # ==========================================================
-# 4. Git commit only when there are changes
+# 4. Commit local changes
 # ==========================================================
 
 if [[ "$HAS_CHANGES" == true ]]; then
@@ -156,7 +178,7 @@ echo "------------------------------------------------------"
 git log -1 --oneline
 
 # ==========================================================
-# 6. Push source
+# 6. Push source to Apps Script
 # ==========================================================
 
 echo
@@ -164,10 +186,11 @@ echo "------------------------------------------------------"
 echo "6. Pushing source to Apps Script"
 echo "------------------------------------------------------"
 
-clasp push
+clasp push \
+  --user "$CLASP_USER"
 
 # ==========================================================
-# 7. Create Apps Script version
+# 7. Create immutable Apps Script version
 # ==========================================================
 
 echo
@@ -175,7 +198,11 @@ echo "------------------------------------------------------"
 echo "7. Creating immutable Apps Script version"
 echo "------------------------------------------------------"
 
-VERSION_OUTPUT="$(clasp version "$DESCRIPTION")"
+VERSION_OUTPUT="$(
+  clasp create-version \
+    "$DESCRIPTION" \
+    --user "$CLASP_USER"
+)"
 
 echo "$VERSION_OUTPUT"
 
@@ -188,15 +215,16 @@ VERSION_NUMBER="$(
 if [[ -z "$VERSION_NUMBER" ]]; then
   echo
   echo "ERROR: Could not determine newly-created version number."
-  echo "The deployment was NOT updated."
+  echo "The live deployment was NOT updated."
   exit 1
 fi
 
 echo
-echo "Created Apps Script version: $VERSION_NUMBER"
+echo "Created Apps Script version:"
+echo "$VERSION_NUMBER"
 
 # ==========================================================
-# 8. Update existing deployment
+# 8. Update EXISTING deployment
 # ==========================================================
 
 echo
@@ -204,10 +232,11 @@ echo "------------------------------------------------------"
 echo "8. Updating EXISTING deployment"
 echo "------------------------------------------------------"
 
-clasp deploy \
+clasp create-deployment \
   --deploymentId "$DEPLOYMENT_ID" \
   --versionNumber "$VERSION_NUMBER" \
-  --description "$DESCRIPTION"
+  --description "$DESCRIPTION" \
+  --user "$CLASP_USER"
 
 # ==========================================================
 # 9. Verify deployment
@@ -218,33 +247,68 @@ echo "------------------------------------------------------"
 echo "9. Deployment status"
 echo "------------------------------------------------------"
 
-clasp deployments
+clasp list-deployments \
+  --user "$CLASP_USER"
 
 # ==========================================================
-# Final summary
+# 10. Push Git commit to GitHub
 # ==========================================================
+
+echo
+echo "------------------------------------------------------"
+echo "10. GitHub push"
+echo "------------------------------------------------------"
+
+if [[ "$HAS_CHANGES" == true ]]; then
+
+  git push origin main
+
+  echo
+  echo "GitHub updated successfully."
+
+else
+
+  echo
+  echo "No new Git commit."
+  echo "Skipping GitHub push."
+
+fi
+
+# ==========================================================
+# 11. Final result
+# ==========================================================
+
+WEB_APP_URL="https://script.google.com/macros/s/${DEPLOYMENT_ID}/exec"
 
 echo
 echo "======================================================"
-echo " CRFFN Licensing Deployment Complete"
+echo " DEPLOYMENT COMPLETE"
 echo "======================================================"
-echo
-echo "Change:"
-echo "$CHANGE_DESCRIPTION"
-echo
-echo "Git commit:"
-git log -1 --oneline
+
 echo
 echo "Apps Script version:"
 echo "$VERSION_NUMBER"
+
 echo
 echo "Deployment ID:"
 echo "$DEPLOYMENT_ID"
+
 echo
-echo "Web App URL:"
-echo "https://script.google.com/macros/s/$DEPLOYMENT_ID/exec"
+echo "Production URL:"
+echo "$WEB_APP_URL"
+
 echo
-echo "Admin URL:"
-echo "https://script.google.com/macros/s/$DEPLOYMENT_ID/exec?view=admin"
+echo "Existing Admin Portal:"
+echo "${WEB_APP_URL}?view=admin"
+
+echo
+echo "New Admin Dashboard:"
+echo "${WEB_APP_URL}?view=dashboard"
+
+echo
+echo "Clasp profile used:"
+echo "$CLASP_USER"
+
 echo
 echo "======================================================"
+echo
