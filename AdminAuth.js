@@ -2604,3 +2604,14 @@ function assertAdminAuthEditorSetup_() {
     );
   }
 }
+function showAdminDefaultPassword() {
+  const password =
+    getAdminDefaultPassword_();
+
+  Logger.log(
+    'DEFAULT ADMIN PASSWORD: ' +
+    password
+  );
+
+  return password;
+}
