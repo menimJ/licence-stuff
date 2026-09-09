@@ -188,9 +188,7 @@ function setupAdminAuthentication() {
         }
 
         const role =
-          index === 0
-            ? 'Super Admin'
-            : 'Admin';
+          'Super Admin';
 
         createAdminUserRecord_(
           usersSheet,

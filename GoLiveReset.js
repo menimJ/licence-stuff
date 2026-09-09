@@ -2183,14 +2183,94 @@ function crffnResetV4_extractResetDriveFileId_(
 
   return '';
 }
+
+
+/**
+ * ============================================================
+ * FRESH START RESET
+ * ============================================================
+ *
+ * USE ONLY when intentionally starting the licensing system
+ * from a completely fresh state.
+ *
+ * Preserves:
+ * - Google Form
+ * - Form response sheet
+ * - Row 1 headers
+ * - Setup sheet
+ * - Templates
+ * - Configured Drive folders
+ * - Deployment configuration
+ * - ZeptoMail Script Properties
+ *
+ * Clears:
+ * - Form response data
+ * - Admin Users data
+ * - Admin Sessions data
+ * - System Jobs
+ * - Applicant/test memory
+ * - Old admin auth secrets
+ *
+ * Resets:
+ * - APP_COUNTER = 0
+ * - SN_COUNTER = 0
+ *
+ * Expected next submission:
+ * - Sheet row 2
+ * - APP-0001
+ * - S/N 1
+ */
 function freshStartSystem() {
   const ss =
     SpreadsheetApp.getActiveSpreadsheet();
 
   if (!ss) {
     throw new Error(
-      'Could not open the active spreadsheet.'
+      'Could not open the active CRFFN spreadsheet.'
     );
+  }
+
+  const ui =
+    SpreadsheetApp.getUi();
+
+  const confirmation =
+    ui.prompt(
+      'CRFFN FRESH START',
+      [
+        'This will permanently clear the current test application data.',
+        '',
+        'It will preserve:',
+        '- the Google Form',
+        '- response sheet headers',
+        '- templates',
+        '- folders',
+        '- Setup configuration',
+        '',
+        'The next application will start from APP-0001 and S/N 1.',
+        '',
+        'Type exactly:',
+        'FRESH START'
+      ].join('\n'),
+      ui.ButtonSet.OK_CANCEL
+    );
+
+  if (
+    confirmation.getSelectedButton() !==
+    ui.Button.OK
+  ) {
+    return;
+  }
+
+  if (
+    String(
+      confirmation.getResponseText() || ''
+    ).trim() !== 'FRESH START'
+  ) {
+    ui.alert(
+      'Fresh start cancelled because the confirmation text did not match.'
+    );
+
+    return;
   }
 
   const lock =
@@ -2202,46 +2282,102 @@ function freshStartSystem() {
     const responseSheet =
       getResponseSheet_(ss);
 
+    if (!responseSheet) {
+      throw new Error(
+        'The Form response sheet could not be found.'
+      );
+    }
+
     /*
-     * 1. Trash files referenced by old test rows.
-     *    Keeps folders/templates themselves.
+     * --------------------------------------------------------
+     * 1. Collect current application IDs for cache cleanup
+     * --------------------------------------------------------
+     */
+    const resetApplicationIds =
+      typeof crffnResetV4_collectResetApplicationIds_ ===
+        'function'
+        ? crffnResetV4_collectResetApplicationIds_(
+            responseSheet
+          )
+        : [];
+
+    /*
+     * --------------------------------------------------------
+     * 2. Trash files referenced by old test applications
+     * --------------------------------------------------------
      */
     const fileCleanup =
-      crffnResetV4_trashFilesReferencedByTestRows_(
+      typeof crffnResetV4_trashFilesReferencedByTestRows_ ===
+        'function'
+        ? crffnResetV4_trashFilesReferencedByTestRows_(
+            responseSheet
+          )
+        : {
+            trashed: 0,
+            skipped: 0
+          };
+
+    /*
+     * --------------------------------------------------------
+     * 3. REMOVE response rows physically
+     *
+     * Important:
+     * We do NOT delete the Form response sheet.
+     * We keep row 1.
+     *
+     * This prevents the next Form submission from continuing
+     * at an old row such as row 5.
+     * --------------------------------------------------------
+     */
+    const deletedResponseRows =
+      freshStartDeleteResponseRows_(
         responseSheet
       );
 
     /*
-     * 2. Clear application data only.
-     *    Row 1 / headers remain.
+     * --------------------------------------------------------
+     * 4. Clear applicant/test Document Properties
+     * --------------------------------------------------------
      */
-    const clearedRows =
-      crffnResetV4_clearAllApplicationRows_(
-        responseSheet
-      );
+    const removedApplicantProperties =
+      typeof crffnResetV4_clearApplicantMemoryProperties_ ===
+        'function'
+        ? crffnResetV4_clearApplicantMemoryProperties_()
+        : 0;
 
     /*
-     * 3. Clear old applicant memory.
-     */
-    const clearedApplicantProperties =
-      crffnResetV4_clearApplicantMemoryProperties_();
-
-    /*
-     * 4. Clear queued system jobs.
+     * --------------------------------------------------------
+     * 5. Clear queued System Jobs
+     * --------------------------------------------------------
      */
     const clearedJobs =
-      crffnResetV4_clearAllResetSystemJobs_(
-        ss
-      );
+      typeof crffnResetV4_clearAllResetSystemJobs_ ===
+        'function'
+        ? crffnResetV4_clearAllResetSystemJobs_(
+            ss
+          )
+        : freshStartClearSheetData_(
+            ss,
+            'System Jobs'
+          );
 
     /*
-     * 5. Reset numbering.
-     *
-     * Next application:
-     * APP-0001
-     *
-     * Next S/N:
-     * 1
+     * --------------------------------------------------------
+     * 6. Invalidate application caches
+     * --------------------------------------------------------
+     */
+    const cacheActions =
+      typeof crffnResetV4_invalidateResetCachesForApplications_ ===
+        'function'
+        ? crffnResetV4_invalidateResetCachesForApplications_(
+            resetApplicationIds
+          )
+        : 0;
+
+    /*
+     * --------------------------------------------------------
+     * 7. Reset Application + S/N counters
+     * --------------------------------------------------------
      */
     const documentProperties =
       PropertiesService
@@ -2258,56 +2394,31 @@ function freshStartSystem() {
     );
 
     /*
-     * 6. Clear Admin Users data,
-     *    but preserve headers.
+     * --------------------------------------------------------
+     * 8. Clear Admin Users + Sessions
+     *
+     * Headers remain.
+     * --------------------------------------------------------
      */
-    const adminUsers =
-      ss.getSheetByName(
+    const clearedAdminUsers =
+      freshStartClearSheetData_(
+        ss,
         ADMIN_AUTH_CONFIG.USERS_SHEET
       );
 
-    if (
-      adminUsers &&
-      adminUsers.getLastRow() > 1
-    ) {
-      adminUsers
-        .getRange(
-          2,
-          1,
-          adminUsers.getLastRow() - 1,
-          adminUsers.getLastColumn()
-        )
-        .clearContent();
-    }
-
-    /*
-     * 7. Clear Admin Sessions data,
-     *    but preserve headers.
-     */
-    const adminSessions =
-      ss.getSheetByName(
+    const clearedAdminSessions =
+      freshStartClearSheetData_(
+        ss,
         ADMIN_AUTH_CONFIG.SESSIONS_SHEET
       );
 
-    if (
-      adminSessions &&
-      adminSessions.getLastRow() > 1
-    ) {
-      adminSessions
-        .getRange(
-          2,
-          1,
-          adminSessions.getLastRow() - 1,
-          adminSessions.getLastColumn()
-        )
-        .clearContent();
-    }
-
     /*
-     * 8. Reset admin-auth secrets only.
+     * --------------------------------------------------------
+     * 9. Remove ONLY admin authentication secrets
      *
-     * Do NOT touch ZeptoMail,
-     * WEB_APP_URL, etc.
+     * Do NOT clear all Script Properties.
+     * ZeptoMail/config properties must survive.
+     * --------------------------------------------------------
      */
     const scriptProperties =
       PropertiesService
@@ -2322,25 +2433,45 @@ function freshStartSystem() {
     );
 
     /*
-     * 9. Create fresh admin authentication.
+     * --------------------------------------------------------
+     * 10. Recreate fresh admin authentication
+     * --------------------------------------------------------
      */
     const adminSetup =
       setupAdminAuthentication();
 
+    /*
+     * --------------------------------------------------------
+     * 11. Refresh Setup tab
+     * --------------------------------------------------------
+     */
+    SpreadsheetApp.flush();
+
+    if (
+      typeof refreshSetupTab ===
+      'function'
+    ) {
+      refreshSetupTab();
+    }
+
     SpreadsheetApp.flush();
 
     /*
-     * 10. Refresh Setup tab.
+     * --------------------------------------------------------
+     * 12. Final result
+     * --------------------------------------------------------
      */
-    refreshSetupTab();
-
     Logger.log(
-      'FRESH START COMPLETE'
+      '========================================'
     );
 
     Logger.log(
-      'Rows cleared: ' +
-      clearedRows
+      'CRFFN FRESH START COMPLETE'
+    );
+
+    Logger.log(
+      'Response rows deleted: ' +
+      deletedResponseRows
     );
 
     Logger.log(
@@ -2349,13 +2480,33 @@ function freshStartSystem() {
     );
 
     Logger.log(
+      'Files skipped/not found: ' +
+      fileCleanup.skipped
+    );
+
+    Logger.log(
+      'Applicant properties removed: ' +
+      removedApplicantProperties
+    );
+
+    Logger.log(
       'System Jobs cleared: ' +
       clearedJobs
     );
 
     Logger.log(
-      'Applicant properties cleared: ' +
-      clearedApplicantProperties
+      'Admin Users cleared: ' +
+      clearedAdminUsers
+    );
+
+    Logger.log(
+      'Admin Sessions cleared: ' +
+      clearedAdminSessions
+    );
+
+    Logger.log(
+      'Cache invalidation actions: ' +
+      cacheActions
     );
 
     Logger.log(
@@ -2367,18 +2518,146 @@ function freshStartSystem() {
     );
 
     Logger.log(
-      'TEMPORARY ADMIN PASSWORD: ' +
+      'TEMPORARY / DEFAULT ADMIN PASSWORD: ' +
       adminSetup.defaultPassword
+    );
+
+    Logger.log(
+      '========================================'
+    );
+
+    ui.alert(
+      'FRESH START COMPLETE',
+      [
+        'The CRFFN licensing system has been reset.',
+        '',
+        'Response rows removed: ' +
+          deletedResponseRows,
+        '',
+        'Next Application: APP-0001',
+        'Next S/N: 1',
+        '',
+        'The Google Form and response headers were preserved.',
+        '',
+        'Check the Apps Script execution log for the temporary admin password.'
+      ].join('\n'),
+      ui.ButtonSet.OK
     );
 
     return {
       ok: true,
-      nextApplication: 'APP-0001',
-      nextSerialNumber: 1,
-      temporaryAdminPassword:
-        adminSetup.defaultPassword
+      responseRowsDeleted:
+        deletedResponseRows,
+      filesTrashed:
+        fileCleanup.trashed,
+      clearedJobs:
+        clearedJobs,
+      clearedAdminUsers:
+        clearedAdminUsers,
+      clearedAdminSessions:
+        clearedAdminSessions,
+      nextApplication:
+        'APP-0001',
+      nextSerialNumber:
+        1
     };
   } finally {
     lock.releaseLock();
   }
+}
+
+
+/**
+ * Physically removes all Form response rows except row 1.
+ *
+ * This is intentionally different from the normal V4
+ * clearContent() reset.
+ */
+function freshStartDeleteResponseRows_(
+  sheet
+) {
+  const maxRows =
+    sheet.getMaxRows();
+
+  if (maxRows <= 1) {
+    /*
+     * Ensure Google Form has somewhere to write.
+     */
+    sheet.insertRowsAfter(
+      1,
+      100
+    );
+
+    return 0;
+  }
+
+  const rowsToDelete =
+    maxRows - 1;
+
+  sheet.deleteRows(
+    2,
+    rowsToDelete
+  );
+
+  /*
+   * Add fresh empty rows beneath the header.
+   */
+  sheet.insertRowsAfter(
+    1,
+    100
+  );
+
+  SpreadsheetApp.flush();
+
+  return rowsToDelete;
+}
+
+
+/**
+ * Clears everything below row 1 from a named sheet.
+ *
+ * Keeps:
+ * - the sheet
+ * - headers
+ * - formatting
+ */
+function freshStartClearSheetData_(
+  spreadsheet,
+  sheetName
+) {
+  const sheet =
+    spreadsheet.getSheetByName(
+      sheetName
+    );
+
+  if (!sheet) {
+    return 0;
+  }
+
+  const lastRow =
+    sheet.getLastRow();
+
+  const lastColumn =
+    sheet.getLastColumn();
+
+  if (
+    lastRow <= 1 ||
+    lastColumn < 1
+  ) {
+    return 0;
+  }
+
+  const rows =
+    lastRow - 1;
+
+  sheet
+    .getRange(
+      2,
+      1,
+      rows,
+      lastColumn
+    )
+    .clearContent();
+
+  return rows;
 }

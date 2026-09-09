@@ -8,6 +8,8 @@ const ADMIN_PORTAL_CONFIG = Object.freeze({
   ADMIN_EMAILS: [
     'sammymenim@gmail.com',
     'registrarceo.crffn@gmail.com',
+    'crffn08@gmail.com',
+    'alonzychris@gmail.com'
   ],
 
   PORTAL_TITLE:
