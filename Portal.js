@@ -140,6 +140,46 @@ function renderAdminDashboard_(
       sessionToken
     );
 
+  const allowedSections = [
+    'dashboard',
+    'applications',
+    'payments',
+    'licences',
+    'system-jobs',
+    'admin-users',
+  ];
+
+  let dashboardSection =
+    String(
+      inputParameters.section ||
+      'dashboard'
+    )
+      .trim()
+      .toLowerCase();
+
+  if (
+    allowedSections.indexOf(
+      dashboardSection
+    ) === -1
+  ) {
+    dashboardSection =
+      'dashboard';
+  }
+
+  if (
+    dashboardSection ===
+      'admin-users' &&
+    String(
+      accessResult.role || ''
+    ) !== 'Super Admin'
+  ) {
+    dashboardSection =
+      'dashboard';
+  }
+
+  template.dashboardSection =
+    dashboardSection;
+
   return template
     .evaluate()
     .setTitle(

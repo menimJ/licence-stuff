@@ -86,6 +86,35 @@
         outline: 2px solid rgba(24, 59, 86, 0.12);
       }
 
+      .password-field {
+        position: relative;
+        display: block;
+      }
+
+      .password-field input {
+        padding-right: 48px;
+      }
+
+      .password-toggle {
+        position: absolute;
+        top: 50%;
+        right: 8px;
+        transform: translateY(-50%);
+        width: 34px;
+        height: 34px;
+        padding: 0;
+        border: 0;
+        border-radius: 7px;
+        background: transparent;
+        color: #475467;
+        cursor: pointer;
+        line-height: 1;
+      }
+
+      .password-toggle:hover {
+        background: #f2f4f7;
+      }
+
       .button {
         min-height: 42px;
         padding: 9px 14px;
@@ -279,6 +308,28 @@
         typeof adminRole !== 'undefined'
           ? String(adminRole || '')
           : String(safeAdminAccess.role || '');
+
+      const safeDashboardSection =
+        typeof dashboardSection !== 'undefined'
+          ? String(
+              dashboardSection ||
+              'dashboard'
+            )
+          : 'dashboard';
+
+      const dashboardSectionTitles = {
+        dashboard: 'Dashboard',
+        applications: 'Applications',
+        payments: 'Payments',
+        licences: 'Licences',
+        'system-jobs': 'System Jobs',
+        'admin-users': 'Admin Users'
+      };
+
+      const safeDashboardTitle =
+        dashboardSectionTitles[
+          safeDashboardSection
+        ] || 'Dashboard';
     ?>
 
     <? if (!safeAdminAccess.ok && !safeAdminAccess.mustChangePassword) { ?>
@@ -296,7 +347,15 @@
 
           <label>
             Password
-            <input id="adminLoginPassword" type="password" autocomplete="current-password" required>
+            <span class="password-field">
+              <input id="adminLoginPassword" type="password" autocomplete="current-password" required>
+              <button
+                class="password-toggle"
+                type="button"
+                aria-label="Show password"
+                onclick="toggleDashboardPassword('adminLoginPassword', this)"
+              >👁</button>
+            </span>
           </label>
 
           <div id="adminLoginMessage" class="auth-message"></div>
@@ -321,17 +380,41 @@
         <form id="adminPasswordChangeForm" class="auth-form" onsubmit="submitAdminPasswordChange(event)">
           <label>
             Current Temporary Password
-            <input id="adminCurrentPassword" type="password" autocomplete="current-password" required>
+            <span class="password-field">
+              <input id="adminCurrentPassword" type="password" autocomplete="current-password" required>
+              <button
+                class="password-toggle"
+                type="button"
+                aria-label="Show password"
+                onclick="toggleDashboardPassword('adminCurrentPassword', this)"
+              >👁</button>
+            </span>
           </label>
 
           <label>
             New Password
-            <input id="adminNewPassword" type="password" autocomplete="new-password" minlength="10" required>
+            <span class="password-field">
+              <input id="adminNewPassword" type="password" autocomplete="new-password" minlength="10" required>
+              <button
+                class="password-toggle"
+                type="button"
+                aria-label="Show password"
+                onclick="toggleDashboardPassword('adminNewPassword', this)"
+              >👁</button>
+            </span>
           </label>
 
           <label>
             Confirm New Password
-            <input id="adminConfirmPassword" type="password" autocomplete="new-password" minlength="10" required>
+            <span class="password-field">
+              <input id="adminConfirmPassword" type="password" autocomplete="new-password" minlength="10" required>
+              <button
+                class="password-toggle"
+                type="button"
+                aria-label="Show password"
+                onclick="toggleDashboardPassword('adminConfirmPassword', this)"
+              >👁</button>
+            </span>
           </label>
 
           <p class="muted">
@@ -356,34 +439,48 @@
         </div>
 
         <nav class="nav" aria-label="Administration">
-          <a class="nav-link active" href="<?= APP_CONFIG.PRODUCTION_WEB_APP_URL ?>?view=dashboard&session=<?= adminSessionTokenEncoded ?>">
+          <a
+            class="nav-link <?= safeDashboardSection === 'dashboard' ? 'active' : '' ?>"
+            href="<?= APP_CONFIG.PRODUCTION_WEB_APP_URL ?>?view=dashboard&section=dashboard&session=<?= adminSessionTokenEncoded ?>"
+          >
             <span>Dashboard</span>
           </a>
 
-          <a class="nav-link" href="<?= APP_CONFIG.PRODUCTION_WEB_APP_URL ?>?view=admin&session=<?= adminSessionTokenEncoded ?>">
+          <a
+            class="nav-link <?= safeDashboardSection === 'applications' ? 'active' : '' ?>"
+            href="<?= APP_CONFIG.PRODUCTION_WEB_APP_URL ?>?view=dashboard&section=applications&session=<?= adminSessionTokenEncoded ?>"
+          >
             <span>Applications</span>
           </a>
 
-          <span class="nav-link disabled">
+          <a
+            class="nav-link <?= safeDashboardSection === 'payments' ? 'active' : '' ?>"
+            href="<?= APP_CONFIG.PRODUCTION_WEB_APP_URL ?>?view=dashboard&section=payments&session=<?= adminSessionTokenEncoded ?>"
+          >
             <span>Payments</span>
-            <span class="coming-soon">Next</span>
-          </span>
+          </a>
 
-          <span class="nav-link disabled">
+          <a
+            class="nav-link <?= safeDashboardSection === 'licences' ? 'active' : '' ?>"
+            href="<?= APP_CONFIG.PRODUCTION_WEB_APP_URL ?>?view=dashboard&section=licences&session=<?= adminSessionTokenEncoded ?>"
+          >
             <span>Licences</span>
-            <span class="coming-soon">Next</span>
-          </span>
+          </a>
 
-          <span class="nav-link disabled">
+          <a
+            class="nav-link <?= safeDashboardSection === 'system-jobs' ? 'active' : '' ?>"
+            href="<?= APP_CONFIG.PRODUCTION_WEB_APP_URL ?>?view=dashboard&section=system-jobs&session=<?= adminSessionTokenEncoded ?>"
+          >
             <span>System Jobs</span>
-            <span class="coming-soon">Next</span>
-          </span>
+          </a>
 
           <? if (safeAdminRole === 'Super Admin') { ?>
-          <span class="nav-link disabled">
+          <a
+            class="nav-link <?= safeDashboardSection === 'admin-users' ? 'active' : '' ?>"
+            href="<?= APP_CONFIG.PRODUCTION_WEB_APP_URL ?>?view=dashboard&section=admin-users&session=<?= adminSessionTokenEncoded ?>"
+          >
             <span>Admin Users</span>
-            <span class="coming-soon">Next</span>
-          </span>
+          </a>
           <? } ?>
         </nav>
       </aside>
@@ -392,7 +489,7 @@
         <header class="topbar">
           <div>
             <p class="eyebrow">CRFFN Licensing System</p>
-            <h2 class="page-title">Dashboard</h2>
+            <h2 class="page-title"><?= safeDashboardTitle ?></h2>
           </div>
 
           <div class="admin-meta">
@@ -411,17 +508,67 @@
         </header>
 
         <main class="content">
+          <? if (safeDashboardSection === 'dashboard') { ?>
           <section class="welcome-card">
             <p class="eyebrow">Dashboard Home</p>
             <h2>Administration dashboard is ready.</h2>
             <p class="muted">
-              The new dashboard now uses the existing CRFFN administrator authentication and session system.
+              This is the new CRFFN administration experience. All dashboard navigation now stays inside the dashboard UI.
             </p>
 
             <div class="menu-note">
-              Applications already opens the existing administration portal. Payments, Licences, System Jobs and Admin Users will be connected in the next dashboard phases.
+              Applications, Payments, Licences, System Jobs and Admin Users now have their own dashboard routes. Their working screens will be migrated into this UI one section at a time.
             </div>
           </section>
+
+          <? } else if (safeDashboardSection === 'applications') { ?>
+          <section class="welcome-card">
+            <p class="eyebrow">Applications</p>
+            <h2>Applications workspace</h2>
+            <p class="muted">
+              This route is ready. The existing application workflow will be migrated here next without changing the legacy admin portal.
+            </p>
+          </section>
+
+          <? } else if (safeDashboardSection === 'payments') { ?>
+          <section class="welcome-card">
+            <p class="eyebrow">Payments</p>
+            <h2>Payment review workspace</h2>
+            <p class="muted">
+              This dashboard route is ready for the payment review UI.
+            </p>
+          </section>
+
+          <? } else if (safeDashboardSection === 'licences') { ?>
+          <section class="welcome-card">
+            <p class="eyebrow">Licences</p>
+            <h2>Licence management workspace</h2>
+            <p class="muted">
+              This dashboard route is ready for licence generation, stamping and release management.
+            </p>
+          </section>
+
+          <? } else if (safeDashboardSection === 'system-jobs') { ?>
+          <section class="welcome-card">
+            <p class="eyebrow">System Jobs</p>
+            <h2>System jobs workspace</h2>
+            <p class="muted">
+              This dashboard route is ready for background-job visibility and administration.
+            </p>
+          </section>
+
+          <? } else if (
+            safeDashboardSection === 'admin-users' &&
+            safeAdminRole === 'Super Admin'
+          ) { ?>
+          <section class="welcome-card">
+            <p class="eyebrow">Super Admin</p>
+            <h2>Admin Users</h2>
+            <p class="muted">
+              This route is ready and will reuse the existing Admin Users and authentication backend.
+            </p>
+          </section>
+          <? } ?>
         </main>
       </section>
     </div>
@@ -433,6 +580,42 @@
 
       const ADMIN_DASHBOARD_BASE_URL =
         <?!= JSON.stringify(APP_CONFIG.PRODUCTION_WEB_APP_URL) ?>;
+
+      function toggleDashboardPassword(
+        inputId,
+        button
+      ) {
+        const input =
+          document.getElementById(
+            inputId
+          );
+
+        if (!input) {
+          return;
+        }
+
+        const showing =
+          input.type === 'text';
+
+        input.type =
+          showing
+            ? 'password'
+            : 'text';
+
+        if (button) {
+          button.setAttribute(
+            'aria-label',
+            showing
+              ? 'Show password'
+              : 'Hide password'
+          );
+
+          button.textContent =
+            showing
+              ? '👁'
+              : '🙈';
+        }
+      }
 
       function getErrorMessage_(error) {
         if (error && error.message) {
