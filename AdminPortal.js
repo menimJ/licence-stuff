@@ -558,6 +558,21 @@ function getAdminApplicationDetail_(
 }
 
 /**
+ * Application detail endpoint for the new dashboard.
+ * Reuses the existing legacy application-detail logic.
+ */
+function getAdminDashboardApplicationDetail(
+  sessionToken,
+  applicationId
+) {
+  return getAdminApplicationDetail_(
+    applicationId,
+    sessionToken
+  );
+}
+
+
+/**
  * Builds one row for the admin
  * application list.
  */

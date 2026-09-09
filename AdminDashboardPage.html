@@ -404,6 +404,115 @@
         cursor: not-allowed;
       }
 
+
+      .dashboard-detail-card {
+        margin-bottom: 18px;
+        padding: 20px;
+        background: #ffffff;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+      }
+
+      .dashboard-detail-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .dashboard-detail-field {
+        padding: 12px;
+        border: 1px solid #eaecf0;
+        border-radius: 8px;
+        background: #f9fafb;
+      }
+
+      .dashboard-detail-field.full {
+        grid-column: 1 / -1;
+      }
+
+      .dashboard-detail-label {
+        display: block;
+        margin-bottom: 4px;
+        color: var(--text-secondary);
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+
+      .dashboard-detail-value {
+        font-size: 13px;
+        font-weight: 600;
+        word-break: break-word;
+      }
+
+      .dashboard-status-grid {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .dashboard-back-link {
+        display: inline-block;
+        margin-bottom: 14px;
+        color: var(--primary);
+        font-size: 13px;
+        font-weight: 700;
+        text-decoration: none;
+      }
+
+      .dashboard-doc-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px;
+        margin-bottom: 9px;
+        border: 1px solid #eaecf0;
+        border-radius: 8px;
+      }
+
+      .dashboard-doc-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .dashboard-detail-link {
+        display: inline-flex;
+        align-items: center;
+        min-height: 34px;
+        padding: 7px 10px;
+        border: 1px solid #d0d5dd;
+        border-radius: 7px;
+        background: #ffffff;
+        color: #344054;
+        font-size: 12px;
+        font-weight: 700;
+        text-decoration: none;
+      }
+
+      @media (max-width: 850px) {
+        .dashboard-status-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 650px) {
+        .dashboard-detail-grid,
+        .dashboard-status-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .dashboard-detail-field.full {
+          grid-column: auto;
+        }
+
+        .dashboard-doc-row {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+      }
+
       @media (max-width: 900px) {
         .applications-toolbar {
           grid-template-columns: 1fr 1fr;
@@ -684,6 +793,7 @@
           </section>
 
           <? } else if (safeDashboardSection === 'applications') { ?>
+          <div id="dashboardApplicationsList">
           <section class="applications-card">
             <div class="applications-toolbar">
               <label>
@@ -754,6 +864,77 @@
                 class="pagination-controls"></div>
             </div>
           </section>
+          </div>
+
+          <div id="dashboardApplicationDetail" style="display:none;">
+            <a
+              class="dashboard-back-link"
+              href="<?= APP_CONFIG.PRODUCTION_WEB_APP_URL ?>?view=dashboard&section=applications&session=<?= adminSessionTokenEncoded ?>"
+            >
+              ← Back to Applications
+            </a>
+
+            <section class="dashboard-detail-card">
+              <div id="dashboardDetailLoading">Loading application...</div>
+
+              <div id="dashboardDetailContent" style="display:none;">
+                <p class="eyebrow">Application Review</p>
+                <h2 id="detailApplicationId" style="margin:0 0 6px;"></h2>
+                <p id="detailSubtitle" class="muted"></p>
+              </div>
+            </section>
+
+            <section id="dashboardApplicationInformation" class="dashboard-detail-card" style="display:none;">
+              <h3>Application Information</h3>
+              <div class="dashboard-detail-grid">
+                <div class="dashboard-detail-field"><span class="dashboard-detail-label">Applicant Name</span><span id="detailApplicantName" class="dashboard-detail-value"></span></div>
+                <div class="dashboard-detail-field"><span class="dashboard-detail-label">Company Name</span><span id="detailCompanyName" class="dashboard-detail-value"></span></div>
+                <div class="dashboard-detail-field"><span class="dashboard-detail-label">RC Number</span><span id="detailRcNumber" class="dashboard-detail-value"></span></div>
+                <div class="dashboard-detail-field"><span class="dashboard-detail-label">TIN</span><span id="detailTin" class="dashboard-detail-value"></span></div>
+                <div class="dashboard-detail-field"><span class="dashboard-detail-label">CRFFN Membership Number</span><span id="detailMembership" class="dashboard-detail-value"></span></div>
+                <div class="dashboard-detail-field"><span class="dashboard-detail-label">Serial Number</span><span id="detailSerial" class="dashboard-detail-value"></span></div>
+                <div class="dashboard-detail-field"><span class="dashboard-detail-label">Email</span><span id="detailEmail" class="dashboard-detail-value"></span></div>
+                <div class="dashboard-detail-field"><span class="dashboard-detail-label">Phone</span><span id="detailPhone" class="dashboard-detail-value"></span></div>
+                <div class="dashboard-detail-field full"><span class="dashboard-detail-label">Office Address</span><span id="detailAddress" class="dashboard-detail-value"></span></div>
+                <div class="dashboard-detail-field"><span class="dashboard-detail-label">Submitted</span><span id="detailSubmitted" class="dashboard-detail-value"></span></div>
+                <div class="dashboard-detail-field"><span class="dashboard-detail-label">Record Status</span><span id="detailRecordStatus" class="dashboard-detail-value"></span></div>
+              </div>
+            </section>
+
+            <section id="dashboardStatusSection" class="dashboard-detail-card" style="display:none;">
+              <h3>Current Status</h3>
+              <div class="dashboard-status-grid">
+                <div class="dashboard-detail-field"><span class="dashboard-detail-label">Payment</span><div id="detailPaymentStatus"></div></div>
+                <div class="dashboard-detail-field"><span class="dashboard-detail-label">Documents</span><div id="detailDocumentStatus"></div></div>
+                <div class="dashboard-detail-field"><span class="dashboard-detail-label">Information</span><div id="detailInformationStatus"></div></div>
+                <div class="dashboard-detail-field"><span class="dashboard-detail-label">Verification</span><div id="detailVerificationStatus"></div></div>
+                <div class="dashboard-detail-field"><span class="dashboard-detail-label">Licence</span><div id="detailLicenceStatus"></div></div>
+              </div>
+            </section>
+
+            <section id="dashboardDocumentsSection" class="dashboard-detail-card" style="display:none;">
+              <h3>Supporting Documents</h3>
+              <div id="dashboardDocuments"></div>
+            </section>
+
+            <section id="dashboardPaymentSection" class="dashboard-detail-card" style="display:none;">
+              <h3>Payment Information</h3>
+              <div class="dashboard-detail-grid">
+                <div class="dashboard-detail-field"><span class="dashboard-detail-label">Payment Reference</span><span id="detailPaymentReference" class="dashboard-detail-value"></span></div>
+                <div class="dashboard-detail-field"><span class="dashboard-detail-label">Verified By</span><span id="detailPaymentVerifiedBy" class="dashboard-detail-value"></span></div>
+                <div class="dashboard-detail-field"><span class="dashboard-detail-label">Proof Uploaded</span><span id="detailPaymentProofAt" class="dashboard-detail-value"></span></div>
+                <div class="dashboard-detail-field"><span class="dashboard-detail-label">Verified At</span><span id="detailPaymentVerifiedAt" class="dashboard-detail-value"></span></div>
+              </div>
+            </section>
+
+            <section id="dashboardNotesSection" class="dashboard-detail-card" style="display:none;">
+              <h3>Review Notes</h3>
+              <div class="dashboard-detail-grid">
+                <div class="dashboard-detail-field full"><span class="dashboard-detail-label">Document Review Notes</span><span id="detailDocumentNotes" class="dashboard-detail-value"></span></div>
+                <div class="dashboard-detail-field full"><span class="dashboard-detail-label">Information Review Notes</span><span id="detailInformationNotes" class="dashboard-detail-value"></span></div>
+              </div>
+            </section>
+          </div>
 
           <? } else if (safeDashboardSection === 'payments') { ?>
           <section class="welcome-card">
@@ -805,6 +986,12 @@
 
       const ADMIN_DASHBOARD_BASE_URL =
         <?!= JSON.stringify(APP_CONFIG.PRODUCTION_WEB_APP_URL) ?>;
+
+
+      const DASHBOARD_APPLICATION_ID =
+        new URLSearchParams(
+          window.location.search
+        ).get('applicationId') || '';
 
       const APPLICATIONS_PAGE_SIZE = 20;
 
@@ -1076,18 +1263,241 @@
         container.innerHTML = parts.join('');
       }
 
+      function setDashboardDetailText_(id, value) {
+        const element = document.getElementById(id);
+
+        if (!element) {
+          return;
+        }
+
+        element.textContent =
+          String(value || '').trim() ||
+          '—';
+      }
+
+      function getDashboardDocumentUrl_(
+        applicationId,
+        documentType,
+        action
+      ) {
+        return (
+          ADMIN_DASHBOARD_BASE_URL +
+          '?view=admindocument' +
+          '&applicationId=' +
+          encodeURIComponent(applicationId) +
+          '&documentType=' +
+          encodeURIComponent(documentType) +
+          '&action=' +
+          encodeURIComponent(action || 'view') +
+          '&session=' +
+          encodeURIComponent(ADMIN_SESSION_TOKEN)
+        );
+      }
+
+      function renderDashboardDocuments_(applicationId) {
+        const container =
+          document.getElementById(
+            'dashboardDocuments'
+          );
+
+        if (!container) {
+          return;
+        }
+
+        const documents = [
+          ['CAC Document', 'cac'],
+          ['Passport Photograph', 'passport'],
+          ['Educational Certificates', 'education'],
+          ['Proof of Experience', 'experience'],
+          ['Means of Identification', 'identification'],
+          ['Payment Receipt', 'payment'],
+          ['Draft Licence', 'draftlicence'],
+          ['Stamped Licence', 'stampedlicence']
+        ];
+
+        container.innerHTML =
+          documents.map(function(item) {
+            const viewUrl =
+              getDashboardDocumentUrl_(
+                applicationId,
+                item[1],
+                'view'
+              );
+
+            const downloadUrl =
+              getDashboardDocumentUrl_(
+                applicationId,
+                item[1],
+                'download'
+              );
+
+            return (
+              '<div class="dashboard-doc-row">' +
+                '<strong>' +
+                  escapeDashboardHtml_(item[0]) +
+                '</strong>' +
+                '<div class="dashboard-doc-actions">' +
+                  '<a class="dashboard-detail-link" target="_blank" href="' +
+                    escapeDashboardHtml_(viewUrl) +
+                  '">View</a>' +
+                  '<a class="dashboard-detail-link" target="_blank" href="' +
+                    escapeDashboardHtml_(downloadUrl) +
+                  '">Download</a>' +
+                '</div>' +
+              '</div>'
+            );
+          }).join('');
+      }
+
+      function loadDashboardApplicationDetail_(applicationId) {
+        const list =
+          document.getElementById(
+            'dashboardApplicationsList'
+          );
+
+        const detail =
+          document.getElementById(
+            'dashboardApplicationDetail'
+          );
+
+        const loading =
+          document.getElementById(
+            'dashboardDetailLoading'
+          );
+
+        if (!applicationId || !detail) {
+          return;
+        }
+
+        if (list) {
+          list.style.display = 'none';
+        }
+
+        detail.style.display = 'block';
+
+        google.script.run
+          .withSuccessHandler(function(result) {
+            if (
+              !result ||
+              result.ok !== true ||
+              !result.application
+            ) {
+              loading.textContent =
+                result && result.message
+                  ? result.message
+                  : 'Application could not be loaded.';
+              return;
+            }
+
+            const application =
+              result.application;
+
+            loading.style.display = 'none';
+
+            [
+              'dashboardDetailContent',
+              'dashboardApplicationInformation',
+              'dashboardStatusSection',
+              'dashboardDocumentsSection',
+              'dashboardPaymentSection',
+              'dashboardNotesSection'
+            ].forEach(function(id) {
+              const section =
+                document.getElementById(id);
+
+              if (section) {
+                section.style.display = 'block';
+              }
+            });
+
+            setDashboardDetailText_('detailApplicationId', application.applicationId);
+            setDashboardDetailText_(
+              'detailSubtitle',
+              [application.companyName, application.applicantName]
+                .filter(Boolean)
+                .join(' • ')
+            );
+            setDashboardDetailText_('detailApplicantName', application.applicantName);
+            setDashboardDetailText_('detailCompanyName', application.companyName);
+            setDashboardDetailText_('detailRcNumber', application.rcNumber);
+            setDashboardDetailText_('detailTin', application.tin);
+            setDashboardDetailText_('detailMembership', application.crffnMembershipNumber);
+            setDashboardDetailText_('detailSerial', application.serialNumber);
+            setDashboardDetailText_('detailEmail', application.email);
+            setDashboardDetailText_('detailPhone', application.phoneNumber);
+            setDashboardDetailText_('detailAddress', application.officeAddress);
+            setDashboardDetailText_('detailSubmitted', application.submittedAt);
+            setDashboardDetailText_('detailRecordStatus', application.recordStatus);
+            setDashboardDetailText_('detailPaymentReference', application.paymentReference);
+            setDashboardDetailText_('detailPaymentVerifiedBy', application.paymentVerifiedBy);
+            setDashboardDetailText_('detailPaymentProofAt', application.paymentProofUploadedAt);
+            setDashboardDetailText_('detailPaymentVerifiedAt', application.paymentVerifiedAt);
+            setDashboardDetailText_('detailDocumentNotes', application.documentReviewNotes);
+            setDashboardDetailText_('detailInformationNotes', application.informationReviewNotes);
+
+            [
+              ['detailPaymentStatus', application.paymentStatus],
+              ['detailDocumentStatus', application.documentStatus],
+              ['detailInformationStatus', application.informationStatus],
+              ['detailVerificationStatus', application.verificationStatus],
+              ['detailLicenceStatus', application.licenceStatus]
+            ].forEach(function(pair) {
+              const element =
+                document.getElementById(pair[0]);
+
+              if (element) {
+                element.innerHTML =
+                  renderStatusPill_(pair[1]);
+              }
+            });
+
+            renderDashboardDocuments_(
+              application.applicationId ||
+              applicationId
+            );
+          })
+          .withFailureHandler(function(error) {
+            loading.textContent =
+              getErrorMessage_(error);
+          })
+          .getAdminDashboardApplicationDetail(
+            ADMIN_SESSION_TOKEN,
+            applicationId
+          );
+      }
+
+
       function initializeApplicationsSection_() {
         const search =
-          document.getElementById('applicationsSearch');
+          document.getElementById(
+            'applicationsSearch'
+          );
 
-        if (!search) return;
+        if (!search) {
+          return;
+        }
 
-        search.addEventListener('keydown', function(event) {
-          if (event.key === 'Enter') {
-            event.preventDefault();
-            applyApplicationFilters();
+        if (
+          String(
+            DASHBOARD_APPLICATION_ID ||
+            ''
+          ).trim()
+        ) {
+          loadDashboardApplicationDetail_(
+            DASHBOARD_APPLICATION_ID
+          );
+          return;
+        }
+
+        search.addEventListener(
+          'keydown',
+          function(event) {
+            if (event.key === 'Enter') {
+              event.preventDefault();
+              applyApplicationFilters();
+            }
           }
-        });
+        );
 
         loadApplicationsPage();
       }
