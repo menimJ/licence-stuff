@@ -15,6 +15,9 @@
  *
  * Admin application:
  * /exec?view=admin&ref=APP-0001
+ *
+ * Admin dashboard:
+ * /exec?view=dashboard
  */
 function doGet(e) {
   const parameters =
@@ -36,6 +39,12 @@ function doGet(e) {
 
   if (view === 'admin') {
     return renderAdminPortal_(
+      parameters
+    );
+  }
+
+  if (view === 'dashboard') {
+    return renderAdminDashboard_(
       parameters
     );
   }
@@ -63,6 +72,34 @@ function doGet(e) {
       ].join('')
     )
     .setTitle('Page Not Found');
+}
+
+/**
+ * Renders the new CRFFN administrator dashboard.
+ *
+ * Existing admin portal remains available at:
+ * /exec?view=admin
+ *
+ * New dashboard:
+ * /exec?view=dashboard
+ */
+function renderAdminDashboard_(
+  parameters
+) {
+  const template =
+    HtmlService.createTemplateFromFile(
+      'AdminDashboardPage'
+    );
+
+  return template
+    .evaluate()
+    .setTitle(
+      'CRFFN Licensing Dashboard'
+    )
+    .addMetaTag(
+      'viewport',
+      'width=device-width, initial-scale=1'
+    );
 }
 
 /**
