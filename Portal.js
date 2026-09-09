@@ -180,6 +180,13 @@ function renderAdminDashboard_(
   template.dashboardSection =
     dashboardSection;
 
+  template.dashboardApplicationId =
+    String(
+      inputParameters.applicationId ||
+      inputParameters.ref ||
+      ''
+    ).trim();
+
   return template
     .evaluate()
     .setTitle(

@@ -989,9 +989,13 @@
 
 
       const DASHBOARD_APPLICATION_ID =
-        new URLSearchParams(
-          window.location.search
-        ).get('applicationId') || '';
+        <?!= JSON.stringify(
+          String(
+            typeof dashboardApplicationId !== 'undefined'
+              ? dashboardApplicationId
+              : ''
+          )
+        ) ?>;
 
       const APPLICATIONS_PAGE_SIZE = 20;
 
