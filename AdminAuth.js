@@ -2615,3 +2615,71 @@ function showAdminDefaultPassword() {
 
   return password;
 }
+function debugAdminAuthState() {
+  const ss =
+    SpreadsheetApp.getActiveSpreadsheet();
+
+  const sheet =
+    ss.getSheetByName('Admin Users');
+
+  const props =
+    PropertiesService.getScriptProperties();
+
+  Logger.log(
+    'Pepper exists: ' +
+    Boolean(
+      props.getProperty(
+        'CRFFN_ADMIN_AUTH_PEPPER'
+      )
+    )
+  );
+
+  Logger.log(
+    'Default password exists: ' +
+    Boolean(
+      props.getProperty(
+        'CRFFN_ADMIN_DEFAULT_PASSWORD'
+      )
+    )
+  );
+
+  Logger.log(
+    'Admin Users last row: ' +
+    (sheet ? sheet.getLastRow() : 'NO SHEET')
+  );
+
+  if (
+    sheet &&
+    sheet.getLastRow() >= 2
+  ) {
+    const values =
+      sheet
+        .getRange(
+          2,
+          1,
+          sheet.getLastRow() - 1,
+          13
+        )
+        .getValues();
+
+    values.forEach(
+      function(row, index) {
+        Logger.log(
+          JSON.stringify({
+            row: index + 2,
+            email: row[1],
+            role: row[4],
+            status: row[5],
+            mustChangePassword: row[6],
+            failedAttempts: row[7],
+            lockedUntil: row[8],
+            hasPasswordHash:
+              Boolean(row[2]),
+            hasSalt:
+              Boolean(row[3])
+          })
+        );
+      }
+    );
+  }
+}
