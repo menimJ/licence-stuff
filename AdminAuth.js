@@ -2683,3 +2683,23 @@ function debugAdminAuthState() {
     );
   }
 }
+function testAdminLoginWithDefaultPassword() {
+  const password =
+    getAdminDefaultPassword_();
+
+  const result =
+    adminLogin(
+      'sammymenim@gmail.com',
+      password
+    );
+
+  Logger.log(
+    JSON.stringify(
+      result,
+      null,
+      2
+    )
+  );
+
+  return result;
+}
