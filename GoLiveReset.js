@@ -2576,40 +2576,62 @@ function freshStartSystem() {
 function freshStartDeleteResponseRows_(
   sheet
 ) {
-  const maxRows =
-    sheet.getMaxRows();
+  const lastRow =
+    sheet.getLastRow();
 
-  if (maxRows <= 1) {
-    /*
-     * Ensure Google Form has somewhere to write.
-     */
-    sheet.insertRowsAfter(
-      1,
-      100
-    );
-
+  if (lastRow <= 1) {
     return 0;
   }
 
-  const rowsToDelete =
-    maxRows - 1;
-
-  sheet.deleteRows(
-    2,
-    rowsToDelete
-  );
+  const rowsToRemove =
+    lastRow - 1;
 
   /*
-   * Add fresh empty rows beneath the header.
+   * Keep at least one writable row below
+   * the header because Google Sheets will
+   * not allow deleting all non-frozen rows.
    */
-  sheet.insertRowsAfter(
-    1,
-    100
-  );
+  const maxRows =
+    sheet.getMaxRows();
+
+  const removableRows =
+    Math.min(
+      rowsToRemove,
+      Math.max(
+        0,
+        maxRows - 2
+      )
+    );
+
+  if (removableRows > 0) {
+    sheet.deleteRows(
+      2,
+      removableRows
+    );
+  }
+
+  /*
+   * Clear whatever remains below the header.
+   * This leaves row 2 available for the next
+   * Form submission.
+   */
+  const remainingLastRow =
+    sheet.getLastRow();
+
+  if (remainingLastRow > 1) {
+    sheet
+      .getRange(
+        2,
+        1,
+        remainingLastRow - 1,
+        sheet.getLastColumn()
+      )
+      .clearContent();
+  }
 
   SpreadsheetApp.flush();
 
-  return rowsToDelete;
+  return removableRows;
 }
 
 
