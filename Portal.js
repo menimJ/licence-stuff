@@ -91,6 +91,55 @@ function renderAdminDashboard_(
       'AdminDashboardPage'
     );
 
+  const inputParameters =
+    parameters || {};
+
+  const sessionToken =
+    String(
+      inputParameters.session ||
+      ''
+    ).trim();
+
+  const rawAccessResult =
+    getAdminAccessResult_(
+      sessionToken
+    );
+
+  const accessResult =
+    rawAccessResult &&
+    typeof rawAccessResult ===
+      'object'
+      ? rawAccessResult
+      : {
+          ok: false,
+          mustChangePassword: false,
+          email: '',
+          role: '',
+          message:
+            'Administrator session has expired. Sign in again.',
+        };
+
+  template.adminAccess =
+    accessResult;
+
+  template.adminEmail =
+    String(
+      accessResult.email || ''
+    );
+
+  template.adminRole =
+    String(
+      accessResult.role || ''
+    );
+
+  template.adminSessionToken =
+    sessionToken;
+
+  template.adminSessionTokenEncoded =
+    encodeURIComponent(
+      sessionToken
+    );
+
   return template
     .evaluate()
     .setTitle(
@@ -99,6 +148,9 @@ function renderAdminDashboard_(
     .addMetaTag(
       'viewport',
       'width=device-width, initial-scale=1'
+    )
+    .setXFrameOptionsMode(
+      HtmlService.XFrameOptionsMode.DEFAULT
     );
 }
 

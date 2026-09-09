@@ -3,9 +3,573 @@
   <head>
     <base target="_top">
     <meta charset="utf-8">
+    <style>
+      :root {
+        --background: #f4f6f8;
+        --surface: #ffffff;
+        --primary: #183b56;
+        --primary-hover: #102a40;
+        --text-primary: #17202a;
+        --text-secondary: #667085;
+        --border: #e4e7ec;
+        --danger-background: #fef3f2;
+        --danger-text: #b42318;
+        --success-background: #ecfdf3;
+        --success-text: #027a48;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        background: var(--background);
+        color: var(--text-primary);
+        font-family: Arial, Helvetica, sans-serif;
+        line-height: 1.5;
+      }
+
+      button, input { font: inherit; }
+
+      .auth-page {
+        min-height: 100vh;
+        padding: 32px 20px;
+        display: grid;
+        place-items: center;
+      }
+
+      .auth-card {
+        width: 100%;
+        max-width: 520px;
+        padding: 28px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        box-shadow: 0 8px 30px rgba(16, 24, 40, 0.08);
+      }
+
+      .eyebrow {
+        margin: 0 0 6px;
+        color: var(--text-secondary);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      h1, h2, p { margin-top: 0; }
+      .muted { color: var(--text-secondary); }
+
+      .auth-form {
+        display: grid;
+        gap: 16px;
+        margin-top: 22px;
+      }
+
+      .auth-form label {
+        display: grid;
+        gap: 7px;
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .auth-form input {
+        width: 100%;
+        padding: 12px 13px;
+        border: 1px solid #d0d5dd;
+        border-radius: 8px;
+        background: #ffffff;
+        color: var(--text-primary);
+      }
+
+      .auth-form input:focus {
+        border-color: var(--primary);
+        outline: 2px solid rgba(24, 59, 86, 0.12);
+      }
+
+      .button {
+        min-height: 42px;
+        padding: 9px 14px;
+        border: 0;
+        border-radius: 8px;
+        background: var(--primary);
+        color: #ffffff;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .button:hover { background: var(--primary-hover); }
+      .button:disabled { opacity: 0.65; cursor: wait; }
+
+      .auth-message {
+        display: none;
+        padding: 11px 12px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+      }
+
+      .auth-message.error {
+        display: block;
+        background: var(--danger-background);
+        color: var(--danger-text);
+      }
+
+      .auth-message.success {
+        display: block;
+        background: var(--success-background);
+        color: var(--success-text);
+      }
+
+      .app-shell {
+        min-height: 100vh;
+        display: grid;
+        grid-template-columns: 250px minmax(0, 1fr);
+      }
+
+      .sidebar {
+        min-height: 100vh;
+        padding: 24px 16px;
+        background: var(--primary);
+        color: #ffffff;
+      }
+
+      .brand {
+        padding: 0 10px 22px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+      }
+
+      .brand-title { margin: 0; font-size: 18px; }
+
+      .brand-subtitle {
+        margin: 4px 0 0;
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 12px;
+      }
+
+      .nav {
+        display: grid;
+        gap: 5px;
+        margin-top: 22px;
+      }
+
+      .nav-link {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 42px;
+        padding: 9px 11px;
+        border-radius: 8px;
+        color: rgba(255, 255, 255, 0.82);
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      .nav-link:hover, .nav-link.active {
+        background: rgba(255, 255, 255, 0.12);
+        color: #ffffff;
+      }
+
+      .nav-link.disabled {
+        cursor: default;
+        opacity: 0.58;
+      }
+
+      .coming-soon {
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+
+      .main { min-width: 0; }
+
+      .topbar {
+        min-height: 72px;
+        padding: 14px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        background: #ffffff;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .page-title { margin: 0; font-size: 22px; }
+
+      .admin-meta {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .admin-identity {
+        color: var(--text-secondary);
+        font-size: 12px;
+        text-align: right;
+      }
+
+      .logout-button {
+        padding: 8px 11px;
+        border: 1px solid #d0d5dd;
+        border-radius: 8px;
+        background: #ffffff;
+        color: #344054;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .content { padding: 26px 24px 50px; }
+
+      .welcome-card {
+        padding: 24px;
+        background: #ffffff;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(16, 24, 40, 0.04);
+      }
+
+      .menu-note {
+        margin-top: 18px;
+        padding: 13px 14px;
+        border-radius: 8px;
+        background: #f8fafc;
+        color: var(--text-secondary);
+        font-size: 13px;
+      }
+
+      @media (max-width: 800px) {
+        .app-shell { grid-template-columns: 1fr; }
+        .sidebar { min-height: auto; }
+        .nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .topbar { align-items: flex-start; flex-direction: column; }
+        .admin-meta { width: 100%; justify-content: space-between; }
+        .admin-identity { text-align: left; }
+      }
+
+      @media (max-width: 520px) {
+        .nav { grid-template-columns: 1fr; }
+        .content, .topbar { padding-left: 16px; padding-right: 16px; }
+      }
+    </style>
   </head>
+
   <body>
-    <h1>CRFFN Admin Dashboard</h1>
-    <p>The dashboard route is working.</p>
+    <?
+      const safeAdminAccess =
+        (
+          typeof adminAccess !== 'undefined' &&
+          adminAccess &&
+          typeof adminAccess === 'object'
+        )
+          ? adminAccess
+          : {
+              ok: false,
+              mustChangePassword: false,
+              email: '',
+              role: ''
+            };
+
+      const safeAdminEmail =
+        typeof adminEmail !== 'undefined'
+          ? String(adminEmail || '')
+          : String(safeAdminAccess.email || '');
+
+      const safeAdminRole =
+        typeof adminRole !== 'undefined'
+          ? String(adminRole || '')
+          : String(safeAdminAccess.role || '');
+    ?>
+
+    <? if (!safeAdminAccess.ok && !safeAdminAccess.mustChangePassword) { ?>
+    <main class="auth-page">
+      <section class="auth-card">
+        <p class="eyebrow">CRFFN Licensing System</p>
+        <h1>Admin Dashboard</h1>
+        <p class="muted">Sign in with your CRFFN administrator account.</p>
+
+        <form id="adminLoginForm" class="auth-form" onsubmit="submitAdminLogin(event)">
+          <label>
+            Email Address
+            <input id="adminLoginEmail" type="email" autocomplete="username" required>
+          </label>
+
+          <label>
+            Password
+            <input id="adminLoginPassword" type="password" autocomplete="current-password" required>
+          </label>
+
+          <div id="adminLoginMessage" class="auth-message"></div>
+
+          <button id="adminLoginButton" class="button" type="submit">
+            Sign In
+          </button>
+        </form>
+      </section>
+    </main>
+
+    <? } else if (safeAdminAccess.mustChangePassword) { ?>
+    <main class="auth-page">
+      <section class="auth-card">
+        <p class="eyebrow">Password Update Required</p>
+        <h1>Create a New Password</h1>
+        <p class="muted">
+          You are signed in as <strong><?= safeAdminAccess.email ?></strong>.
+          Replace your temporary password before entering the dashboard.
+        </p>
+
+        <form id="adminPasswordChangeForm" class="auth-form" onsubmit="submitAdminPasswordChange(event)">
+          <label>
+            Current Temporary Password
+            <input id="adminCurrentPassword" type="password" autocomplete="current-password" required>
+          </label>
+
+          <label>
+            New Password
+            <input id="adminNewPassword" type="password" autocomplete="new-password" minlength="10" required>
+          </label>
+
+          <label>
+            Confirm New Password
+            <input id="adminConfirmPassword" type="password" autocomplete="new-password" minlength="10" required>
+          </label>
+
+          <p class="muted">
+            Use at least 10 characters with uppercase, lowercase, number and special character.
+          </p>
+
+          <div id="adminPasswordChangeMessage" class="auth-message"></div>
+
+          <button id="adminPasswordChangeButton" class="button" type="submit">
+            Change Password
+          </button>
+        </form>
+      </section>
+    </main>
+
+    <? } else { ?>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <h1 class="brand-title">CRFFN</h1>
+          <p class="brand-subtitle">Licensing Administration</p>
+        </div>
+
+        <nav class="nav" aria-label="Administration">
+          <a class="nav-link active" href="<?= APP_CONFIG.PRODUCTION_WEB_APP_URL ?>?view=dashboard&session=<?= adminSessionTokenEncoded ?>">
+            <span>Dashboard</span>
+          </a>
+
+          <a class="nav-link" href="<?= APP_CONFIG.PRODUCTION_WEB_APP_URL ?>?view=admin&session=<?= adminSessionTokenEncoded ?>">
+            <span>Applications</span>
+          </a>
+
+          <span class="nav-link disabled">
+            <span>Payments</span>
+            <span class="coming-soon">Next</span>
+          </span>
+
+          <span class="nav-link disabled">
+            <span>Licences</span>
+            <span class="coming-soon">Next</span>
+          </span>
+
+          <span class="nav-link disabled">
+            <span>System Jobs</span>
+            <span class="coming-soon">Next</span>
+          </span>
+
+          <? if (safeAdminRole === 'Super Admin') { ?>
+          <span class="nav-link disabled">
+            <span>Admin Users</span>
+            <span class="coming-soon">Next</span>
+          </span>
+          <? } ?>
+        </nav>
+      </aside>
+
+      <section class="main">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">CRFFN Licensing System</p>
+            <h2 class="page-title">Dashboard</h2>
+          </div>
+
+          <div class="admin-meta">
+            <div class="admin-identity">
+              Signed in as<br>
+              <strong><?= safeAdminEmail ?></strong>
+              <? if (safeAdminRole) { ?>
+              <br><?= safeAdminRole ?>
+              <? } ?>
+            </div>
+
+            <button class="logout-button" type="button" onclick="logoutAdmin()">
+              Logout
+            </button>
+          </div>
+        </header>
+
+        <main class="content">
+          <section class="welcome-card">
+            <p class="eyebrow">Dashboard Home</p>
+            <h2>Administration dashboard is ready.</h2>
+            <p class="muted">
+              The new dashboard now uses the existing CRFFN administrator authentication and session system.
+            </p>
+
+            <div class="menu-note">
+              Applications already opens the existing administration portal. Payments, Licences, System Jobs and Admin Users will be connected in the next dashboard phases.
+            </div>
+          </section>
+        </main>
+      </section>
+    </div>
+    <? } ?>
+
+    <script>
+      const ADMIN_SESSION_TOKEN =
+        <?!= JSON.stringify(String(adminSessionToken || '')) ?>;
+
+      const ADMIN_DASHBOARD_BASE_URL =
+        <?!= JSON.stringify(APP_CONFIG.PRODUCTION_WEB_APP_URL) ?>;
+
+      function getErrorMessage_(error) {
+        if (error && error.message) {
+          return error.message;
+        }
+
+        return String(error || 'Something went wrong.');
+      }
+
+      function submitAdminLogin(event) {
+        event.preventDefault();
+
+        const email = document.getElementById('adminLoginEmail').value.trim();
+        const password = document.getElementById('adminLoginPassword').value;
+        const button = document.getElementById('adminLoginButton');
+        const message = document.getElementById('adminLoginMessage');
+
+        button.disabled = true;
+        button.textContent = 'Signing In...';
+        message.className = 'auth-message';
+        message.textContent = '';
+
+        google.script.run
+          .withSuccessHandler(function(result) {
+            if (!result || result.ok !== true) {
+              button.disabled = false;
+              button.textContent = 'Sign In';
+              message.className = 'auth-message error';
+              message.textContent =
+                result && result.message
+                  ? result.message
+                  : 'Unable to sign in.';
+              return;
+            }
+
+            navigateToDashboard_(result.sessionToken);
+          })
+          .withFailureHandler(function(error) {
+            button.disabled = false;
+            button.textContent = 'Sign In';
+            message.className = 'auth-message error';
+            message.textContent = getErrorMessage_(error);
+          })
+          .adminLogin(email, password);
+      }
+
+      function submitAdminPasswordChange(event) {
+        event.preventDefault();
+
+        const currentPassword = document.getElementById('adminCurrentPassword').value;
+        const newPassword = document.getElementById('adminNewPassword').value;
+        const confirmPassword = document.getElementById('adminConfirmPassword').value;
+        const button = document.getElementById('adminPasswordChangeButton');
+        const message = document.getElementById('adminPasswordChangeMessage');
+
+        button.disabled = true;
+        button.textContent = 'Changing Password...';
+        message.className = 'auth-message';
+        message.textContent = '';
+
+        google.script.run
+          .withSuccessHandler(function(result) {
+            if (!result || result.ok !== true) {
+              button.disabled = false;
+              button.textContent = 'Change Password';
+              message.className = 'auth-message error';
+              message.textContent =
+                result && result.message
+                  ? result.message
+                  : 'Unable to change password.';
+              return;
+            }
+
+            message.className = 'auth-message success';
+            message.textContent =
+              result.message ||
+              'Password changed successfully. Sign in with your new password.';
+
+            button.disabled = false;
+            button.type = 'button';
+            button.textContent = 'Sign In';
+            button.onclick = function() {
+              window.top.location.href =
+                ADMIN_DASHBOARD_BASE_URL +
+                '?view=dashboard';
+            };
+          })
+          .withFailureHandler(function(error) {
+            button.disabled = false;
+            button.textContent = 'Change Password';
+            message.className = 'auth-message error';
+            message.textContent = getErrorMessage_(error);
+          })
+          .changeAdminPassword(
+            ADMIN_SESSION_TOKEN,
+            currentPassword,
+            newPassword,
+            confirmPassword
+          );
+      }
+
+      function logoutAdmin() {
+        if (!ADMIN_SESSION_TOKEN) {
+          window.top.location.href =
+            ADMIN_DASHBOARD_BASE_URL +
+            '?view=dashboard';
+          return;
+        }
+
+        google.script.run
+          .withSuccessHandler(function() {
+            window.top.location.href =
+              ADMIN_DASHBOARD_BASE_URL +
+              '?view=dashboard';
+          })
+          .withFailureHandler(function() {
+            window.top.location.href =
+              ADMIN_DASHBOARD_BASE_URL +
+              '?view=dashboard';
+          })
+          .adminLogout(ADMIN_SESSION_TOKEN);
+      }
+
+      function navigateToDashboard_(sessionToken) {
+        const token = String(sessionToken || '').trim();
+
+        if (!token) {
+          return;
+        }
+
+        const url =
+          ADMIN_DASHBOARD_BASE_URL +
+          '?view=dashboard&session=' +
+          encodeURIComponent(token);
+
+        window.top.location.replace(url);
+      }
+    </script>
   </body>
 </html>
