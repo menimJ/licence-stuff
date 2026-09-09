@@ -277,6 +277,106 @@ function getAdminApplications_(
   };
 }
 
+
+/**
+ * Paginated application list for the new dashboard.
+ * Legacy getAdminApplications_() remains unchanged.
+ */
+function getAdminApplicationsPage(sessionToken, options) {
+  requireAdminAccess_(sessionToken);
+
+  const input =
+    options && typeof options === 'object'
+      ? options
+      : {};
+
+  const pageSize = Math.max(
+    1,
+    Math.min(Number(input.pageSize || 20) || 20, 100)
+  );
+
+  const requestedPage = Math.max(
+    1,
+    Number(input.page || 1) || 1
+  );
+
+  const search = String(input.search || '')
+    .trim()
+    .toLowerCase();
+
+  const status = String(input.status || '')
+    .trim()
+    .toLowerCase();
+
+  const source = getAdminApplications_(sessionToken);
+
+  const applications =
+    source && Array.isArray(source.applications)
+      ? source.applications
+      : [];
+
+  const filtered = applications.filter(function(application) {
+    const searchable = [
+      application.applicationId,
+      application.applicantName,
+      application.companyName,
+      application.paymentStatus,
+      application.documentStatus,
+      application.informationStatus,
+      application.verificationStatus,
+      application.licenceStatus
+    ]
+      .map(function(value) {
+        return String(value || '').toLowerCase();
+      })
+      .join(' ');
+
+    if (search && searchable.indexOf(search) === -1) {
+      return false;
+    }
+
+    if (status) {
+      const statuses = [
+        application.paymentStatus,
+        application.documentStatus,
+        application.informationStatus,
+        application.verificationStatus,
+        application.licenceStatus
+      ]
+        .map(function(value) {
+          return String(value || '').toLowerCase();
+        })
+        .join(' ');
+
+      if (statuses.indexOf(status) === -1) {
+        return false;
+      }
+    }
+
+    return true;
+  });
+
+  const totalItems = filtered.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const page = Math.min(requestedPage, totalPages);
+  const start = (page - 1) * pageSize;
+
+  return {
+    ok: true,
+    items: filtered.slice(start, start + pageSize),
+    page: page,
+    pageSize: pageSize,
+    totalItems: totalItems,
+    totalPages: totalPages,
+    hasPrevious: page > 1,
+    hasNext: page < totalPages,
+    message: totalItems
+      ? ''
+      : 'No applications match the current search or filter.'
+  };
+}
+
+
 /**
  * Returns one complete application for
  * admin review.

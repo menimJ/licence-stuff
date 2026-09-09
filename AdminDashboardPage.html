@@ -267,6 +267,168 @@
         font-size: 13px;
       }
 
+      .applications-card {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+      }
+
+      .applications-toolbar {
+        padding: 20px;
+        display: grid;
+        grid-template-columns: minmax(220px, 1fr) 190px auto;
+        gap: 12px;
+        align-items: end;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .applications-toolbar label {
+        display: grid;
+        gap: 6px;
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .applications-toolbar input,
+      .applications-toolbar select {
+        min-height: 42px;
+        width: 100%;
+        padding: 9px 11px;
+        border: 1px solid #d0d5dd;
+        border-radius: 8px;
+        background: #fff;
+      }
+
+      .applications-summary {
+        padding: 12px 20px;
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        color: var(--text-secondary);
+        font-size: 13px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .applications-table-wrap { overflow-x: auto; }
+
+      .applications-table {
+        width: 100%;
+        min-width: 1000px;
+        border-collapse: collapse;
+      }
+
+      .applications-table th,
+      .applications-table td {
+        padding: 13px 14px;
+        border-bottom: 1px solid #eaecf0;
+        text-align: left;
+        font-size: 13px;
+      }
+
+      .applications-table th {
+        background: #f9fafb;
+        color: #475467;
+        font-size: 11px;
+        text-transform: uppercase;
+      }
+
+      .application-primary { font-weight: 700; }
+
+      .status-pill {
+        display: inline-flex;
+        padding: 4px 8px;
+        border-radius: 999px;
+        background: #f2f4f7;
+        color: #344054;
+        font-size: 11px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .status-pill.success { background: #ecfdf3; color: #027a48; }
+      .status-pill.warning { background: #fffaeb; color: #b54708; }
+      .status-pill.danger { background: #fef3f2; color: #b42318; }
+
+      .review-link {
+        display: inline-flex;
+        padding: 7px 10px;
+        border: 1px solid #d0d5dd;
+        border-radius: 7px;
+        color: #344054;
+        background: #fff;
+        font-size: 12px;
+        font-weight: 700;
+        text-decoration: none;
+      }
+
+      .applications-state {
+        padding: 34px 20px;
+        color: var(--text-secondary);
+        text-align: center;
+      }
+
+      .pagination {
+        padding: 16px 20px;
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        border-top: 1px solid var(--border);
+      }
+
+      .pagination-controls {
+        display: flex;
+        gap: 7px;
+        flex-wrap: wrap;
+      }
+
+      .page-button {
+        min-width: 36px;
+        min-height: 36px;
+        padding: 6px 10px;
+        border: 1px solid #d0d5dd;
+        border-radius: 7px;
+        background: #fff;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .page-button.active {
+        background: var(--primary);
+        color: #fff;
+      }
+
+      .page-button:disabled {
+        opacity: .45;
+        cursor: not-allowed;
+      }
+
+      @media (max-width: 900px) {
+        .applications-toolbar {
+          grid-template-columns: 1fr 1fr;
+        }
+
+        .applications-toolbar .button {
+          grid-column: 1 / -1;
+        }
+      }
+
+      @media (max-width: 620px) {
+        .applications-toolbar {
+          grid-template-columns: 1fr;
+        }
+
+        .applications-toolbar .button {
+          grid-column: auto;
+        }
+
+        .applications-summary,
+        .pagination {
+          flex-direction: column;
+        }
+      }
+
       @media (max-width: 800px) {
         .app-shell { grid-template-columns: 1fr; }
         .sidebar { min-height: auto; }
@@ -522,12 +684,75 @@
           </section>
 
           <? } else if (safeDashboardSection === 'applications') { ?>
-          <section class="welcome-card">
-            <p class="eyebrow">Applications</p>
-            <h2>Applications workspace</h2>
-            <p class="muted">
-              This route is ready. The existing application workflow will be migrated here next without changing the legacy admin portal.
-            </p>
+          <section class="applications-card">
+            <div class="applications-toolbar">
+              <label>
+                Search
+                <input id="applicationsSearch" type="search"
+                  placeholder="Application ID, applicant or company"
+                  autocomplete="off">
+              </label>
+
+              <label>
+                Status
+                <select id="applicationsStatus">
+                  <option value="">All statuses</option>
+                  <option value="pending">Pending</option>
+                  <option value="approved">Approved</option>
+                  <option value="confirmed">Confirmed</option>
+                  <option value="verified">Verified</option>
+                  <option value="rejected">Rejected</option>
+                  <option value="generated">Generated</option>
+                  <option value="released">Released</option>
+                </select>
+              </label>
+
+              <button class="button" type="button"
+                onclick="applyApplicationFilters()">
+                Apply
+              </button>
+            </div>
+
+            <div class="applications-summary">
+              <span id="applicationsCount">Loading applications...</span>
+              <span>20 applications per page</span>
+            </div>
+
+            <div id="applicationsLoading" class="applications-state">
+              Loading applications...
+            </div>
+
+            <div id="applicationsEmpty" class="applications-state"
+              style="display:none;">
+              No applications found.
+            </div>
+
+            <div id="applicationsTableArea"
+              class="applications-table-wrap"
+              style="display:none;">
+              <table class="applications-table">
+                <thead>
+                  <tr>
+                    <th>Application</th>
+                    <th>Applicant</th>
+                    <th>Company</th>
+                    <th>Payment</th>
+                    <th>Verification</th>
+                    <th>Licence</th>
+                    <th>Submitted</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="applicationsTableBody"></tbody>
+              </table>
+            </div>
+
+            <div id="applicationsPagination" class="pagination"
+              style="display:none;">
+              <span id="applicationsPageSummary"></span>
+              <div id="applicationsPageButtons"
+                class="pagination-controls"></div>
+            </div>
           </section>
 
           <? } else if (safeDashboardSection === 'payments') { ?>
@@ -580,6 +805,293 @@
 
       const ADMIN_DASHBOARD_BASE_URL =
         <?!= JSON.stringify(APP_CONFIG.PRODUCTION_WEB_APP_URL) ?>;
+
+      const APPLICATIONS_PAGE_SIZE = 20;
+
+      const applicationsState = {
+        page: 1,
+        search: '',
+        status: ''
+      };
+
+      function escapeDashboardHtml_(value) {
+        return String(value == null ? '' : value)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      function statusClass_(value) {
+        const text = String(value || '').toLowerCase();
+
+        if (
+          text.indexOf('approved') !== -1 ||
+          text.indexOf('confirmed') !== -1 ||
+          text.indexOf('verified') !== -1 ||
+          text.indexOf('released') !== -1
+        ) return 'success';
+
+        if (
+          text.indexOf('reject') !== -1 ||
+          text.indexOf('revoked') !== -1 ||
+          text.indexOf('suspend') !== -1
+        ) return 'danger';
+
+        if (
+          text.indexOf('pending') !== -1 ||
+          text.indexOf('generated') !== -1
+        ) return 'warning';
+
+        return '';
+      }
+
+      function renderStatusPill_(value) {
+        const text = String(value || 'Not Available');
+
+        return '<span class="status-pill ' +
+          statusClass_(text) + '">' +
+          escapeDashboardHtml_(text) +
+          '</span>';
+      }
+
+      function applyApplicationFilters() {
+        const search = document.getElementById('applicationsSearch');
+        const status = document.getElementById('applicationsStatus');
+
+        applicationsState.search = search ? search.value.trim() : '';
+        applicationsState.status = status ? status.value : '';
+        applicationsState.page = 1;
+
+        loadApplicationsPage();
+      }
+
+      function loadApplicationsPage(page) {
+        const loading = document.getElementById('applicationsLoading');
+        if (!loading) return;
+
+        if (page) applicationsState.page = page;
+
+        const tableArea = document.getElementById('applicationsTableArea');
+        const empty = document.getElementById('applicationsEmpty');
+        const pagination = document.getElementById('applicationsPagination');
+
+        loading.style.display = 'block';
+        loading.textContent = 'Loading applications...';
+        if (tableArea) tableArea.style.display = 'none';
+        if (empty) empty.style.display = 'none';
+        if (pagination) pagination.style.display = 'none';
+
+        google.script.run
+          .withSuccessHandler(renderApplicationsPage_)
+          .withFailureHandler(function(error) {
+            loading.style.display = 'block';
+            loading.textContent = getErrorMessage_(error);
+          })
+          .getAdminApplicationsPage(
+            ADMIN_SESSION_TOKEN,
+            {
+              page: applicationsState.page,
+              pageSize: APPLICATIONS_PAGE_SIZE,
+              search: applicationsState.search,
+              status: applicationsState.status
+            }
+          );
+      }
+
+      function renderApplicationsPage_(result) {
+        const loading = document.getElementById('applicationsLoading');
+        const empty = document.getElementById('applicationsEmpty');
+        const tableArea = document.getElementById('applicationsTableArea');
+        const tableBody = document.getElementById('applicationsTableBody');
+        const count = document.getElementById('applicationsCount');
+        const pagination = document.getElementById('applicationsPagination');
+        const pageSummary = document.getElementById('applicationsPageSummary');
+
+        if (loading) loading.style.display = 'none';
+
+        if (!result || result.ok !== true) {
+          if (empty) {
+            empty.style.display = 'block';
+            empty.textContent =
+              result && result.message
+                ? result.message
+                : 'Unable to load applications.';
+          }
+          return;
+        }
+
+        applicationsState.page = Number(result.page || 1);
+
+        const items = Array.isArray(result.items)
+          ? result.items
+          : [];
+
+        const totalItems = Number(result.totalItems || 0);
+
+        if (count) {
+          count.textContent =
+            totalItems === 1
+              ? '1 application'
+              : totalItems + ' applications';
+        }
+
+        if (!items.length) {
+          if (tableArea) tableArea.style.display = 'none';
+          if (pagination) pagination.style.display = 'none';
+
+          if (empty) {
+            empty.style.display = 'block';
+            empty.textContent =
+              result.message || 'No applications found.';
+          }
+          return;
+        }
+
+        if (empty) empty.style.display = 'none';
+
+        tableBody.innerHTML = items.map(function(application) {
+          const applicationId =
+            String(application.applicationId || '');
+
+          const reviewUrl =
+            ADMIN_DASHBOARD_BASE_URL +
+            '?view=dashboard&section=applications' +
+            '&applicationId=' +
+            encodeURIComponent(applicationId) +
+            '&session=' +
+            encodeURIComponent(ADMIN_SESSION_TOKEN);
+
+          return (
+            '<tr>' +
+              '<td><div class="application-primary">' +
+                escapeDashboardHtml_(applicationId) +
+              '</div></td>' +
+              '<td><div class="application-primary">' +
+                escapeDashboardHtml_(
+                  application.applicantName || 'Applicant'
+                ) +
+              '</div></td>' +
+              '<td>' +
+                escapeDashboardHtml_(
+                  application.companyName || '—'
+                ) +
+              '</td>' +
+              '<td>' +
+                renderStatusPill_(application.paymentStatus) +
+              '</td>' +
+              '<td>' +
+                renderStatusPill_(application.verificationStatus) +
+              '</td>' +
+              '<td>' +
+                renderStatusPill_(application.licenceStatus) +
+              '</td>' +
+              '<td>' +
+                escapeDashboardHtml_(
+                  application.submittedAt || '—'
+                ) +
+              '</td>' +
+              '<td><a class="review-link" href="' +
+                escapeDashboardHtml_(reviewUrl) +
+              '">Review</a></td>' +
+            '</tr>'
+          );
+        }).join('');
+
+        if (tableArea) tableArea.style.display = 'block';
+
+        if (pageSummary) {
+          const start =
+            (applicationsState.page - 1) *
+            APPLICATIONS_PAGE_SIZE + 1;
+
+          const end = Math.min(
+            start + items.length - 1,
+            totalItems
+          );
+
+          pageSummary.textContent =
+            'Showing ' + start + '–' + end +
+            ' of ' + totalItems;
+        }
+
+        renderApplicationPagination_(
+          Number(result.page || 1),
+          Number(result.totalPages || 1),
+          Boolean(result.hasPrevious),
+          Boolean(result.hasNext)
+        );
+
+        if (pagination) pagination.style.display = 'flex';
+      }
+
+      function renderApplicationPagination_(
+        page,
+        totalPages,
+        hasPrevious,
+        hasNext
+      ) {
+        const container =
+          document.getElementById('applicationsPageButtons');
+
+        if (!container) return;
+
+        const parts = [];
+
+        parts.push(
+          '<button class="page-button" type="button" ' +
+          (hasPrevious
+            ? 'onclick="loadApplicationsPage(' +
+              (page - 1) + ')"'
+            : 'disabled') +
+          '>Previous</button>'
+        );
+
+        const start = Math.max(1, page - 2);
+        const end = Math.min(totalPages, page + 2);
+
+        for (let i = start; i <= end; i++) {
+          parts.push(
+            '<button class="page-button ' +
+            (i === page ? 'active' : '') +
+            '" type="button" ' +
+            (i === page
+              ? 'disabled'
+              : 'onclick="loadApplicationsPage(' +
+                i + ')"') +
+            '>' + i + '</button>'
+          );
+        }
+
+        parts.push(
+          '<button class="page-button" type="button" ' +
+          (hasNext
+            ? 'onclick="loadApplicationsPage(' +
+              (page + 1) + ')"'
+            : 'disabled') +
+          '>Next</button>'
+        );
+
+        container.innerHTML = parts.join('');
+      }
+
+      function initializeApplicationsSection_() {
+        const search =
+          document.getElementById('applicationsSearch');
+
+        if (!search) return;
+
+        search.addEventListener('keydown', function(event) {
+          if (event.key === 'Enter') {
+            event.preventDefault();
+            applyApplicationFilters();
+          }
+        });
+
+        loadApplicationsPage();
+      }
+
 
       function toggleDashboardPassword(
         inputId,
@@ -738,6 +1250,13 @@
           })
           .adminLogout(ADMIN_SESSION_TOKEN);
       }
+
+      document.addEventListener(
+        'DOMContentLoaded',
+        function() {
+          initializeApplicationsSection_();
+        }
+      );
 
       function navigateToDashboard_(sessionToken) {
         const token = String(sessionToken || '').trim();
