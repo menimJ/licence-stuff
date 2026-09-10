@@ -1,0 +1,63 @@
+<section class="applications-card">
+  <div class="applications-toolbar">
+    <label>
+      Search
+      <input id="licencesSearch" type="search"
+        placeholder="Application ID, applicant, company or licence number"
+        autocomplete="off">
+    </label>
+
+    <label>
+      Licence Status
+      <select id="licencesStatus">
+        <option value="">All statuses</option>
+        <option value="not generated">Not Generated</option>
+        <option value="generated">Generated</option>
+        <option value="released">Released</option>
+        <option value="suspended">Suspended</option>
+        <option value="revoked">Revoked</option>
+      </select>
+    </label>
+
+    <button class="button" type="button"
+      onclick="applyLicenceFilters()">
+      Apply
+    </button>
+  </div>
+
+  <div class="applications-summary">
+    <span id="licencesCount">Loading licences...</span>
+    <span>20 records per page</span>
+  </div>
+
+  <div id="licencesLoading" class="applications-state">
+    Loading licences...
+  </div>
+
+  <div id="licencesEmpty" class="applications-state" style="display:none;">
+    No licences found.
+  </div>
+
+  <div id="licencesTableArea" class="applications-table-wrap" style="display:none;">
+    <table class="applications-table">
+      <thead>
+        <tr>
+          <th>Application</th>
+          <th>Applicant</th>
+          <th>Company</th>
+          <th>Licence Number</th>
+          <th>Status</th>
+          <th>Generated</th>
+          <th>Released</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="licencesTableBody"></tbody>
+    </table>
+  </div>
+
+  <div id="licencesPagination" class="pagination" style="display:none;">
+    <span id="licencesPageSummary"></span>
+    <div id="licencesPageButtons" class="pagination-controls"></div>
+  </div>
+</section>
