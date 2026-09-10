@@ -1,0 +1,1350 @@
+<script>
+const APPLICATIONS_PAGE_SIZE = 20;
+
+      const applicationsState = {
+        page: 1,
+        search: '',
+        status: ''
+      };
+
+      function escapeDashboardHtml_(value) {
+        return String(value == null ? '' : value)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      function statusClass_(value) {
+        const text = String(value || '').toLowerCase();
+
+        if (
+          text.indexOf('approved') !== -1 ||
+          text.indexOf('confirmed') !== -1 ||
+          text.indexOf('verified') !== -1 ||
+          text.indexOf('released') !== -1
+        ) return 'success';
+
+        if (
+          text.indexOf('reject') !== -1 ||
+          text.indexOf('revoked') !== -1 ||
+          text.indexOf('suspend') !== -1
+        ) return 'danger';
+
+        if (
+          text.indexOf('pending') !== -1 ||
+          text.indexOf('generated') !== -1
+        ) return 'warning';
+
+        return '';
+      }
+
+      function renderStatusPill_(value) {
+        const text = String(value || 'Not Available');
+
+        return '<span class="status-pill ' +
+          statusClass_(text) + '">' +
+          escapeDashboardHtml_(text) +
+          '</span>';
+      }
+
+      function applyApplicationFilters() {
+        const search = document.getElementById('applicationsSearch');
+        const status = document.getElementById('applicationsStatus');
+
+        applicationsState.search = search ? search.value.trim() : '';
+        applicationsState.status = status ? status.value : '';
+        applicationsState.page = 1;
+
+        loadApplicationsPage();
+      }
+
+      function loadApplicationsPage(page) {
+        const loading = document.getElementById('applicationsLoading');
+        if (!loading) return;
+
+        if (page) applicationsState.page = page;
+
+        const tableArea = document.getElementById('applicationsTableArea');
+        const empty = document.getElementById('applicationsEmpty');
+        const pagination = document.getElementById('applicationsPagination');
+
+        loading.style.display = 'block';
+        loading.textContent = 'Loading applications...';
+        if (tableArea) tableArea.style.display = 'none';
+        if (empty) empty.style.display = 'none';
+        if (pagination) pagination.style.display = 'none';
+
+        google.script.run
+          .withSuccessHandler(renderApplicationsPage_)
+          .withFailureHandler(function(error) {
+            loading.style.display = 'block';
+            loading.textContent = getErrorMessage_(error);
+          })
+          .getAdminApplicationsPage(
+            ADMIN_SESSION_TOKEN,
+            {
+              page: applicationsState.page,
+              pageSize: APPLICATIONS_PAGE_SIZE,
+              search: applicationsState.search,
+              status: applicationsState.status
+            }
+          );
+      }
+
+      function renderApplicationsPage_(result) {
+        const loading = document.getElementById('applicationsLoading');
+        const empty = document.getElementById('applicationsEmpty');
+        const tableArea = document.getElementById('applicationsTableArea');
+        const tableBody = document.getElementById('applicationsTableBody');
+        const count = document.getElementById('applicationsCount');
+        const pagination = document.getElementById('applicationsPagination');
+        const pageSummary = document.getElementById('applicationsPageSummary');
+
+        if (loading) loading.style.display = 'none';
+
+        if (!result || result.ok !== true) {
+          if (empty) {
+            empty.style.display = 'block';
+            empty.textContent =
+              result && result.message
+                ? result.message
+                : 'Unable to load applications.';
+          }
+          return;
+        }
+
+        applicationsState.page = Number(result.page || 1);
+
+        const items = Array.isArray(result.items)
+          ? result.items
+          : [];
+
+        const totalItems = Number(result.totalItems || 0);
+
+        if (count) {
+          count.textContent =
+            totalItems === 1
+              ? '1 application'
+              : totalItems + ' applications';
+        }
+
+        if (!items.length) {
+          if (tableArea) tableArea.style.display = 'none';
+          if (pagination) pagination.style.display = 'none';
+
+          if (empty) {
+            empty.style.display = 'block';
+            empty.textContent =
+              result.message || 'No applications found.';
+          }
+          return;
+        }
+
+        if (empty) empty.style.display = 'none';
+
+        tableBody.innerHTML = items.map(function(application) {
+          const applicationId =
+            String(application.applicationId || '');
+
+          const reviewUrl =
+            ADMIN_DASHBOARD_BASE_URL +
+            '?view=dashboard&section=applications' +
+            '&applicationId=' +
+            encodeURIComponent(applicationId) +
+            '&session=' +
+            encodeURIComponent(ADMIN_SESSION_TOKEN);
+
+          return (
+            '<tr>' +
+              '<td><div class="application-primary">' +
+                escapeDashboardHtml_(applicationId) +
+              '</div></td>' +
+              '<td><div class="application-primary">' +
+                escapeDashboardHtml_(
+                  application.applicantName || 'Applicant'
+                ) +
+              '</div></td>' +
+              '<td>' +
+                escapeDashboardHtml_(
+                  application.companyName || '—'
+                ) +
+              '</td>' +
+              '<td>' +
+                renderStatusPill_(application.informationStatus) +
+              '</td>' +
+              '<td>' +
+                renderStatusPill_(application.documentStatus) +
+              '</td>' +
+              '<td>' +
+                renderStatusPill_(application.verificationStatus) +
+              '</td>' +
+              '<td>' +
+                escapeDashboardHtml_(
+                  application.submittedAt || '—'
+                ) +
+              '</td>' +
+              '<td><a class="review-link" href="' +
+                escapeDashboardHtml_(reviewUrl) +
+              '">Review</a></td>' +
+            '</tr>'
+          );
+        }).join('');
+
+        if (tableArea) tableArea.style.display = 'block';
+
+        if (pageSummary) {
+          const start =
+            (applicationsState.page - 1) *
+            APPLICATIONS_PAGE_SIZE + 1;
+
+          const end = Math.min(
+            start + items.length - 1,
+            totalItems
+          );
+
+          pageSummary.textContent =
+            'Showing ' + start + '–' + end +
+            ' of ' + totalItems;
+        }
+
+        renderApplicationPagination_(
+          Number(result.page || 1),
+          Number(result.totalPages || 1),
+          Boolean(result.hasPrevious),
+          Boolean(result.hasNext)
+        );
+
+        if (pagination) pagination.style.display = 'flex';
+      }
+
+      function renderApplicationPagination_(
+        page,
+        totalPages,
+        hasPrevious,
+        hasNext
+      ) {
+        const container =
+          document.getElementById('applicationsPageButtons');
+
+        if (!container) return;
+
+        const parts = [];
+
+        parts.push(
+          '<button class="page-button" type="button" ' +
+          (hasPrevious
+            ? 'onclick="loadApplicationsPage(' +
+              (page - 1) + ')"'
+            : 'disabled') +
+          '>Previous</button>'
+        );
+
+        const start = Math.max(1, page - 2);
+        const end = Math.min(totalPages, page + 2);
+
+        for (let i = start; i <= end; i++) {
+          parts.push(
+            '<button class="page-button ' +
+            (i === page ? 'active' : '') +
+            '" type="button" ' +
+            (i === page
+              ? 'disabled'
+              : 'onclick="loadApplicationsPage(' +
+                i + ')"') +
+            '>' + i + '</button>'
+          );
+        }
+
+        parts.push(
+          '<button class="page-button" type="button" ' +
+          (hasNext
+            ? 'onclick="loadApplicationsPage(' +
+              (page + 1) + ')"'
+            : 'disabled') +
+          '>Next</button>'
+        );
+
+        container.innerHTML = parts.join('');
+      }
+
+      function setDashboardDetailText_(id, value) {
+        const element = document.getElementById(id);
+
+        if (!element) {
+          return;
+        }
+
+        element.textContent =
+          String(value || '').trim() ||
+          '—';
+      }
+
+      function getDashboardDocumentUrl_(
+        applicationId,
+        documentType,
+        action
+      ) {
+        return (
+          ADMIN_DASHBOARD_BASE_URL +
+          '?view=admindocument' +
+          '&applicationId=' +
+          encodeURIComponent(applicationId) +
+          '&documentType=' +
+          encodeURIComponent(documentType) +
+          '&action=' +
+          encodeURIComponent(action || 'view') +
+          '&session=' +
+          encodeURIComponent(ADMIN_SESSION_TOKEN)
+        );
+      }
+
+      function renderDashboardDocuments_(
+        applicationId,
+        documents
+      ) {
+        const container =
+          document.getElementById(
+            'dashboardDocuments'
+          );
+
+        if (!container) {
+          return;
+        }
+
+        const submitted =
+          Array.isArray(documents)
+            ? documents.filter(function(document) {
+                return (
+                  document &&
+                  document.uploaded === true
+                );
+              })
+            : [];
+
+        if (!submitted.length) {
+          container.innerHTML =
+            '<div class="applications-state">' +
+              'No supporting documents have been submitted.' +
+            '</div>';
+          return;
+        }
+
+        container.innerHTML =
+          submitted.map(function(document) {
+            const viewUrl =
+              getDashboardDocumentUrl_(
+                applicationId,
+                document.type,
+                'view'
+              );
+
+            const downloadUrl =
+              getDashboardDocumentUrl_(
+                applicationId,
+                document.type,
+                'download'
+              );
+
+            return (
+              '<div class="dashboard-doc-row">' +
+                '<div>' +
+                  '<strong>' +
+                    escapeDashboardHtml_(
+                      document.label ||
+                      document.type
+                    ) +
+                  '</strong>' +
+                  '<div class="muted">' +
+                    escapeDashboardHtml_(
+                      document.reviewStatus ||
+                      'Pending Review'
+                    ) +
+                    (
+                      document.uploadedAt
+                        ? ' • ' +
+                          escapeDashboardHtml_(
+                            document.uploadedAt
+                          )
+                        : ''
+                    ) +
+                  '</div>' +
+                '</div>' +
+                '<div class="dashboard-doc-actions">' +
+                  '<a class="dashboard-detail-link" target="_blank" href="' +
+                    escapeDashboardHtml_(viewUrl) +
+                  '">View</a>' +
+                  '<a class="dashboard-detail-link" target="_blank" href="' +
+                    escapeDashboardHtml_(downloadUrl) +
+                  '">Download</a>' +
+                '</div>' +
+              '</div>'
+            );
+          }).join('');
+      }
+
+      function loadDashboardApplicationDetail_(applicationId) {
+        const list =
+          document.getElementById(
+            'dashboardApplicationsList'
+          );
+
+        const detail =
+          document.getElementById(
+            'dashboardApplicationDetail'
+          );
+
+        const loading =
+          document.getElementById(
+            'dashboardDetailLoading'
+          );
+
+        if (!applicationId || !detail) {
+          return;
+        }
+
+        if (list) {
+          list.style.display = 'none';
+        }
+
+        detail.style.display = 'block';
+
+        google.script.run
+          .withSuccessHandler(function(result) {
+            if (
+              !result ||
+              result.ok !== true ||
+              !result.application
+            ) {
+              loading.textContent =
+                result && result.message
+                  ? result.message
+                  : 'Application could not be loaded.';
+              return;
+            }
+
+            const application =
+              result.application;
+
+            loading.style.display = 'none';
+
+            [
+              'dashboardDetailContent',
+              'dashboardApplicationInformation',
+              'dashboardStatusSection',
+              'dashboardDocumentsSection',
+              'dashboardPaymentSection',
+              'dashboardNotesSection'
+            ].forEach(function(id) {
+              const section =
+                document.getElementById(id);
+
+              if (section) {
+                section.style.display = 'block';
+              }
+            });
+
+            setDashboardDetailText_('detailApplicationId', application.applicationId);
+            setDashboardDetailText_(
+              'detailSubtitle',
+              [application.companyName, application.applicantName]
+                .filter(Boolean)
+                .join(' • ')
+            );
+            setDashboardDetailText_('detailApplicantName', application.applicantName);
+            setDashboardDetailText_('detailCompanyName', application.companyName);
+            setDashboardDetailText_('detailRcNumber', application.rcNumber);
+            setDashboardDetailText_('detailTin', application.tin);
+            setDashboardDetailText_('detailMembership', application.crffnMembershipNumber);
+            setDashboardDetailText_('detailSerial', application.serialNumber);
+            setDashboardDetailText_('detailEmail', application.email);
+            setDashboardDetailText_('detailPhone', application.phoneNumber);
+            setDashboardDetailText_('detailAddress', application.officeAddress);
+            setDashboardDetailText_('detailSubmitted', application.submittedAt);
+            setDashboardDetailText_('detailRecordStatus', application.recordStatus);
+            setDashboardDetailText_('detailDocumentNotes', application.documentReviewNotes);
+            setDashboardDetailText_('detailInformationNotes', application.informationReviewNotes);
+
+            [
+              ['detailInformationStatus', application.informationStatus],
+              ['detailDocumentStatus', application.documentStatus],
+              ['detailVerificationStatus', application.verificationStatus]
+            ].forEach(function(pair) {
+              const element =
+                document.getElementById(pair[0]);
+
+              if (element) {
+                element.innerHTML =
+                  renderStatusPill_(pair[1]);
+              }
+            });
+
+            renderDashboardDocuments_(
+              application.applicationId ||
+              applicationId,
+              application.supportingDocuments
+            );
+          })
+          .withFailureHandler(function(error) {
+            loading.textContent =
+              getErrorMessage_(error);
+          })
+          .getAdminDashboardApplicationDetail(
+            ADMIN_SESSION_TOKEN,
+            applicationId
+          );
+      }
+
+
+      const WORKFLOW_PAGE_SIZE = 20;
+
+      const paymentsState = {
+        page: 1,
+        search: '',
+        status: ''
+      };
+
+      const licencesState = {
+        page: 1,
+        search: '',
+        status: ''
+      };
+
+
+      function applyPaymentFilters() {
+        const search =
+          document.getElementById(
+            'paymentsSearch'
+          );
+
+        const status =
+          document.getElementById(
+            'paymentsStatus'
+          );
+
+        paymentsState.search =
+          search
+            ? search.value.trim()
+            : '';
+
+        paymentsState.status =
+          status
+            ? status.value
+            : '';
+
+        paymentsState.page = 1;
+        loadPaymentsPage();
+      }
+
+
+      function loadPaymentsPage(page) {
+        const loading =
+          document.getElementById(
+            'paymentsLoading'
+          );
+
+        if (!loading) {
+          return;
+        }
+
+        if (page) {
+          paymentsState.page = page;
+        }
+
+        setWorkflowLoading_(
+          'payments',
+          'Loading payments...'
+        );
+
+        google.script.run
+          .withSuccessHandler(
+            renderPaymentsPage_
+          )
+          .withFailureHandler(function(error) {
+            loading.textContent =
+              getErrorMessage_(error);
+          })
+          .getAdminPaymentsPage(
+            ADMIN_SESSION_TOKEN,
+            {
+              page: paymentsState.page,
+              pageSize:
+                WORKFLOW_PAGE_SIZE,
+              search:
+                paymentsState.search,
+              status:
+                paymentsState.status
+            }
+          );
+      }
+
+
+      function renderPaymentsPage_(result) {
+        renderWorkflowPage_(
+          'payments',
+          result,
+          paymentsState,
+          function(item) {
+            const applicationId =
+              String(
+                item.applicationId ||
+                ''
+              );
+
+            return (
+              '<tr>' +
+                '<td><div class="application-primary">' +
+                  escapeDashboardHtml_(
+                    applicationId
+                  ) +
+                '</div></td>' +
+                '<td>' +
+                  escapeDashboardHtml_(
+                    item.applicantName ||
+                    'Applicant'
+                  ) +
+                '</td>' +
+                '<td>' +
+                  escapeDashboardHtml_(
+                    item.companyName ||
+                    '—'
+                  ) +
+                '</td>' +
+                '<td>' +
+                  escapeDashboardHtml_(
+                    item.paymentReference ||
+                    '—'
+                  ) +
+                '</td>' +
+                '<td>' +
+                  renderStatusPill_(
+                    item.paymentStatus
+                  ) +
+                '</td>' +
+                '<td>' +
+                  (
+                    item.hasPaymentProof
+                      ? renderStatusPill_(
+                          'Uploaded'
+                        )
+                      : renderStatusPill_(
+                          'Not Submitted'
+                        )
+                  ) +
+                '</td>' +
+                '<td>' +
+                  escapeDashboardHtml_(
+                    item.paymentProofUploadedAt ||
+                    '—'
+                  ) +
+                '</td>' +
+                '<td><span class="muted">Review screen next</span></td>' +
+              '</tr>'
+            );
+          },
+          loadPaymentsPage
+        );
+      }
+
+
+      function applyLicenceFilters() {
+        const search =
+          document.getElementById(
+            'licencesSearch'
+          );
+
+        const status =
+          document.getElementById(
+            'licencesStatus'
+          );
+
+        licencesState.search =
+          search
+            ? search.value.trim()
+            : '';
+
+        licencesState.status =
+          status
+            ? status.value
+            : '';
+
+        licencesState.page = 1;
+        loadLicencesPage();
+      }
+
+
+      function loadLicencesPage(page) {
+        const loading =
+          document.getElementById(
+            'licencesLoading'
+          );
+
+        if (!loading) {
+          return;
+        }
+
+        if (page) {
+          licencesState.page = page;
+        }
+
+        setWorkflowLoading_(
+          'licences',
+          'Loading licences...'
+        );
+
+        google.script.run
+          .withSuccessHandler(
+            renderLicencesPage_
+          )
+          .withFailureHandler(function(error) {
+            loading.textContent =
+              getErrorMessage_(error);
+          })
+          .getAdminLicencesPage(
+            ADMIN_SESSION_TOKEN,
+            {
+              page: licencesState.page,
+              pageSize:
+                WORKFLOW_PAGE_SIZE,
+              search:
+                licencesState.search,
+              status:
+                licencesState.status
+            }
+          );
+      }
+
+
+      function renderLicencesPage_(result) {
+        renderWorkflowPage_(
+          'licences',
+          result,
+          licencesState,
+          function(item) {
+            return (
+              '<tr>' +
+                '<td><div class="application-primary">' +
+                  escapeDashboardHtml_(
+                    item.applicationId ||
+                    ''
+                  ) +
+                '</div></td>' +
+                '<td>' +
+                  escapeDashboardHtml_(
+                    item.applicantName ||
+                    'Applicant'
+                  ) +
+                '</td>' +
+                '<td>' +
+                  escapeDashboardHtml_(
+                    item.companyName ||
+                    '—'
+                  ) +
+                '</td>' +
+                '<td>' +
+                  escapeDashboardHtml_(
+                    item.licenceNumber ||
+                    '—'
+                  ) +
+                '</td>' +
+                '<td>' +
+                  renderStatusPill_(
+                    item.licenceStatus
+                  ) +
+                '</td>' +
+                '<td>' +
+                  escapeDashboardHtml_(
+                    item.licenceGeneratedAt ||
+                    '—'
+                  ) +
+                '</td>' +
+                '<td>' +
+                  escapeDashboardHtml_(
+                    item.licenceReleasedAt ||
+                    '—'
+                  ) +
+                '</td>' +
+                '<td><span class="muted">Manage screen next</span></td>' +
+              '</tr>'
+            );
+          },
+          loadLicencesPage
+        );
+      }
+
+
+      function setWorkflowLoading_(
+        prefix,
+        text
+      ) {
+        const loading =
+          document.getElementById(
+            prefix + 'Loading'
+          );
+
+        const empty =
+          document.getElementById(
+            prefix + 'Empty'
+          );
+
+        const table =
+          document.getElementById(
+            prefix + 'TableArea'
+          );
+
+        const pagination =
+          document.getElementById(
+            prefix + 'Pagination'
+          );
+
+        if (loading) {
+          loading.style.display =
+            'block';
+          loading.textContent = text;
+        }
+
+        if (empty) {
+          empty.style.display =
+            'none';
+        }
+
+        if (table) {
+          table.style.display =
+            'none';
+        }
+
+        if (pagination) {
+          pagination.style.display =
+            'none';
+        }
+      }
+
+
+      function renderWorkflowPage_(
+        prefix,
+        result,
+        state,
+        rowRenderer,
+        pageLoader
+      ) {
+        const loading =
+          document.getElementById(
+            prefix + 'Loading'
+          );
+
+        const empty =
+          document.getElementById(
+            prefix + 'Empty'
+          );
+
+        const tableArea =
+          document.getElementById(
+            prefix + 'TableArea'
+          );
+
+        const tableBody =
+          document.getElementById(
+            prefix + 'TableBody'
+          );
+
+        const count =
+          document.getElementById(
+            prefix + 'Count'
+          );
+
+        const pagination =
+          document.getElementById(
+            prefix + 'Pagination'
+          );
+
+        const pageSummary =
+          document.getElementById(
+            prefix + 'PageSummary'
+          );
+
+        if (loading) {
+          loading.style.display =
+            'none';
+        }
+
+        if (
+          !result ||
+          result.ok !== true
+        ) {
+          if (empty) {
+            empty.style.display =
+              'block';
+            empty.textContent =
+              result &&
+              result.message
+                ? result.message
+                : 'Unable to load records.';
+          }
+          return;
+        }
+
+        state.page =
+          Number(result.page || 1);
+
+        const items =
+          Array.isArray(result.items)
+            ? result.items
+            : [];
+
+        const totalItems =
+          Number(
+            result.totalItems || 0
+          );
+
+        if (count) {
+          count.textContent =
+            totalItems +
+            (
+              totalItems === 1
+                ? ' record'
+                : ' records'
+            );
+        }
+
+        if (!items.length) {
+          if (empty) {
+            empty.style.display =
+              'block';
+            empty.textContent =
+              result.message ||
+              'No records found.';
+          }
+          return;
+        }
+
+        if (empty) {
+          empty.style.display =
+            'none';
+        }
+
+        if (tableBody) {
+          tableBody.innerHTML =
+            items
+              .map(rowRenderer)
+              .join('');
+        }
+
+        if (tableArea) {
+          tableArea.style.display =
+            'block';
+        }
+
+        const start =
+          (state.page - 1) *
+          WORKFLOW_PAGE_SIZE + 1;
+
+        const end =
+          Math.min(
+            start +
+            items.length - 1,
+            totalItems
+          );
+
+        if (pageSummary) {
+          pageSummary.textContent =
+            'Showing ' +
+            start +
+            '–' +
+            end +
+            ' of ' +
+            totalItems;
+        }
+
+        renderWorkflowPagination_(
+          prefix,
+          Number(result.page || 1),
+          Number(
+            result.totalPages || 1
+          ),
+          Boolean(
+            result.hasPrevious
+          ),
+          Boolean(
+            result.hasNext
+          ),
+          pageLoader
+        );
+
+        if (pagination) {
+          pagination.style.display =
+            'flex';
+        }
+      }
+
+
+      function renderWorkflowPagination_(
+        prefix,
+        page,
+        totalPages,
+        hasPrevious,
+        hasNext,
+        pageLoader
+      ) {
+        const container =
+          document.getElementById(
+            prefix + 'PageButtons'
+          );
+
+        if (!container) {
+          return;
+        }
+
+        container.innerHTML = '';
+
+        function addButton(
+          label,
+          targetPage,
+          disabled,
+          active
+        ) {
+          const button =
+            document.createElement(
+              'button'
+            );
+
+          button.type = 'button';
+          button.className =
+            'page-button' +
+            (
+              active
+                ? ' active'
+                : ''
+            );
+
+          button.textContent = label;
+          button.disabled =
+            Boolean(disabled);
+
+          if (!disabled) {
+            button.addEventListener(
+              'click',
+              function() {
+                pageLoader(
+                  targetPage
+                );
+              }
+            );
+          }
+
+          container.appendChild(
+            button
+          );
+        }
+
+        addButton(
+          'Previous',
+          page - 1,
+          !hasPrevious,
+          false
+        );
+
+        const start =
+          Math.max(1, page - 2);
+
+        const end =
+          Math.min(
+            totalPages,
+            page + 2
+          );
+
+        for (
+          let current = start;
+          current <= end;
+          current++
+        ) {
+          addButton(
+            String(current),
+            current,
+            current === page,
+            current === page
+          );
+        }
+
+        addButton(
+          'Next',
+          page + 1,
+          !hasNext,
+          false
+        );
+      }
+
+
+      function initializeWorkflowQueues_() {
+        const paymentsSearch =
+          document.getElementById(
+            'paymentsSearch'
+          );
+
+        if (paymentsSearch) {
+          paymentsSearch.addEventListener(
+            'keydown',
+            function(event) {
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                applyPaymentFilters();
+              }
+            }
+          );
+
+          loadPaymentsPage();
+        }
+
+        const licencesSearch =
+          document.getElementById(
+            'licencesSearch'
+          );
+
+        if (licencesSearch) {
+          licencesSearch.addEventListener(
+            'keydown',
+            function(event) {
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                applyLicenceFilters();
+              }
+            }
+          );
+
+          loadLicencesPage();
+        }
+      }
+
+
+      function initializeApplicationsSection_() {
+        const backLink =
+          document.getElementById(
+            'dashboardApplicationsBackLink'
+          );
+
+        if (backLink) {
+          backLink.href =
+            ADMIN_DASHBOARD_BASE_URL +
+            '?view=dashboard&section=applications' +
+            '&session=' +
+            encodeURIComponent(
+              ADMIN_SESSION_TOKEN
+            );
+        }
+
+        const search =
+          document.getElementById(
+            'applicationsSearch'
+          );
+
+        if (!search) {
+          return;
+        }
+
+        if (
+          String(
+            DASHBOARD_APPLICATION_ID ||
+            ''
+          ).trim()
+        ) {
+          loadDashboardApplicationDetail_(
+            DASHBOARD_APPLICATION_ID
+          );
+          return;
+        }
+
+        search.addEventListener(
+          'keydown',
+          function(event) {
+            if (event.key === 'Enter') {
+              event.preventDefault();
+              applyApplicationFilters();
+            }
+          }
+        );
+
+        loadApplicationsPage();
+      }
+
+
+      function toggleDashboardPassword(
+        inputId,
+        button
+      ) {
+        const input =
+          document.getElementById(
+            inputId
+          );
+
+        if (!input) {
+          return;
+        }
+
+        const showing =
+          input.type === 'text';
+
+        input.type =
+          showing
+            ? 'password'
+            : 'text';
+
+        if (button) {
+          button.setAttribute(
+            'aria-label',
+            showing
+              ? 'Show password'
+              : 'Hide password'
+          );
+
+          button.textContent =
+            showing
+              ? '👁'
+              : '🙈';
+        }
+      }
+
+      function getErrorMessage_(error) {
+        if (error && error.message) {
+          return error.message;
+        }
+
+        return String(error || 'Something went wrong.');
+      }
+
+      function submitAdminLogin(event) {
+        event.preventDefault();
+
+        const email = document.getElementById('adminLoginEmail').value.trim();
+        const password = document.getElementById('adminLoginPassword').value;
+        const button = document.getElementById('adminLoginButton');
+        const message = document.getElementById('adminLoginMessage');
+
+        button.disabled = true;
+        button.textContent = 'Signing In...';
+        message.className = 'auth-message';
+        message.textContent = '';
+
+        google.script.run
+          .withSuccessHandler(function(result) {
+            if (!result || result.ok !== true) {
+              button.disabled = false;
+              button.textContent = 'Sign In';
+              message.className = 'auth-message error';
+              message.textContent =
+                result && result.message
+                  ? result.message
+                  : 'Unable to sign in.';
+              return;
+            }
+
+            navigateToDashboard_(result.sessionToken);
+          })
+          .withFailureHandler(function(error) {
+            button.disabled = false;
+            button.textContent = 'Sign In';
+            message.className = 'auth-message error';
+            message.textContent = getErrorMessage_(error);
+          })
+          .adminLogin(email, password);
+      }
+
+      function submitAdminPasswordChange(event) {
+        event.preventDefault();
+
+        const currentPassword = document.getElementById('adminCurrentPassword').value;
+        const newPassword = document.getElementById('adminNewPassword').value;
+        const confirmPassword = document.getElementById('adminConfirmPassword').value;
+        const button = document.getElementById('adminPasswordChangeButton');
+        const message = document.getElementById('adminPasswordChangeMessage');
+
+        button.disabled = true;
+        button.textContent = 'Changing Password...';
+        message.className = 'auth-message';
+        message.textContent = '';
+
+        google.script.run
+          .withSuccessHandler(function(result) {
+            if (!result || result.ok !== true) {
+              button.disabled = false;
+              button.textContent = 'Change Password';
+              message.className = 'auth-message error';
+              message.textContent =
+                result && result.message
+                  ? result.message
+                  : 'Unable to change password.';
+              return;
+            }
+
+            message.className = 'auth-message success';
+            message.textContent =
+              result.message ||
+              'Password changed successfully. Sign in with your new password.';
+
+            button.disabled = false;
+            button.type = 'button';
+            button.textContent = 'Sign In';
+            button.onclick = function() {
+              window.top.location.href =
+                ADMIN_DASHBOARD_BASE_URL +
+                '?view=dashboard';
+            };
+          })
+          .withFailureHandler(function(error) {
+            button.disabled = false;
+            button.textContent = 'Change Password';
+            message.className = 'auth-message error';
+            message.textContent = getErrorMessage_(error);
+          })
+          .changeAdminPassword(
+            ADMIN_SESSION_TOKEN,
+            currentPassword,
+            newPassword,
+            confirmPassword
+          );
+      }
+
+      function logoutAdmin() {
+        if (!ADMIN_SESSION_TOKEN) {
+          window.top.location.href =
+            ADMIN_DASHBOARD_BASE_URL +
+            '?view=dashboard';
+          return;
+        }
+
+        google.script.run
+          .withSuccessHandler(function() {
+            window.top.location.href =
+              ADMIN_DASHBOARD_BASE_URL +
+              '?view=dashboard';
+          })
+          .withFailureHandler(function() {
+            window.top.location.href =
+              ADMIN_DASHBOARD_BASE_URL +
+              '?view=dashboard';
+          })
+          .adminLogout(ADMIN_SESSION_TOKEN);
+      }
+
+      document.addEventListener(
+        'DOMContentLoaded',
+        function() {
+          initializeApplicationsSection_();
+          initializeWorkflowQueues_();
+        }
+      );
+
+      function navigateToDashboard_(sessionToken) {
+        const token = String(sessionToken || '').trim();
+
+        if (!token) {
+          return;
+        }
+
+        const url =
+          ADMIN_DASHBOARD_BASE_URL +
+          '?view=dashboard&session=' +
+          encodeURIComponent(token);
+
+        window.top.location.replace(url);
+      }
+</script>

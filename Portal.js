@@ -75,6 +75,15 @@ function doGet(e) {
 }
 
 /**
+ * Includes an internal dashboard HTML template partial.
+ */
+function includeDashboardHtml_(filename) {
+  return HtmlService
+    .createHtmlOutputFromFile(filename)
+    .getContent();
+}
+
+/**
  * Renders the new CRFFN administrator dashboard.
  *
  * Existing admin portal remains available at:
