@@ -1,0 +1,64 @@
+<section class="applications-card">
+  <div class="applications-toolbar">
+    <label>
+      Search
+      <input id="paymentsSearch" type="search"
+        placeholder="Application ID, applicant, company or payment reference"
+        autocomplete="off">
+    </label>
+
+    <label>
+      Payment Status
+      <select id="paymentsStatus">
+        <option value="">All statuses</option>
+        <option value="not available">Not Available</option>
+        <option value="awaiting payment">Awaiting Payment</option>
+        <option value="pending verification">Pending Verification</option>
+        <option value="confirmed">Confirmed</option>
+        <option value="rejected">Rejected</option>
+        <option value="duplicate">Duplicate Reference</option>
+      </select>
+    </label>
+
+    <button class="button" type="button"
+      onclick="applyPaymentFilters()">
+      Apply
+    </button>
+  </div>
+
+  <div class="applications-summary">
+    <span id="paymentsCount">Loading payments...</span>
+    <span>20 records per page</span>
+  </div>
+
+  <div id="paymentsLoading" class="applications-state">
+    Loading payments...
+  </div>
+
+  <div id="paymentsEmpty" class="applications-state" style="display:none;">
+    No payments found.
+  </div>
+
+  <div id="paymentsTableArea" class="applications-table-wrap" style="display:none;">
+    <table class="applications-table">
+      <thead>
+        <tr>
+          <th>Application</th>
+          <th>Applicant</th>
+          <th>Company</th>
+          <th>Payment Reference</th>
+          <th>Status</th>
+          <th>Proof</th>
+          <th>Uploaded</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="paymentsTableBody"></tbody>
+    </table>
+  </div>
+
+  <div id="paymentsPagination" class="pagination" style="display:none;">
+    <span id="paymentsPageSummary"></span>
+    <div id="paymentsPageButtons" class="pagination-controls"></div>
+  </div>
+</section>
