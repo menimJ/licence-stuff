@@ -846,9 +846,9 @@
                     <th>Application</th>
                     <th>Applicant</th>
                     <th>Company</th>
-                    <th>Payment</th>
+                    <th>Information</th>
+                    <th>Documents</th>
                     <th>Verification</th>
-                    <th>Licence</th>
                     <th>Submitted</th>
                     <th>Action</th>
                   </tr>
@@ -904,27 +904,15 @@
             <section id="dashboardStatusSection" class="dashboard-detail-card" style="display:none;">
               <h3>Current Status</h3>
               <div class="dashboard-status-grid">
-                <div class="dashboard-detail-field"><span class="dashboard-detail-label">Payment</span><div id="detailPaymentStatus"></div></div>
-                <div class="dashboard-detail-field"><span class="dashboard-detail-label">Documents</span><div id="detailDocumentStatus"></div></div>
                 <div class="dashboard-detail-field"><span class="dashboard-detail-label">Information</span><div id="detailInformationStatus"></div></div>
+                <div class="dashboard-detail-field"><span class="dashboard-detail-label">Documents</span><div id="detailDocumentStatus"></div></div>
                 <div class="dashboard-detail-field"><span class="dashboard-detail-label">Verification</span><div id="detailVerificationStatus"></div></div>
-                <div class="dashboard-detail-field"><span class="dashboard-detail-label">Licence</span><div id="detailLicenceStatus"></div></div>
               </div>
             </section>
 
             <section id="dashboardDocumentsSection" class="dashboard-detail-card" style="display:none;">
               <h3>Supporting Documents</h3>
               <div id="dashboardDocuments"></div>
-            </section>
-
-            <section id="dashboardPaymentSection" class="dashboard-detail-card" style="display:none;">
-              <h3>Payment Information</h3>
-              <div class="dashboard-detail-grid">
-                <div class="dashboard-detail-field"><span class="dashboard-detail-label">Payment Reference</span><span id="detailPaymentReference" class="dashboard-detail-value"></span></div>
-                <div class="dashboard-detail-field"><span class="dashboard-detail-label">Verified By</span><span id="detailPaymentVerifiedBy" class="dashboard-detail-value"></span></div>
-                <div class="dashboard-detail-field"><span class="dashboard-detail-label">Proof Uploaded</span><span id="detailPaymentProofAt" class="dashboard-detail-value"></span></div>
-                <div class="dashboard-detail-field"><span class="dashboard-detail-label">Verified At</span><span id="detailPaymentVerifiedAt" class="dashboard-detail-value"></span></div>
-              </div>
             </section>
 
             <section id="dashboardNotesSection" class="dashboard-detail-card" style="display:none;">
@@ -937,21 +925,134 @@
           </div>
 
           <? } else if (safeDashboardSection === 'payments') { ?>
-          <section class="welcome-card">
-            <p class="eyebrow">Payments</p>
-            <h2>Payment review workspace</h2>
-            <p class="muted">
-              This dashboard route is ready for the payment review UI.
-            </p>
+          <section class="applications-card">
+            <div class="applications-toolbar">
+              <label>
+                Search
+                <input id="paymentsSearch" type="search"
+                  placeholder="Application ID, applicant, company or payment reference"
+                  autocomplete="off">
+              </label>
+
+              <label>
+                Payment Status
+                <select id="paymentsStatus">
+                  <option value="">All statuses</option>
+                  <option value="not available">Not Available</option>
+                  <option value="awaiting payment">Awaiting Payment</option>
+                  <option value="pending verification">Pending Verification</option>
+                  <option value="confirmed">Confirmed</option>
+                  <option value="rejected">Rejected</option>
+                  <option value="duplicate">Duplicate Reference</option>
+                </select>
+              </label>
+
+              <button class="button" type="button"
+                onclick="applyPaymentFilters()">
+                Apply
+              </button>
+            </div>
+
+            <div class="applications-summary">
+              <span id="paymentsCount">Loading payments...</span>
+              <span>20 records per page</span>
+            </div>
+
+            <div id="paymentsLoading" class="applications-state">
+              Loading payments...
+            </div>
+
+            <div id="paymentsEmpty" class="applications-state" style="display:none;">
+              No payments found.
+            </div>
+
+            <div id="paymentsTableArea" class="applications-table-wrap" style="display:none;">
+              <table class="applications-table">
+                <thead>
+                  <tr>
+                    <th>Application</th>
+                    <th>Applicant</th>
+                    <th>Company</th>
+                    <th>Payment Reference</th>
+                    <th>Status</th>
+                    <th>Proof</th>
+                    <th>Uploaded</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="paymentsTableBody"></tbody>
+              </table>
+            </div>
+
+            <div id="paymentsPagination" class="pagination" style="display:none;">
+              <span id="paymentsPageSummary"></span>
+              <div id="paymentsPageButtons" class="pagination-controls"></div>
+            </div>
           </section>
 
           <? } else if (safeDashboardSection === 'licences') { ?>
-          <section class="welcome-card">
-            <p class="eyebrow">Licences</p>
-            <h2>Licence management workspace</h2>
-            <p class="muted">
-              This dashboard route is ready for licence generation, stamping and release management.
-            </p>
+          <section class="applications-card">
+            <div class="applications-toolbar">
+              <label>
+                Search
+                <input id="licencesSearch" type="search"
+                  placeholder="Application ID, applicant, company or licence number"
+                  autocomplete="off">
+              </label>
+
+              <label>
+                Licence Status
+                <select id="licencesStatus">
+                  <option value="">All statuses</option>
+                  <option value="not generated">Not Generated</option>
+                  <option value="generated">Generated</option>
+                  <option value="released">Released</option>
+                  <option value="suspended">Suspended</option>
+                  <option value="revoked">Revoked</option>
+                </select>
+              </label>
+
+              <button class="button" type="button"
+                onclick="applyLicenceFilters()">
+                Apply
+              </button>
+            </div>
+
+            <div class="applications-summary">
+              <span id="licencesCount">Loading licences...</span>
+              <span>20 records per page</span>
+            </div>
+
+            <div id="licencesLoading" class="applications-state">
+              Loading licences...
+            </div>
+
+            <div id="licencesEmpty" class="applications-state" style="display:none;">
+              No licences found.
+            </div>
+
+            <div id="licencesTableArea" class="applications-table-wrap" style="display:none;">
+              <table class="applications-table">
+                <thead>
+                  <tr>
+                    <th>Application</th>
+                    <th>Applicant</th>
+                    <th>Company</th>
+                    <th>Licence Number</th>
+                    <th>Status</th>
+                    <th>Generated</th>
+                    <th>Released</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="licencesTableBody"></tbody>
+              </table>
+            </div>
+
+            <div id="licencesPagination" class="pagination" style="display:none;">
+              <span id="licencesPageSummary"></span>
+              <div id="licencesPageButtons" class="pagination-controls"></div>
+            </div>
           </section>
 
           <? } else if (safeDashboardSection === 'system-jobs') { ?>
@@ -1170,13 +1271,13 @@
                 ) +
               '</td>' +
               '<td>' +
-                renderStatusPill_(application.paymentStatus) +
+                renderStatusPill_(application.informationStatus) +
+              '</td>' +
+              '<td>' +
+                renderStatusPill_(application.documentStatus) +
               '</td>' +
               '<td>' +
                 renderStatusPill_(application.verificationStatus) +
-              '</td>' +
-              '<td>' +
-                renderStatusPill_(application.licenceStatus) +
               '</td>' +
               '<td>' +
                 escapeDashboardHtml_(
@@ -1298,7 +1399,10 @@
         );
       }
 
-      function renderDashboardDocuments_(applicationId) {
+      function renderDashboardDocuments_(
+        applicationId,
+        documents
+      ) {
         const container =
           document.getElementById(
             'dashboardDocuments'
@@ -1308,38 +1412,64 @@
           return;
         }
 
-        const documents = [
-          ['CAC Document', 'cac'],
-          ['Passport Photograph', 'passport'],
-          ['Educational Certificates', 'education'],
-          ['Proof of Experience', 'experience'],
-          ['Means of Identification', 'identification'],
-          ['Payment Receipt', 'payment'],
-          ['Draft Licence', 'draftlicence'],
-          ['Stamped Licence', 'stampedlicence']
-        ];
+        const submitted =
+          Array.isArray(documents)
+            ? documents.filter(function(document) {
+                return (
+                  document &&
+                  document.uploaded === true
+                );
+              })
+            : [];
+
+        if (!submitted.length) {
+          container.innerHTML =
+            '<div class="applications-state">' +
+              'No supporting documents have been submitted.' +
+            '</div>';
+          return;
+        }
 
         container.innerHTML =
-          documents.map(function(item) {
+          submitted.map(function(document) {
             const viewUrl =
               getDashboardDocumentUrl_(
                 applicationId,
-                item[1],
+                document.type,
                 'view'
               );
 
             const downloadUrl =
               getDashboardDocumentUrl_(
                 applicationId,
-                item[1],
+                document.type,
                 'download'
               );
 
             return (
               '<div class="dashboard-doc-row">' +
-                '<strong>' +
-                  escapeDashboardHtml_(item[0]) +
-                '</strong>' +
+                '<div>' +
+                  '<strong>' +
+                    escapeDashboardHtml_(
+                      document.label ||
+                      document.type
+                    ) +
+                  '</strong>' +
+                  '<div class="muted">' +
+                    escapeDashboardHtml_(
+                      document.reviewStatus ||
+                      'Pending Review'
+                    ) +
+                    (
+                      document.uploadedAt
+                        ? ' • ' +
+                          escapeDashboardHtml_(
+                            document.uploadedAt
+                          )
+                        : ''
+                    ) +
+                  '</div>' +
+                '</div>' +
                 '<div class="dashboard-doc-actions">' +
                   '<a class="dashboard-detail-link" target="_blank" href="' +
                     escapeDashboardHtml_(viewUrl) +
@@ -1432,19 +1562,13 @@
             setDashboardDetailText_('detailAddress', application.officeAddress);
             setDashboardDetailText_('detailSubmitted', application.submittedAt);
             setDashboardDetailText_('detailRecordStatus', application.recordStatus);
-            setDashboardDetailText_('detailPaymentReference', application.paymentReference);
-            setDashboardDetailText_('detailPaymentVerifiedBy', application.paymentVerifiedBy);
-            setDashboardDetailText_('detailPaymentProofAt', application.paymentProofUploadedAt);
-            setDashboardDetailText_('detailPaymentVerifiedAt', application.paymentVerifiedAt);
             setDashboardDetailText_('detailDocumentNotes', application.documentReviewNotes);
             setDashboardDetailText_('detailInformationNotes', application.informationReviewNotes);
 
             [
-              ['detailPaymentStatus', application.paymentStatus],
-              ['detailDocumentStatus', application.documentStatus],
               ['detailInformationStatus', application.informationStatus],
-              ['detailVerificationStatus', application.verificationStatus],
-              ['detailLicenceStatus', application.licenceStatus]
+              ['detailDocumentStatus', application.documentStatus],
+              ['detailVerificationStatus', application.verificationStatus]
             ].forEach(function(pair) {
               const element =
                 document.getElementById(pair[0]);
@@ -1457,7 +1581,8 @@
 
             renderDashboardDocuments_(
               application.applicationId ||
-              applicationId
+              applicationId,
+              application.supportingDocuments
             );
           })
           .withFailureHandler(function(error) {
@@ -1468,6 +1593,625 @@
             ADMIN_SESSION_TOKEN,
             applicationId
           );
+      }
+
+
+      const WORKFLOW_PAGE_SIZE = 20;
+
+      const paymentsState = {
+        page: 1,
+        search: '',
+        status: ''
+      };
+
+      const licencesState = {
+        page: 1,
+        search: '',
+        status: ''
+      };
+
+
+      function applyPaymentFilters() {
+        const search =
+          document.getElementById(
+            'paymentsSearch'
+          );
+
+        const status =
+          document.getElementById(
+            'paymentsStatus'
+          );
+
+        paymentsState.search =
+          search
+            ? search.value.trim()
+            : '';
+
+        paymentsState.status =
+          status
+            ? status.value
+            : '';
+
+        paymentsState.page = 1;
+        loadPaymentsPage();
+      }
+
+
+      function loadPaymentsPage(page) {
+        const loading =
+          document.getElementById(
+            'paymentsLoading'
+          );
+
+        if (!loading) {
+          return;
+        }
+
+        if (page) {
+          paymentsState.page = page;
+        }
+
+        setWorkflowLoading_(
+          'payments',
+          'Loading payments...'
+        );
+
+        google.script.run
+          .withSuccessHandler(
+            renderPaymentsPage_
+          )
+          .withFailureHandler(function(error) {
+            loading.textContent =
+              getErrorMessage_(error);
+          })
+          .getAdminPaymentsPage(
+            ADMIN_SESSION_TOKEN,
+            {
+              page: paymentsState.page,
+              pageSize:
+                WORKFLOW_PAGE_SIZE,
+              search:
+                paymentsState.search,
+              status:
+                paymentsState.status
+            }
+          );
+      }
+
+
+      function renderPaymentsPage_(result) {
+        renderWorkflowPage_(
+          'payments',
+          result,
+          paymentsState,
+          function(item) {
+            const applicationId =
+              String(
+                item.applicationId ||
+                ''
+              );
+
+            return (
+              '<tr>' +
+                '<td><div class="application-primary">' +
+                  escapeDashboardHtml_(
+                    applicationId
+                  ) +
+                '</div></td>' +
+                '<td>' +
+                  escapeDashboardHtml_(
+                    item.applicantName ||
+                    'Applicant'
+                  ) +
+                '</td>' +
+                '<td>' +
+                  escapeDashboardHtml_(
+                    item.companyName ||
+                    '—'
+                  ) +
+                '</td>' +
+                '<td>' +
+                  escapeDashboardHtml_(
+                    item.paymentReference ||
+                    '—'
+                  ) +
+                '</td>' +
+                '<td>' +
+                  renderStatusPill_(
+                    item.paymentStatus
+                  ) +
+                '</td>' +
+                '<td>' +
+                  (
+                    item.hasPaymentProof
+                      ? renderStatusPill_(
+                          'Uploaded'
+                        )
+                      : renderStatusPill_(
+                          'Not Submitted'
+                        )
+                  ) +
+                '</td>' +
+                '<td>' +
+                  escapeDashboardHtml_(
+                    item.paymentProofUploadedAt ||
+                    '—'
+                  ) +
+                '</td>' +
+                '<td><span class="muted">Review screen next</span></td>' +
+              '</tr>'
+            );
+          },
+          loadPaymentsPage
+        );
+      }
+
+
+      function applyLicenceFilters() {
+        const search =
+          document.getElementById(
+            'licencesSearch'
+          );
+
+        const status =
+          document.getElementById(
+            'licencesStatus'
+          );
+
+        licencesState.search =
+          search
+            ? search.value.trim()
+            : '';
+
+        licencesState.status =
+          status
+            ? status.value
+            : '';
+
+        licencesState.page = 1;
+        loadLicencesPage();
+      }
+
+
+      function loadLicencesPage(page) {
+        const loading =
+          document.getElementById(
+            'licencesLoading'
+          );
+
+        if (!loading) {
+          return;
+        }
+
+        if (page) {
+          licencesState.page = page;
+        }
+
+        setWorkflowLoading_(
+          'licences',
+          'Loading licences...'
+        );
+
+        google.script.run
+          .withSuccessHandler(
+            renderLicencesPage_
+          )
+          .withFailureHandler(function(error) {
+            loading.textContent =
+              getErrorMessage_(error);
+          })
+          .getAdminLicencesPage(
+            ADMIN_SESSION_TOKEN,
+            {
+              page: licencesState.page,
+              pageSize:
+                WORKFLOW_PAGE_SIZE,
+              search:
+                licencesState.search,
+              status:
+                licencesState.status
+            }
+          );
+      }
+
+
+      function renderLicencesPage_(result) {
+        renderWorkflowPage_(
+          'licences',
+          result,
+          licencesState,
+          function(item) {
+            return (
+              '<tr>' +
+                '<td><div class="application-primary">' +
+                  escapeDashboardHtml_(
+                    item.applicationId ||
+                    ''
+                  ) +
+                '</div></td>' +
+                '<td>' +
+                  escapeDashboardHtml_(
+                    item.applicantName ||
+                    'Applicant'
+                  ) +
+                '</td>' +
+                '<td>' +
+                  escapeDashboardHtml_(
+                    item.companyName ||
+                    '—'
+                  ) +
+                '</td>' +
+                '<td>' +
+                  escapeDashboardHtml_(
+                    item.licenceNumber ||
+                    '—'
+                  ) +
+                '</td>' +
+                '<td>' +
+                  renderStatusPill_(
+                    item.licenceStatus
+                  ) +
+                '</td>' +
+                '<td>' +
+                  escapeDashboardHtml_(
+                    item.licenceGeneratedAt ||
+                    '—'
+                  ) +
+                '</td>' +
+                '<td>' +
+                  escapeDashboardHtml_(
+                    item.licenceReleasedAt ||
+                    '—'
+                  ) +
+                '</td>' +
+                '<td><span class="muted">Manage screen next</span></td>' +
+              '</tr>'
+            );
+          },
+          loadLicencesPage
+        );
+      }
+
+
+      function setWorkflowLoading_(
+        prefix,
+        text
+      ) {
+        const loading =
+          document.getElementById(
+            prefix + 'Loading'
+          );
+
+        const empty =
+          document.getElementById(
+            prefix + 'Empty'
+          );
+
+        const table =
+          document.getElementById(
+            prefix + 'TableArea'
+          );
+
+        const pagination =
+          document.getElementById(
+            prefix + 'Pagination'
+          );
+
+        if (loading) {
+          loading.style.display =
+            'block';
+          loading.textContent = text;
+        }
+
+        if (empty) {
+          empty.style.display =
+            'none';
+        }
+
+        if (table) {
+          table.style.display =
+            'none';
+        }
+
+        if (pagination) {
+          pagination.style.display =
+            'none';
+        }
+      }
+
+
+      function renderWorkflowPage_(
+        prefix,
+        result,
+        state,
+        rowRenderer,
+        pageLoader
+      ) {
+        const loading =
+          document.getElementById(
+            prefix + 'Loading'
+          );
+
+        const empty =
+          document.getElementById(
+            prefix + 'Empty'
+          );
+
+        const tableArea =
+          document.getElementById(
+            prefix + 'TableArea'
+          );
+
+        const tableBody =
+          document.getElementById(
+            prefix + 'TableBody'
+          );
+
+        const count =
+          document.getElementById(
+            prefix + 'Count'
+          );
+
+        const pagination =
+          document.getElementById(
+            prefix + 'Pagination'
+          );
+
+        const pageSummary =
+          document.getElementById(
+            prefix + 'PageSummary'
+          );
+
+        if (loading) {
+          loading.style.display =
+            'none';
+        }
+
+        if (
+          !result ||
+          result.ok !== true
+        ) {
+          if (empty) {
+            empty.style.display =
+              'block';
+            empty.textContent =
+              result &&
+              result.message
+                ? result.message
+                : 'Unable to load records.';
+          }
+          return;
+        }
+
+        state.page =
+          Number(result.page || 1);
+
+        const items =
+          Array.isArray(result.items)
+            ? result.items
+            : [];
+
+        const totalItems =
+          Number(
+            result.totalItems || 0
+          );
+
+        if (count) {
+          count.textContent =
+            totalItems +
+            (
+              totalItems === 1
+                ? ' record'
+                : ' records'
+            );
+        }
+
+        if (!items.length) {
+          if (empty) {
+            empty.style.display =
+              'block';
+            empty.textContent =
+              result.message ||
+              'No records found.';
+          }
+          return;
+        }
+
+        if (empty) {
+          empty.style.display =
+            'none';
+        }
+
+        if (tableBody) {
+          tableBody.innerHTML =
+            items
+              .map(rowRenderer)
+              .join('');
+        }
+
+        if (tableArea) {
+          tableArea.style.display =
+            'block';
+        }
+
+        const start =
+          (state.page - 1) *
+          WORKFLOW_PAGE_SIZE + 1;
+
+        const end =
+          Math.min(
+            start +
+            items.length - 1,
+            totalItems
+          );
+
+        if (pageSummary) {
+          pageSummary.textContent =
+            'Showing ' +
+            start +
+            '–' +
+            end +
+            ' of ' +
+            totalItems;
+        }
+
+        renderWorkflowPagination_(
+          prefix,
+          Number(result.page || 1),
+          Number(
+            result.totalPages || 1
+          ),
+          Boolean(
+            result.hasPrevious
+          ),
+          Boolean(
+            result.hasNext
+          ),
+          pageLoader
+        );
+
+        if (pagination) {
+          pagination.style.display =
+            'flex';
+        }
+      }
+
+
+      function renderWorkflowPagination_(
+        prefix,
+        page,
+        totalPages,
+        hasPrevious,
+        hasNext,
+        pageLoader
+      ) {
+        const container =
+          document.getElementById(
+            prefix + 'PageButtons'
+          );
+
+        if (!container) {
+          return;
+        }
+
+        container.innerHTML = '';
+
+        function addButton(
+          label,
+          targetPage,
+          disabled,
+          active
+        ) {
+          const button =
+            document.createElement(
+              'button'
+            );
+
+          button.type = 'button';
+          button.className =
+            'page-button' +
+            (
+              active
+                ? ' active'
+                : ''
+            );
+
+          button.textContent = label;
+          button.disabled =
+            Boolean(disabled);
+
+          if (!disabled) {
+            button.addEventListener(
+              'click',
+              function() {
+                pageLoader(
+                  targetPage
+                );
+              }
+            );
+          }
+
+          container.appendChild(
+            button
+          );
+        }
+
+        addButton(
+          'Previous',
+          page - 1,
+          !hasPrevious,
+          false
+        );
+
+        const start =
+          Math.max(1, page - 2);
+
+        const end =
+          Math.min(
+            totalPages,
+            page + 2
+          );
+
+        for (
+          let current = start;
+          current <= end;
+          current++
+        ) {
+          addButton(
+            String(current),
+            current,
+            current === page,
+            current === page
+          );
+        }
+
+        addButton(
+          'Next',
+          page + 1,
+          !hasNext,
+          false
+        );
+      }
+
+
+      function initializeWorkflowQueues_() {
+        const paymentsSearch =
+          document.getElementById(
+            'paymentsSearch'
+          );
+
+        if (paymentsSearch) {
+          paymentsSearch.addEventListener(
+            'keydown',
+            function(event) {
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                applyPaymentFilters();
+              }
+            }
+          );
+
+          loadPaymentsPage();
+        }
+
+        const licencesSearch =
+          document.getElementById(
+            'licencesSearch'
+          );
+
+        if (licencesSearch) {
+          licencesSearch.addEventListener(
+            'keydown',
+            function(event) {
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                applyLicenceFilters();
+              }
+            }
+          );
+
+          loadLicencesPage();
+        }
       }
 
 
@@ -1669,6 +2413,7 @@
         'DOMContentLoaded',
         function() {
           initializeApplicationsSection_();
+          initializeWorkflowQueues_();
         }
       );
 

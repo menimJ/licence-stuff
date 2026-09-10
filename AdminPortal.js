@@ -377,6 +377,509 @@ function getAdminApplicationsPage(sessionToken, options) {
 }
 
 
+
+/**
+ * Dashboard-only workflow queues.
+ * Legacy admin portal behaviour is not changed.
+ */
+function getAdminDashboardLatestRows_(sessionToken) {
+  requireAdminAccess_(sessionToken);
+
+  const sheet =
+    getResponseSheet_(
+      SpreadsheetApp.getActiveSpreadsheet()
+    );
+
+  const lastRow = sheet.getLastRow();
+  const lastColumn = sheet.getLastColumn();
+
+  if (lastRow < 2 || lastColumn < 1) {
+    return [];
+  }
+
+  const headers =
+    sheet
+      .getRange(1, 1, 1, lastColumn)
+      .getDisplayValues()[0]
+      .map(function(header) {
+        return String(header || '').trim();
+      });
+
+  const numberOfRows =
+    Math.min(
+      lastRow - 1,
+      ADMIN_PORTAL_CONFIG.MAX_APPLICATIONS
+    );
+
+  const values =
+    sheet
+      .getRange(
+        lastRow - numberOfRows + 1,
+        1,
+        numberOfRows,
+        lastColumn
+      )
+      .getDisplayValues();
+
+  const seen = {};
+  const rows = [];
+
+  for (
+    let index = values.length - 1;
+    index >= 0;
+    index--
+  ) {
+    const rowObject =
+      rowToObject_(
+        headers,
+        values[index]
+      );
+
+    const applicationId =
+      getFirstAvailableValue_(
+        rowObject,
+        ['Application ID']
+      );
+
+    if (
+      !applicationId ||
+      seen[applicationId]
+    ) {
+      continue;
+    }
+
+    seen[applicationId] = true;
+    rows.push(rowObject);
+  }
+
+  return rows;
+}
+
+
+function paginateAdminDashboardItems_(
+  items,
+  options,
+  emptyMessage
+) {
+  const input =
+    options &&
+    typeof options === 'object'
+      ? options
+      : {};
+
+  const pageSize =
+    Math.max(
+      1,
+      Math.min(
+        Number(input.pageSize || 20) || 20,
+        100
+      )
+    );
+
+  const requestedPage =
+    Math.max(
+      1,
+      Number(input.page || 1) || 1
+    );
+
+  const totalItems = items.length;
+
+  const totalPages =
+    Math.max(
+      1,
+      Math.ceil(totalItems / pageSize)
+    );
+
+  const page =
+    Math.min(
+      requestedPage,
+      totalPages
+    );
+
+  const start =
+    (page - 1) * pageSize;
+
+  return {
+    ok: true,
+    items:
+      items.slice(
+        start,
+        start + pageSize
+      ),
+    page: page,
+    pageSize: pageSize,
+    totalItems: totalItems,
+    totalPages: totalPages,
+    hasPrevious: page > 1,
+    hasNext: page < totalPages,
+    message:
+      totalItems
+        ? ''
+        : emptyMessage
+  };
+}
+
+
+/**
+ * Payment queue for the NEW dashboard.
+ */
+function getAdminPaymentsPage(
+  sessionToken,
+  options
+) {
+  const input =
+    options &&
+    typeof options === 'object'
+      ? options
+      : {};
+
+  const search =
+    String(input.search || '')
+      .trim()
+      .toLowerCase();
+
+  const status =
+    String(input.status || '')
+      .trim()
+      .toLowerCase();
+
+  const items =
+    getAdminDashboardLatestRows_(
+      sessionToken
+    )
+      .map(function(rowObject) {
+        return {
+          applicationId:
+            getFirstAvailableValue_(
+              rowObject,
+              ['Application ID']
+            ),
+
+          applicantName:
+            getFirstAvailableValue_(
+              rowObject,
+              [
+                'Full Name',
+                'Applicant Name'
+              ]
+            ) || 'Applicant',
+
+          companyName:
+            getFirstAvailableValue_(
+              rowObject,
+              [
+                'Company Name',
+                'Business Name'
+              ]
+            ),
+
+          paymentReference:
+            getFirstAvailableValue_(
+              rowObject,
+              [
+                'Payment Reference',
+                'Remita Reference',
+                'RRR'
+              ]
+            ),
+
+          paymentStatus:
+            getFirstAvailableValue_(
+              rowObject,
+              ['Payment Status']
+            ) || 'Not Available',
+
+          paymentProofUploadedAt:
+            getFirstAvailableValue_(
+              rowObject,
+              ['Payment Proof Uploaded At']
+            ),
+
+          paymentVerifiedAt:
+            getFirstAvailableValue_(
+              rowObject,
+              ['Payment Verified At']
+            ),
+
+          hasPaymentProof:
+            Boolean(
+              getFirstAvailableValue_(
+                rowObject,
+                [
+                  'Payment Proof File ID',
+                  'Receipt PDF URL',
+                  'Payment Receipt URL',
+                  'Payment Proof URL'
+                ]
+              )
+            )
+        };
+      })
+      .filter(function(item) {
+        if (status) {
+          const itemStatus =
+            String(item.paymentStatus || '')
+              .trim()
+              .toLowerCase();
+
+          if (
+            itemStatus.indexOf(status) === -1
+          ) {
+            return false;
+          }
+        }
+
+        if (search) {
+          const searchable = [
+            item.applicationId,
+            item.applicantName,
+            item.companyName,
+            item.paymentReference
+          ]
+            .map(function(value) {
+              return String(value || '')
+                .toLowerCase();
+            })
+            .join(' ');
+
+          if (
+            searchable.indexOf(search) === -1
+          ) {
+            return false;
+          }
+        }
+
+        return true;
+      });
+
+  return paginateAdminDashboardItems_(
+    items,
+    input,
+    'No payments match the current search or filter.'
+  );
+}
+
+
+/**
+ * Licence queue for the NEW dashboard.
+ */
+function getAdminLicencesPage(
+  sessionToken,
+  options
+) {
+  const input =
+    options &&
+    typeof options === 'object'
+      ? options
+      : {};
+
+  const search =
+    String(input.search || '')
+      .trim()
+      .toLowerCase();
+
+  const status =
+    String(input.status || '')
+      .trim()
+      .toLowerCase();
+
+  const items =
+    getAdminDashboardLatestRows_(
+      sessionToken
+    )
+      .map(function(rowObject) {
+        return {
+          applicationId:
+            getFirstAvailableValue_(
+              rowObject,
+              ['Application ID']
+            ),
+
+          applicantName:
+            getFirstAvailableValue_(
+              rowObject,
+              [
+                'Full Name',
+                'Applicant Name'
+              ]
+            ) || 'Applicant',
+
+          companyName:
+            getFirstAvailableValue_(
+              rowObject,
+              [
+                'Company Name',
+                'Business Name'
+              ]
+            ),
+
+          licenceNumber:
+            getFirstAvailableValue_(
+              rowObject,
+              [
+                'Licence Number',
+                'License Number'
+              ]
+            ),
+
+          licenceStatus:
+            getFirstAvailableValue_(
+              rowObject,
+              [
+                'Licence Status',
+                'License Status'
+              ]
+            ) || 'Not Generated',
+
+          licenceGeneratedAt:
+            getFirstAvailableValue_(
+              rowObject,
+              [
+                'Licence Generated At',
+                'License Generated At'
+              ]
+            ),
+
+          licenceReleasedAt:
+            getFirstAvailableValue_(
+              rowObject,
+              [
+                'Licence Released At',
+                'License Released At'
+              ]
+            )
+        };
+      })
+      .filter(function(item) {
+        if (status) {
+          const itemStatus =
+            String(item.licenceStatus || '')
+              .trim()
+              .toLowerCase();
+
+          if (
+            itemStatus.indexOf(status) === -1
+          ) {
+            return false;
+          }
+        }
+
+        if (search) {
+          const searchable = [
+            item.applicationId,
+            item.applicantName,
+            item.companyName,
+            item.licenceNumber
+          ]
+            .map(function(value) {
+              return String(value || '')
+                .toLowerCase();
+            })
+            .join(' ');
+
+          if (
+            searchable.indexOf(search) === -1
+          ) {
+            return false;
+          }
+        }
+
+        return true;
+      });
+
+  return paginateAdminDashboardItems_(
+    items,
+    input,
+    'No licences match the current search or filter.'
+  );
+}
+
+
+/**
+ * Submitted supporting documents for the NEW dashboard.
+ * Missing documents are intentionally not returned.
+ */
+function getAdminDashboardSupportingDocuments_(
+  sessionToken,
+  applicationId
+) {
+  const cleanId =
+    String(applicationId || '')
+      .trim();
+
+  const rowObject =
+    getAdminDashboardLatestRows_(
+      sessionToken
+    ).find(function(row) {
+      return (
+        getFirstAvailableValue_(
+          row,
+          ['Application ID']
+        ) === cleanId
+      );
+    });
+
+  if (
+    !rowObject ||
+    typeof SUPPORTING_DOCUMENT_CONFIG ===
+      'undefined'
+  ) {
+    return [];
+  }
+
+  return Object.keys(
+    SUPPORTING_DOCUMENT_CONFIG
+  )
+    .map(function(key) {
+      const config =
+        SUPPORTING_DOCUMENT_CONFIG[key];
+
+      const fileId =
+        getFirstAvailableValue_(
+          rowObject,
+          [config.fileIdHeader]
+        );
+
+      const url =
+        getFirstAvailableValue_(
+          rowObject,
+          [config.urlHeader]
+        );
+
+      const uploaded =
+        Boolean(fileId || url);
+
+      return {
+        type: config.type,
+        label: config.label,
+        uploaded: uploaded,
+        uploadedAt:
+          getFirstAvailableValue_(
+            rowObject,
+            [config.uploadedAtHeader]
+          ),
+        reviewStatus:
+          getFirstAvailableValue_(
+            rowObject,
+            [config.reviewStatusHeader]
+          ) || (
+            uploaded
+              ? 'Pending Review'
+              : 'Not Submitted'
+          ),
+        reviewNotes:
+          getFirstAvailableValue_(
+            rowObject,
+            [config.reviewNotesHeader]
+          )
+      };
+    })
+    .filter(function(document) {
+      return document.uploaded;
+    });
+}
+
+
 /**
  * Returns one complete application for
  * admin review.
@@ -565,10 +1068,26 @@ function getAdminDashboardApplicationDetail(
   sessionToken,
   applicationId
 ) {
-  return getAdminApplicationDetail_(
-    applicationId,
-    sessionToken
-  );
+  const result =
+    getAdminApplicationDetail_(
+      applicationId,
+      sessionToken
+    );
+
+  if (
+    result &&
+    result.ok === true &&
+    result.application
+  ) {
+    result.application
+      .supportingDocuments =
+        getAdminDashboardSupportingDocuments_(
+          sessionToken,
+          applicationId
+        );
+  }
+
+  return result;
 }
 
 
