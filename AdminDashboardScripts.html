@@ -7,6 +7,8 @@ const APPLICATIONS_PAGE_SIZE = 20;
         status: ''
       };
 
+      let dashboardCurrentApplicationId_ = '';
+
       function escapeDashboardHtml_(value) {
         return String(value == null ? '' : value)
           .replace(/&/g, '&amp;')
@@ -302,7 +304,8 @@ const APPLICATIONS_PAGE_SIZE = 20;
 
       function renderDashboardDocuments_(
         applicationId,
-        documents
+        documents,
+        overallDocumentStatus
       ) {
         const container =
           document.getElementById(
@@ -313,17 +316,12 @@ const APPLICATIONS_PAGE_SIZE = 20;
           return;
         }
 
-        const submitted =
+        const items =
           Array.isArray(documents)
-            ? documents.filter(function(document) {
-                return (
-                  document &&
-                  document.uploaded === true
-                );
-              })
+            ? documents
             : [];
 
-        if (!submitted.length) {
+        if (!items.length) {
           container.innerHTML =
             '<div class="applications-state">' +
               'No supporting documents have been submitted.' +
@@ -332,7 +330,7 @@ const APPLICATIONS_PAGE_SIZE = 20;
         }
 
         container.innerHTML =
-          submitted.map(function(document) {
+          items.map(function(document) {
             const viewUrl =
               getDashboardDocumentUrl_(
                 applicationId,
@@ -347,6 +345,46 @@ const APPLICATIONS_PAGE_SIZE = 20;
                 'download'
               );
 
+            const status =
+              document.reviewStatus ||
+              (document.uploaded ? 'Pending Review' : 'Not Submitted');
+
+            const canReview =
+              document.uploaded === true &&
+              String(overallDocumentStatus || '').toLowerCase() !== 'complete' &&
+              ['approved', 'correction required'].indexOf(
+                String(status).toLowerCase()
+              ) === -1;
+
+            const note =
+              document.reviewNotes
+                ? '<div class="dashboard-review-note"><strong>Review note:</strong> ' +
+                  escapeDashboardHtml_(document.reviewNotes) +
+                  '</div>'
+                : '';
+
+            const reviewed =
+              document.reviewedAt
+                ? '<div class="muted">Reviewed: ' +
+                  escapeDashboardHtml_(document.reviewedAt) +
+                  (document.reviewedBy
+                    ? ' • ' + escapeDashboardHtml_(document.reviewedBy)
+                    : '') +
+                  '</div>'
+                : '';
+
+            const reviewActions =
+              canReview
+                ? '<div class="dashboard-doc-actions dashboard-document-review-actions">' +
+                  '<button class="button" type="button" onclick="reviewDashboardDocument_(\'' +
+                  escapeDashboardHtml_(document.type) +
+                  '\', \'approve\')">Approve</button>' +
+                  '<button class="button button-danger" type="button" onclick="reviewDashboardDocument_(\'' +
+                  escapeDashboardHtml_(document.type) +
+                  '\', \'correction\')">Request Correction</button>' +
+                  '</div>'
+                : '';
+
             return (
               '<div class="dashboard-doc-row">' +
                 '<div>' +
@@ -356,32 +394,114 @@ const APPLICATIONS_PAGE_SIZE = 20;
                       document.type
                     ) +
                   '</strong>' +
-                  '<div class="muted">' +
-                    escapeDashboardHtml_(
-                      document.reviewStatus ||
-                      'Pending Review'
-                    ) +
-                    (
-                      document.uploadedAt
-                        ? ' • ' +
-                          escapeDashboardHtml_(
-                            document.uploadedAt
-                          )
-                        : ''
-                    ) +
+                  '<div class="dashboard-document-status">' +
+                    renderStatusPill_(status) +
                   '</div>' +
+                  (document.uploadedAt
+                    ? '<div class="muted">Uploaded: ' +
+                      escapeDashboardHtml_(document.uploadedAt) +
+                      '</div>'
+                    : '') +
+                  reviewed +
+                  note +
                 '</div>' +
                 '<div class="dashboard-doc-actions">' +
-                  '<a class="dashboard-detail-link" target="_blank" href="' +
-                    escapeDashboardHtml_(viewUrl) +
-                  '">View</a>' +
-                  '<a class="dashboard-detail-link" target="_blank" href="' +
-                    escapeDashboardHtml_(downloadUrl) +
-                  '">Download</a>' +
+                  (document.uploaded
+                    ? '<a class="dashboard-detail-link" target="_blank" href="' +
+                      escapeDashboardHtml_(viewUrl) +
+                      '">View</a>' +
+                      '<a class="dashboard-detail-link" target="_blank" href="' +
+                      escapeDashboardHtml_(downloadUrl) +
+                      '">Download</a>'
+                    : '') +
+                  reviewActions +
                 '</div>' +
               '</div>'
             );
           }).join('');
+      }
+
+      const DASHBOARD_DOCUMENT_CORRECTION_REASONS = {
+        cac: ['CAC document is unclear or unreadable', 'Incorrect CAC document was uploaded', 'CAC document is incomplete or has missing pages', 'CAC details do not match the application', 'Other'],
+        passport: ['Passport photograph is unclear or poor quality', 'Photograph does not appear to be for the Director or Company Owner', 'Uploaded file is not an acceptable passport photograph', 'Photograph details do not match the application', 'Other'],
+        education: ['Educational certificate is unclear or unreadable', 'Incorrect educational certificate was uploaded', 'Educational certificate submission is incomplete', 'Certificate details do not match the application', 'Other'],
+        experience: ['CV / proof of experience is unclear or unreadable', 'Incorrect proof of experience was uploaded', 'CV / proof of experience is incomplete', 'CV is not for the CEO / required responsible person', 'Experience details do not match the application', 'Other'],
+        identification: ['Means of identification is unclear or unreadable', 'Incorrect means of identification was uploaded', 'Identification document is incomplete', 'Identification details do not match the application', 'Other']
+      };
+
+      const DASHBOARD_INFORMATION_TARGETS = [
+        ['company_name', 'Company Name'], ['company_rc_number', 'Company RC Number'], ['company_tin', 'Company TIN'], ['crffn_membership_number', 'CRFFN Membership Number'], ['company_address', 'Company Address'], ['full_name', 'Full Name'], ['phone_number', 'Phone Number'], ['residential_address', 'Residential Address'], ['means_of_identification', 'Means of Identification'], ['id_number', 'ID Number'], ['expiry_date', 'Expiry Date'], ['position_held', 'Position Held'], ['area_of_practice', 'Area of Practice'], ['other', 'Other Application Information']
+      ];
+
+      const DASHBOARD_INFORMATION_ISSUES = [
+        ['incomplete', 'is incomplete'], ['incorrect', 'requires correction'], ['mismatch', 'does not match the submitted records'], ['invalid', 'appears invalid'], ['missing', 'is missing'], ['other', 'has another issue']
+      ];
+
+      let dashboardReviewAction_ = null;
+
+      function closeDashboardReviewDialog_() {
+        const dialog = document.getElementById('dashboardReviewDialog');
+        if (dialog) { dialog.style.display = 'none'; }
+        dashboardReviewAction_ = null;
+      }
+
+      function showDashboardReviewDialog_(config) {
+        const dialog = document.getElementById('dashboardReviewDialog');
+        const title = document.getElementById('dashboardReviewDialogTitle');
+        const message = document.getElementById('dashboardReviewDialogMessage');
+        const targetLabel = document.getElementById('dashboardReviewTargetLabel');
+        const target = document.getElementById('dashboardReviewTarget');
+        const reasonLabel = document.getElementById('dashboardReviewReasonLabel');
+        const reason = document.getElementById('dashboardReviewReason');
+        const detailsLabel = document.getElementById('dashboardReviewDetailsLabel');
+        const details = document.getElementById('dashboardReviewDetails');
+        const confirm = document.getElementById('dashboardReviewConfirm');
+        if (!dialog || !title || !message || !confirm) { return; }
+        title.textContent = config.title;
+        message.textContent = config.message;
+        details.value = '';
+        targetLabel.style.display = config.targets ? 'grid' : 'none';
+        reasonLabel.style.display = config.reasons ? 'grid' : 'none';
+        detailsLabel.style.display = config.showDetails ? 'grid' : 'none';
+        if (config.targets) { target.innerHTML = config.targets.map(function(item) { return '<option value="' + escapeDashboardHtml_(item[0]) + '">' + escapeDashboardHtml_(item[1]) + '</option>'; }).join(''); }
+        if (config.reasons) { reason.innerHTML = config.reasons.map(function(item) { return '<option value="' + escapeDashboardHtml_(item) + '">' + escapeDashboardHtml_(item) + '</option>'; }).join(''); }
+        confirm.textContent = config.confirmText;
+        dashboardReviewAction_ = config.onConfirm;
+        confirm.onclick = function() { dashboardReviewAction_({ target: target.value, reason: reason.value, details: details.value }); };
+        dialog.style.display = 'grid';
+      }
+
+      function refreshDashboardApplicationDetail_() {
+        if (dashboardCurrentApplicationId_) { loadDashboardApplicationDetail_(dashboardCurrentApplicationId_); }
+      }
+
+      function reviewDashboardDocument_(documentType, decision) {
+        const submit = function(notes) {
+          google.script.run.withSuccessHandler(function(result) {
+            if (!result || result.ok !== true) { window.alert(result && result.message ? result.message : 'The document review could not be saved.'); return; }
+            closeDashboardReviewDialog_();
+            refreshDashboardApplicationDetail_();
+          }).withFailureHandler(function(error) { window.alert(getErrorMessage_(error)); }).reviewSupportingDocument(dashboardCurrentApplicationId_, documentType, decision, notes || '', ADMIN_SESSION_TOKEN);
+        };
+        if (decision === 'approve') {
+          showDashboardReviewDialog_({ title: 'Approve Document', message: 'Approve this supporting document?', confirmText: 'Approve Document', showDetails: false, onConfirm: function() { submit(''); } });
+          return;
+        }
+        showDashboardReviewDialog_({ title: 'Request Document Correction', message: 'Select the reason this document requires correction.', reasons: DASHBOARD_DOCUMENT_CORRECTION_REASONS[documentType] || ['Other'], showDetails: true, confirmText: 'Request Correction', onConfirm: function(input) { const notes = input.reason === 'Other' ? String(input.details || '').trim() : input.reason; if (!notes) { window.alert('Enter the correction details.'); return; } submit(notes); } });
+      }
+
+      function reviewDashboardInformation_(decision) {
+        const submit = function(correctionItems, details) {
+          const runner = google.script.run.withSuccessHandler(function(result) {
+            if (!result || result.ok !== true) { window.alert(result && result.message ? result.message : 'The information review could not be saved.'); return; }
+            closeDashboardReviewDialog_();
+            refreshDashboardApplicationDetail_();
+          }).withFailureHandler(function(error) { window.alert(getErrorMessage_(error)); });
+          if (decision === 'approve') { runner.approveAdminReviewStage(dashboardCurrentApplicationId_, 'information', '', ADMIN_SESSION_TOKEN); }
+          else { runner.rejectAdminReviewStage(dashboardCurrentApplicationId_, 'information', correctionItems, details, ADMIN_SESSION_TOKEN); }
+        };
+        if (decision === 'approve') { showDashboardReviewDialog_({ title: 'Confirm Information', message: 'Confirm the application information?', confirmText: 'Confirm Information', showDetails: false, onConfirm: function() { submit([], ''); } }); return; }
+        showDashboardReviewDialog_({ title: 'Request Information Correction', message: 'Select the information requiring correction and its issue.', targets: DASHBOARD_INFORMATION_TARGETS, reasons: DASHBOARD_INFORMATION_ISSUES, showDetails: true, confirmText: 'Request Correction', onConfirm: function(input) { const needsDetails = input.target === 'other' || input.reason === 'other'; const details = String(input.details || '').trim(); if (needsDetails && !details) { window.alert('Enter the specific custom reason.'); return; } submit([{ targetCode: input.target, issueCode: input.reason }], details); } });
       }
 
       function loadDashboardApplicationDetail_(applicationId) {
@@ -403,6 +523,8 @@ const APPLICATIONS_PAGE_SIZE = 20;
         if (!applicationId || !detail) {
           return;
         }
+
+        dashboardCurrentApplicationId_ = applicationId;
 
         if (list) {
           list.style.display = 'none';
@@ -431,11 +553,7 @@ const APPLICATIONS_PAGE_SIZE = 20;
 
             [
               'dashboardDetailContent',
-              'dashboardApplicationInformation',
-              'dashboardStatusSection',
-              'dashboardDocumentsSection',
-              'dashboardPaymentSection',
-              'dashboardNotesSection'
+              'dashboardStageOneWorkspace'
             ].forEach(function(id) {
               const section =
                 document.getElementById(id);
@@ -446,13 +564,23 @@ const APPLICATIONS_PAGE_SIZE = 20;
             });
 
             setDashboardDetailText_('detailApplicationId', application.applicationId);
+            setDashboardDetailText_('detailApplicationIdField', application.applicationId);
             setDashboardDetailText_(
               'detailSubtitle',
-              [application.companyName, application.applicantName]
+              [application.applicantName, application.companyName]
                 .filter(Boolean)
                 .join(' • ')
             );
             setDashboardDetailText_('detailApplicantName', application.applicantName);
+            setDashboardDetailText_('detailGender', application.gender);
+            setDashboardDetailText_('detailDateOfBirth', application.dateOfBirth);
+            setDashboardDetailText_('detailNationality', application.nationality);
+            setDashboardDetailText_('detailStateOfOrigin', application.stateOfOrigin);
+            setDashboardDetailText_('detailResidentialAddress', application.residentialAddress);
+            setDashboardDetailText_('detailMeansOfIdentification', application.meansOfIdentification);
+            setDashboardDetailText_('detailIdNumber', application.idNumber);
+            setDashboardDetailText_('detailAreaOfPractice', application.areaOfPractice);
+            setDashboardDetailText_('detailOtherAreaOfPractice', application.otherAreaOfPractice);
             setDashboardDetailText_('detailCompanyName', application.companyName);
             setDashboardDetailText_('detailRcNumber', application.rcNumber);
             setDashboardDetailText_('detailTin', application.tin);
@@ -461,15 +589,15 @@ const APPLICATIONS_PAGE_SIZE = 20;
             setDashboardDetailText_('detailEmail', application.email);
             setDashboardDetailText_('detailPhone', application.phoneNumber);
             setDashboardDetailText_('detailAddress', application.officeAddress);
+            setDashboardDetailText_('detailPositionHeld', application.positionHeld);
             setDashboardDetailText_('detailSubmitted', application.submittedAt);
             setDashboardDetailText_('detailRecordStatus', application.recordStatus);
-            setDashboardDetailText_('detailDocumentNotes', application.documentReviewNotes);
             setDashboardDetailText_('detailInformationNotes', application.informationReviewNotes);
 
             [
               ['detailInformationStatus', application.informationStatus],
-              ['detailDocumentStatus', application.documentStatus],
-              ['detailVerificationStatus', application.verificationStatus]
+              ['detailInformationReviewStatus', application.informationStatus],
+              ['detailDocumentStatus', application.documentStatus]
             ].forEach(function(pair) {
               const element =
                 document.getElementById(pair[0]);
@@ -483,8 +611,20 @@ const APPLICATIONS_PAGE_SIZE = 20;
             renderDashboardDocuments_(
               application.applicationId ||
               applicationId,
-              application.supportingDocuments
+              application.supportingDocuments,
+              application.documentStatus
             );
+
+            const documents =
+              Array.isArray(application.supportingDocuments)
+                ? application.supportingDocuments
+                : [];
+            const approved = documents.filter(function(document) { return String(document.reviewStatus || '').toLowerCase() === 'approved'; }).length;
+            const corrections = documents.filter(function(document) { return String(document.reviewStatus || '').toLowerCase() === 'correction required'; }).length;
+            const pending = documents.filter(function(document) { return document.uploaded && ['approved', 'correction required'].indexOf(String(document.reviewStatus || '').toLowerCase()) === -1; }).length;
+            setDashboardDetailText_('detailDocumentsApproved', approved + ' of 5 approved');
+            setDashboardDetailText_('detailDocumentsPending', pending + ' pending review');
+            setDashboardDetailText_('detailDocumentsCorrections', corrections + ' correction required');
           })
           .withFailureHandler(function(error) {
             loading.textContent =

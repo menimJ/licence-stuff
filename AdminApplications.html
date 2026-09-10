@@ -73,14 +73,14 @@
 
           <div id="dashboardApplicationDetail" style="display:none;">
             <a
-  id="dashboardApplicationsBackLink"
-  class="dashboard-back-link"
-  href="#"
->
+              id="dashboardApplicationsBackLink"
+              class="dashboard-back-link"
+              href="#"
+            >
               ← Back to Applications
             </a>
 
-            <section class="dashboard-detail-card">
+            <section class="dashboard-detail-header">
               <div id="dashboardDetailLoading">Loading application...</div>
 
               <div id="dashboardDetailContent" style="display:none;">
@@ -90,42 +90,98 @@
               </div>
             </section>
 
-            <section id="dashboardApplicationInformation" class="dashboard-detail-card" style="display:none;">
-              <h3>Application Information</h3>
-              <div class="dashboard-detail-grid">
-                <div class="dashboard-detail-field"><span class="dashboard-detail-label">Applicant Name</span><span id="detailApplicantName" class="dashboard-detail-value"></span></div>
-                <div class="dashboard-detail-field"><span class="dashboard-detail-label">Company Name</span><span id="detailCompanyName" class="dashboard-detail-value"></span></div>
-                <div class="dashboard-detail-field"><span class="dashboard-detail-label">RC Number</span><span id="detailRcNumber" class="dashboard-detail-value"></span></div>
-                <div class="dashboard-detail-field"><span class="dashboard-detail-label">TIN</span><span id="detailTin" class="dashboard-detail-value"></span></div>
-                <div class="dashboard-detail-field"><span class="dashboard-detail-label">CRFFN Membership Number</span><span id="detailMembership" class="dashboard-detail-value"></span></div>
-                <div class="dashboard-detail-field"><span class="dashboard-detail-label">Serial Number</span><span id="detailSerial" class="dashboard-detail-value"></span></div>
-                <div class="dashboard-detail-field"><span class="dashboard-detail-label">Email</span><span id="detailEmail" class="dashboard-detail-value"></span></div>
-                <div class="dashboard-detail-field"><span class="dashboard-detail-label">Phone</span><span id="detailPhone" class="dashboard-detail-value"></span></div>
-                <div class="dashboard-detail-field full"><span class="dashboard-detail-label">Office Address</span><span id="detailAddress" class="dashboard-detail-value"></span></div>
-                <div class="dashboard-detail-field"><span class="dashboard-detail-label">Submitted</span><span id="detailSubmitted" class="dashboard-detail-value"></span></div>
-                <div class="dashboard-detail-field"><span class="dashboard-detail-label">Record Status</span><span id="detailRecordStatus" class="dashboard-detail-value"></span></div>
-              </div>
-            </section>
+            <div id="dashboardStageOneWorkspace" class="dashboard-stage-workspace" style="display:none;">
+              <aside id="dashboardStatusSection" class="dashboard-stage-status">
+                <p class="eyebrow">Stage 1 Status</p>
+                <h3>Stage 1 Review</h3>
+                <div class="dashboard-stage-status-item">
+                  <span class="dashboard-detail-label">Application Information</span>
+                  <div id="detailInformationStatus"></div>
+                </div>
+                <div class="dashboard-stage-status-item">
+                  <span class="dashboard-detail-label">Supporting Documents</span>
+                  <div id="detailDocumentStatus"></div>
+                </div>
+                <div class="dashboard-document-progress">
+                  <span id="detailDocumentsApproved"></span>
+                  <span id="detailDocumentsPending"></span>
+                  <span id="detailDocumentsCorrections"></span>
+                </div>
+              </aside>
 
-            <section id="dashboardStatusSection" class="dashboard-detail-card" style="display:none;">
-              <h3>Current Status</h3>
-              <div class="dashboard-status-grid">
-                <div class="dashboard-detail-field"><span class="dashboard-detail-label">Information</span><div id="detailInformationStatus"></div></div>
-                <div class="dashboard-detail-field"><span class="dashboard-detail-label">Documents</span><div id="detailDocumentStatus"></div></div>
-                <div class="dashboard-detail-field"><span class="dashboard-detail-label">Verification</span><div id="detailVerificationStatus"></div></div>
-              </div>
-            </section>
+              <div class="dashboard-stage-content">
+                <section id="dashboardApplicationInformation" class="dashboard-detail-card">
+                  <h3>Application Information</h3>
+                  <div class="dashboard-information-section">
+                    <h4>Application Details</h4>
+                    <div class="dashboard-detail-grid">
+                      <div class="dashboard-detail-field"><span class="dashboard-detail-label">Application ID</span><span id="detailApplicationIdField" class="dashboard-detail-value"></span></div>
+                      <div class="dashboard-detail-field"><span class="dashboard-detail-label">Serial Number</span><span id="detailSerial" class="dashboard-detail-value"></span></div>
+                      <div class="dashboard-detail-field"><span class="dashboard-detail-label">Submitted At</span><span id="detailSubmitted" class="dashboard-detail-value"></span></div>
+                      <div class="dashboard-detail-field"><span class="dashboard-detail-label">Record Status</span><span id="detailRecordStatus" class="dashboard-detail-value"></span></div>
+                    </div>
+                  </div>
 
-            <section id="dashboardDocumentsSection" class="dashboard-detail-card" style="display:none;">
-              <h3>Supporting Documents</h3>
-              <div id="dashboardDocuments"></div>
-            </section>
+                  <div class="dashboard-information-section">
+                    <h4>Applicant Information</h4>
+                    <div class="dashboard-detail-grid">
+                      <div class="dashboard-detail-field"><span class="dashboard-detail-label">Full Name</span><span id="detailApplicantName" class="dashboard-detail-value"></span></div>
+                      <div class="dashboard-detail-field"><span class="dashboard-detail-label">Gender</span><span id="detailGender" class="dashboard-detail-value"></span></div>
+                      <div class="dashboard-detail-field"><span class="dashboard-detail-label">Date of Birth</span><span id="detailDateOfBirth" class="dashboard-detail-value"></span></div>
+                      <div class="dashboard-detail-field"><span class="dashboard-detail-label">Nationality</span><span id="detailNationality" class="dashboard-detail-value"></span></div>
+                      <div class="dashboard-detail-field"><span class="dashboard-detail-label">State of Origin</span><span id="detailStateOfOrigin" class="dashboard-detail-value"></span></div>
+                      <div class="dashboard-detail-field full"><span class="dashboard-detail-label">Residential Address</span><span id="detailResidentialAddress" class="dashboard-detail-value"></span></div>
+                      <div class="dashboard-detail-field"><span class="dashboard-detail-label">Phone Number</span><span id="detailPhone" class="dashboard-detail-value"></span></div>
+                      <div class="dashboard-detail-field"><span class="dashboard-detail-label">Email Address</span><span id="detailEmail" class="dashboard-detail-value"></span></div>
+                      <div class="dashboard-detail-field"><span class="dashboard-detail-label">Means of Identification</span><span id="detailMeansOfIdentification" class="dashboard-detail-value"></span></div>
+                      <div class="dashboard-detail-field"><span class="dashboard-detail-label">ID Number</span><span id="detailIdNumber" class="dashboard-detail-value"></span></div>
+                    </div>
+                  </div>
 
-            <section id="dashboardNotesSection" class="dashboard-detail-card" style="display:none;">
-              <h3>Review Notes</h3>
-              <div class="dashboard-detail-grid">
-                <div class="dashboard-detail-field full"><span class="dashboard-detail-label">Document Review Notes</span><span id="detailDocumentNotes" class="dashboard-detail-value"></span></div>
-                <div class="dashboard-detail-field full"><span class="dashboard-detail-label">Information Review Notes</span><span id="detailInformationNotes" class="dashboard-detail-value"></span></div>
+                  <div class="dashboard-information-section">
+                    <h4>Professional / Company Details</h4>
+                    <div class="dashboard-detail-grid">
+                      <div class="dashboard-detail-field"><span class="dashboard-detail-label">Area of Practice</span><span id="detailAreaOfPractice" class="dashboard-detail-value"></span></div>
+                      <div class="dashboard-detail-field"><span class="dashboard-detail-label">If Other, please specify</span><span id="detailOtherAreaOfPractice" class="dashboard-detail-value"></span></div>
+                      <div class="dashboard-detail-field"><span class="dashboard-detail-label">Company Name</span><span id="detailCompanyName" class="dashboard-detail-value"></span></div>
+                      <div class="dashboard-detail-field"><span class="dashboard-detail-label">Company RC Number</span><span id="detailRcNumber" class="dashboard-detail-value"></span></div>
+                      <div class="dashboard-detail-field"><span class="dashboard-detail-label">Company TIN</span><span id="detailTin" class="dashboard-detail-value"></span></div>
+                      <div class="dashboard-detail-field"><span class="dashboard-detail-label">CRFFN Membership Number</span><span id="detailMembership" class="dashboard-detail-value"></span></div>
+                      <div class="dashboard-detail-field full"><span class="dashboard-detail-label">Company Address</span><span id="detailAddress" class="dashboard-detail-value"></span></div>
+                      <div class="dashboard-detail-field"><span class="dashboard-detail-label">Position Held</span><span id="detailPositionHeld" class="dashboard-detail-value"></span></div>
+                    </div>
+                  </div>
+                  <div class="dashboard-review-actions">
+                    <div>
+                      <span class="dashboard-detail-label">Application Information Review</span>
+                      <div id="detailInformationReviewStatus"></div>
+                      <span id="detailInformationNotes" class="dashboard-review-note"></span>
+                    </div>
+                    <div class="dashboard-doc-actions">
+                      <button class="button" type="button" onclick="reviewDashboardInformation_('approve')">Confirm Information</button>
+                      <button class="button button-danger" type="button" onclick="reviewDashboardInformation_('correction')">Request Correction</button>
+                    </div>
+                  </div>
+                </section>
+
+                <section id="dashboardDocumentsSection" class="dashboard-detail-card">
+                  <h3>Supporting Documents</h3>
+                  <div id="dashboardDocuments"></div>
+                </section>
               </div>
-            </section>
+            </div>
+
+            <div id="dashboardReviewDialog" class="dashboard-review-dialog" style="display:none;">
+              <div class="dashboard-review-dialog-card" role="dialog" aria-modal="true" aria-labelledby="dashboardReviewDialogTitle">
+                <h3 id="dashboardReviewDialogTitle"></h3>
+                <p id="dashboardReviewDialogMessage" class="muted"></p>
+                <label id="dashboardReviewTargetLabel" style="display:none;">Field requiring correction<select id="dashboardReviewTarget"></select></label>
+                <label id="dashboardReviewReasonLabel" style="display:none;">Reason<select id="dashboardReviewReason"></select></label>
+                <label id="dashboardReviewDetailsLabel" style="display:none;">Details<textarea id="dashboardReviewDetails" rows="3"></textarea></label>
+                <div class="dashboard-doc-actions">
+                  <button class="button" type="button" id="dashboardReviewConfirm">Confirm</button>
+                  <button class="dashboard-detail-link" type="button" onclick="closeDashboardReviewDialog_()">Cancel</button>
+                </div>
+              </div>
+            </div>
           </div>

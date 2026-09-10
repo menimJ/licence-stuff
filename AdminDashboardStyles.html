@@ -124,6 +124,14 @@
       .button:hover { background: var(--primary-hover); }
       .button:disabled { opacity: 0.65; cursor: wait; }
 
+      .button-danger {
+        background: #b42318;
+      }
+
+      .button-danger:hover {
+        background: #912018;
+      }
+
       .auth-message {
         display: none;
         padding: 11px 12px;
@@ -408,10 +416,83 @@
         border-radius: 12px;
       }
 
+      .dashboard-detail-header {
+        margin-bottom: 18px;
+        padding: 20px;
+        background: #ffffff;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+      }
+
+      .dashboard-stage-workspace {
+        display: grid;
+        grid-template-columns: minmax(240px, 280px) minmax(0, 1fr);
+        gap: 18px;
+        align-items: start;
+      }
+
+      .dashboard-stage-status {
+        position: sticky;
+        top: 18px;
+        padding: 20px;
+        background: #ffffff;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+      }
+
+      .dashboard-stage-status h3 { margin: 0 0 18px; }
+
+      .dashboard-stage-status-item {
+        display: grid;
+        gap: 7px;
+        padding: 13px 0;
+        border-top: 1px solid #eaecf0;
+      }
+
+      .dashboard-document-progress {
+        display: grid;
+        gap: 6px;
+        margin-top: 10px;
+        padding-top: 14px;
+        border-top: 1px solid #eaecf0;
+        color: var(--text-secondary);
+        font-size: 13px;
+        font-weight: 600;
+      }
+
+      .dashboard-review-actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        margin-top: 18px;
+        padding-top: 18px;
+        border-top: 1px solid #eaecf0;
+      }
+
+      .dashboard-review-note {
+        display: block;
+        margin-top: 7px;
+        color: var(--text-secondary);
+        font-size: 13px;
+      }
+
       .dashboard-detail-grid {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 12px;
+      }
+
+      .dashboard-information-section + .dashboard-information-section {
+        margin-top: 22px;
+        padding-top: 20px;
+        border-top: 1px solid #eaecf0;
+      }
+
+      .dashboard-information-section h4 {
+        margin: 0 0 12px;
+        color: var(--text-primary);
+        font-size: 14px;
       }
 
       .dashboard-detail-field {
@@ -466,6 +547,10 @@
         border-radius: 8px;
       }
 
+      .dashboard-document-status { margin: 7px 0; }
+
+      .dashboard-document-review-actions { width: 100%; }
+
       .dashboard-doc-actions {
         display: flex;
         gap: 8px;
@@ -486,7 +571,47 @@
         text-decoration: none;
       }
 
+      .dashboard-review-dialog {
+        position: fixed;
+        z-index: 20;
+        inset: 0;
+        place-items: center;
+        padding: 20px;
+        background: rgba(16, 24, 40, 0.45);
+      }
+
+      .dashboard-review-dialog-card {
+        display: grid;
+        gap: 14px;
+        width: min(100%, 520px);
+        padding: 22px;
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 16px 40px rgba(16, 24, 40, 0.2);
+      }
+
+      .dashboard-review-dialog-card h3 { margin: 0; }
+
+      .dashboard-review-dialog-card label {
+        display: grid;
+        gap: 6px;
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .dashboard-review-dialog-card select,
+      .dashboard-review-dialog-card textarea {
+        width: 100%;
+        padding: 9px 11px;
+        border: 1px solid #d0d5dd;
+        border-radius: 7px;
+        font: inherit;
+      }
+
       @media (max-width: 850px) {
+        .dashboard-stage-workspace { grid-template-columns: 1fr; }
+        .dashboard-stage-status { position: static; }
+
         .dashboard-status-grid {
           grid-template-columns: repeat(2, minmax(0, 1fr));
         }
@@ -504,6 +629,11 @@
 
         .dashboard-doc-row {
           align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .dashboard-review-actions {
+          align-items: stretch;
           flex-direction: column;
         }
       }

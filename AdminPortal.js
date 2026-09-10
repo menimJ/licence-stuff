@@ -871,11 +871,18 @@ function getAdminDashboardSupportingDocuments_(
           getFirstAvailableValue_(
             rowObject,
             [config.reviewNotesHeader]
+          ),
+        reviewedAt:
+          getFirstAvailableValue_(
+            rowObject,
+            [config.reviewedAtHeader]
+          ),
+        reviewedBy:
+          getFirstAvailableValue_(
+            rowObject,
+            [config.reviewedByHeader]
           )
       };
-    })
-    .filter(function(document) {
-      return document.uploaded;
     });
 }
 
@@ -1116,6 +1123,63 @@ function buildAdminApplicationSummary_(
         ]
       ) || 'Applicant',
 
+    gender:
+      getFirstAvailableValue_(
+        rowObject,
+        ['Gender']
+      ),
+
+    dateOfBirth:
+      getFirstAvailableValue_(
+        rowObject,
+        ['Date of Birth']
+      ),
+
+    nationality:
+      getFirstAvailableValue_(
+        rowObject,
+        ['Nationality']
+      ),
+
+    stateOfOrigin:
+      getFirstAvailableValue_(
+        rowObject,
+        [
+          'State of Origin — Nigerian Applicants Only',
+          'State of Origin',
+        ]
+      ),
+
+    residentialAddress:
+      getFirstAvailableValue_(
+        rowObject,
+        ['Residential Address']
+      ),
+
+    meansOfIdentification:
+      getFirstAvailableValue_(
+        rowObject,
+        ['Means of Identification']
+      ),
+
+    idNumber:
+      getFirstAvailableValue_(
+        rowObject,
+        ['ID Number']
+      ),
+
+    areaOfPractice:
+      getFirstAvailableValue_(
+        rowObject,
+        ['Area of Practice']
+      ),
+
+    otherAreaOfPractice:
+      getFirstAvailableValue_(
+        rowObject,
+        ['If Other, please specify']
+      ),
+
     companyName:
       getFirstAvailableValue_(
         rowObject,
@@ -1265,6 +1329,12 @@ function buildAdminApplicationDetail_(
           'Company Address',
           'Address',
         ]
+      ),
+
+    positionHeld:
+      getFirstAvailableValue_(
+        rowObject,
+        ['Position Held']
       ),
 
     email:
