@@ -431,7 +431,27 @@ const APPLICATIONS_PAGE_SIZE = 20;
       };
 
       const DASHBOARD_INFORMATION_TARGETS = [
-        ['company_name', 'Company Name'], ['company_rc_number', 'Company RC Number'], ['company_tin', 'Company TIN'], ['crffn_membership_number', 'CRFFN Membership Number'], ['company_address', 'Company Address'], ['full_name', 'Full Name'], ['phone_number', 'Phone Number'], ['residential_address', 'Residential Address'], ['means_of_identification', 'Means of Identification'], ['id_number', 'ID Number'], ['position_held', 'Position Held'], ['area_of_practice', 'Area of Practice'], ['other', 'Other Application Information']
+        ['full_name', 'Full Name'],
+        ['gender', 'Gender'],
+        ['date_of_birth', 'Date of Birth'],
+        ['nationality', 'Nationality'],
+        ['state_of_origin', 'State of Origin'],
+        ['residential_address', 'Residential Address'],
+        ['phone_number', 'Phone Number'],
+        ['email_address', 'Email Address'],
+        ['means_of_identification', 'Means of Identification'],
+        ['id_number', 'ID Number'],
+
+        ['area_of_practice', 'Area of Practice'],
+        ['other_area_of_practice', 'If Other, please specify'],
+        ['company_name', 'Company Name'],
+        ['company_rc_number', 'Company RC Number'],
+        ['company_tin', 'Company TIN'],
+        ['crffn_membership_number', 'CRFFN Membership Number'],
+        ['company_address', 'Company Address'],
+        ['position_held', 'Position Held'],
+
+        ['other', 'Other Application Information']
       ];
 
       const DASHBOARD_INFORMATION_ISSUES = [
@@ -503,7 +523,9 @@ const APPLICATIONS_PAGE_SIZE = 20;
           throw new Error('Add at least one correction.');
         }
         const details = String(document.getElementById('dashboardReviewDetails').value || '').trim();
-        if (correctionItems.some(function(item) { return item.targetCode === 'other' || item.issueCode === 'other'; }) && !details) {
+        if (correctionItems.some(function(item) { return item.targetCode === 'other' ||
+            item.targetCode === 'other_area_of_practice' ||
+            item.issueCode === 'other'; }) && !details) {
           throw new Error('Enter the specific custom reason for the item marked Other.');
         }
         return { correctionItems: correctionItems, details: details };
