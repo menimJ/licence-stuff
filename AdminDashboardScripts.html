@@ -517,7 +517,12 @@ const APPLICATIONS_PAGE_SIZE = 20;
           if (!targetCode || !issueCode) {
             throw new Error('Select both the field and issue for every correction.');
           }
-          correctionItems.push({ targetCode: targetCode, issueCode: issueCode });
+          correctionItems.push({
+            targetCode: targetCode,
+            targetLabel: getDashboardInformationTargetLabel_(targetCode),
+            issueCode: issueCode,
+            issueText: getDashboardCorrectionIssueText_(issueCode)
+          });
         }
         if (!correctionItems.length) {
           throw new Error('Add at least one correction.');
@@ -1592,4 +1597,45 @@ const APPLICATIONS_PAGE_SIZE = 20;
 
         window.top.location.replace(url);
       }
+  function getDashboardInformationTargetLabel_(code) {
+  const labels = {
+    full_name: 'Full Name',
+    gender: 'Gender',
+    date_of_birth: 'Date of Birth',
+    nationality: 'Nationality',
+    state_of_origin: 'State of Origin',
+    residential_address: 'Residential Address',
+    phone_number: 'Phone Number',
+    email_address: 'Email Address',
+    means_of_identification: 'Means of Identification',
+    id_number: 'ID Number',
+    area_of_practice: 'Area of Practice',
+    other_area_of_practice: 'If Other, please specify',
+    company_name: 'Company Name',
+    company_rc_number: 'Company RC Number',
+    company_tin: 'Company TIN',
+    crffn_membership_number: 'CRFFN Membership Number',
+    company_address: 'Company Address',
+    position_held: 'Position Held',
+    other: 'Other Application Information'
+  };
+
+  return labels[code] || code;
+}
+
+function getDashboardCorrectionIssueText_(code) {
+  const issues = {
+    incomplete: 'is incomplete',
+    incorrect: 'requires correction',
+    mismatch: 'does not match the submitted records',
+    invalid: 'appears invalid',
+    missing: 'is missing',
+    other: 'has another issue'
+  };
+
+  return issues[code] || code;
+}
+
 </script>
+
+
