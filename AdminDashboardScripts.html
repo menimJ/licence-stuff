@@ -30,6 +30,7 @@ const APPLICATIONS_PAGE_SIZE = 20;
 
         if (
           text.indexOf('reject') !== -1 ||
+          text.indexOf('correction required') !== -1 ||
           text.indexOf('revoked') !== -1 ||
           text.indexOf('suspend') !== -1
         ) return 'danger';
@@ -430,7 +431,7 @@ const APPLICATIONS_PAGE_SIZE = 20;
       };
 
       const DASHBOARD_INFORMATION_TARGETS = [
-        ['company_name', 'Company Name'], ['company_rc_number', 'Company RC Number'], ['company_tin', 'Company TIN'], ['crffn_membership_number', 'CRFFN Membership Number'], ['company_address', 'Company Address'], ['full_name', 'Full Name'], ['phone_number', 'Phone Number'], ['residential_address', 'Residential Address'], ['means_of_identification', 'Means of Identification'], ['id_number', 'ID Number'], ['expiry_date', 'Expiry Date'], ['position_held', 'Position Held'], ['area_of_practice', 'Area of Practice'], ['other', 'Other Application Information']
+        ['company_name', 'Company Name'], ['company_rc_number', 'Company RC Number'], ['company_tin', 'Company TIN'], ['crffn_membership_number', 'CRFFN Membership Number'], ['company_address', 'Company Address'], ['full_name', 'Full Name'], ['phone_number', 'Phone Number'], ['residential_address', 'Residential Address'], ['means_of_identification', 'Means of Identification'], ['id_number', 'ID Number'], ['position_held', 'Position Held'], ['area_of_practice', 'Area of Practice'], ['other', 'Other Application Information']
       ];
 
       const DASHBOARD_INFORMATION_ISSUES = [
@@ -445,6 +446,69 @@ const APPLICATIONS_PAGE_SIZE = 20;
         dashboardReviewAction_ = null;
       }
 
+      function populateDashboardReviewSelect_(select, options, placeholder) {
+        select.innerHTML = '<option value="">' + placeholder + '</option>';
+        options.forEach(function(option) {
+          const value = Array.isArray(option) ? option[0] : option;
+          const label = Array.isArray(option) ? option[1] : option;
+          select.innerHTML += '<option value="' + escapeDashboardHtml_(value) + '">' + escapeDashboardHtml_(label) + '</option>';
+        });
+      }
+
+      function updateDashboardCorrectionDetailsVisibility_() {
+        const rows = Array.from(document.querySelectorAll('#dashboardReviewRows .dashboard-correction-row'));
+        const needsDetails = rows.some(function(row) {
+          return row.querySelector('.dashboard-correction-target').value === 'other' || row.querySelector('.dashboard-correction-issue').value === 'other';
+        });
+        const detailsLabel = document.getElementById('dashboardReviewDetailsLabel');
+        if (detailsLabel) { detailsLabel.style.display = needsDetails ? 'grid' : 'none'; }
+      }
+
+      function addDashboardInformationCorrectionRow_() {
+        const list = document.getElementById('dashboardReviewRows');
+        if (!list) { return; }
+        const row = document.createElement('div');
+        row.className = 'dashboard-correction-row';
+        row.innerHTML = '<label>Field<select class="dashboard-correction-target"></select></label><label>Issue<select class="dashboard-correction-issue"></select></label><button class="dashboard-remove-correction" type="button">Remove</button>';
+        const target = row.querySelector('.dashboard-correction-target');
+        const issue = row.querySelector('.dashboard-correction-issue');
+        populateDashboardReviewSelect_(target, DASHBOARD_INFORMATION_TARGETS, 'Select field');
+        populateDashboardReviewSelect_(issue, DASHBOARD_INFORMATION_ISSUES, 'Select issue');
+        target.onchange = updateDashboardCorrectionDetailsVisibility_;
+        issue.onchange = updateDashboardCorrectionDetailsVisibility_;
+        row.querySelector('.dashboard-remove-correction').onclick = function() {
+          if (list.children.length === 1) {
+            target.value = '';
+            issue.value = '';
+          } else {
+            row.remove();
+          }
+          updateDashboardCorrectionDetailsVisibility_();
+        };
+        list.appendChild(row);
+      }
+
+      function getDashboardInformationCorrectionPayload_() {
+        const rows = Array.from(document.querySelectorAll('#dashboardReviewRows .dashboard-correction-row'));
+        const correctionItems = [];
+        for (const row of rows) {
+          const targetCode = row.querySelector('.dashboard-correction-target').value;
+          const issueCode = row.querySelector('.dashboard-correction-issue').value;
+          if (!targetCode || !issueCode) {
+            throw new Error('Select both the field and issue for every correction.');
+          }
+          correctionItems.push({ targetCode: targetCode, issueCode: issueCode });
+        }
+        if (!correctionItems.length) {
+          throw new Error('Add at least one correction.');
+        }
+        const details = String(document.getElementById('dashboardReviewDetails').value || '').trim();
+        if (correctionItems.some(function(item) { return item.targetCode === 'other' || item.issueCode === 'other'; }) && !details) {
+          throw new Error('Enter the specific custom reason for the item marked Other.');
+        }
+        return { correctionItems: correctionItems, details: details };
+      }
+
       function showDashboardReviewDialog_(config) {
         const dialog = document.getElementById('dashboardReviewDialog');
         const title = document.getElementById('dashboardReviewDialogTitle');
@@ -456,18 +520,37 @@ const APPLICATIONS_PAGE_SIZE = 20;
         const detailsLabel = document.getElementById('dashboardReviewDetailsLabel');
         const details = document.getElementById('dashboardReviewDetails');
         const confirm = document.getElementById('dashboardReviewConfirm');
+        const rowsLabel = document.getElementById('dashboardReviewRowsLabel');
+        const rows = document.getElementById('dashboardReviewRows');
+        const addRow = document.getElementById('dashboardReviewAddRow');
         if (!dialog || !title || !message || !confirm) { return; }
         title.textContent = config.title;
         message.textContent = config.message;
         details.value = '';
-        targetLabel.style.display = config.targets ? 'grid' : 'none';
-        reasonLabel.style.display = config.reasons ? 'grid' : 'none';
-        detailsLabel.style.display = config.showDetails ? 'grid' : 'none';
+        const multiRows = config.multiRows === true;
+        rowsLabel.style.display = multiRows ? 'grid' : 'none';
+        targetLabel.style.display = !multiRows && config.targets ? 'grid' : 'none';
+        reasonLabel.style.display = !multiRows && config.reasons ? 'grid' : 'none';
+        detailsLabel.style.display = !multiRows && config.showDetails ? 'grid' : 'none';
+        if (multiRows) {
+          rows.innerHTML = '';
+          addRow.onclick = addDashboardInformationCorrectionRow_;
+          addDashboardInformationCorrectionRow_();
+        }
         if (config.targets) { target.innerHTML = config.targets.map(function(item) { return '<option value="' + escapeDashboardHtml_(item[0]) + '">' + escapeDashboardHtml_(item[1]) + '</option>'; }).join(''); }
         if (config.reasons) { reason.innerHTML = config.reasons.map(function(item) { return '<option value="' + escapeDashboardHtml_(item) + '">' + escapeDashboardHtml_(item) + '</option>'; }).join(''); }
         confirm.textContent = config.confirmText;
         dashboardReviewAction_ = config.onConfirm;
-        confirm.onclick = function() { dashboardReviewAction_({ target: target.value, reason: reason.value, details: details.value }); };
+        confirm.onclick = function() {
+          try {
+            const input = multiRows
+              ? getDashboardInformationCorrectionPayload_()
+              : { target: target.value, reason: reason.value, details: details.value };
+            dashboardReviewAction_(input);
+          } catch (error) {
+            window.alert(error.message || 'Complete the correction details.');
+          }
+        };
         dialog.style.display = 'grid';
       }
 
@@ -501,7 +584,7 @@ const APPLICATIONS_PAGE_SIZE = 20;
           else { runner.rejectAdminReviewStage(dashboardCurrentApplicationId_, 'information', correctionItems, details, ADMIN_SESSION_TOKEN); }
         };
         if (decision === 'approve') { showDashboardReviewDialog_({ title: 'Confirm Information', message: 'Confirm the application information?', confirmText: 'Confirm Information', showDetails: false, onConfirm: function() { submit([], ''); } }); return; }
-        showDashboardReviewDialog_({ title: 'Request Information Correction', message: 'Select the information requiring correction and its issue.', targets: DASHBOARD_INFORMATION_TARGETS, reasons: DASHBOARD_INFORMATION_ISSUES, showDetails: true, confirmText: 'Request Correction', onConfirm: function(input) { const needsDetails = input.target === 'other' || input.reason === 'other'; const details = String(input.details || '').trim(); if (needsDetails && !details) { window.alert('Enter the specific custom reason.'); return; } submit([{ targetCode: input.target, issueCode: input.reason }], details); } });
+        showDashboardReviewDialog_({ title: 'Request Information Correction', message: 'Add every field requiring correction and select its issue.', multiRows: true, confirmText: 'Request Correction', onConfirm: function(input) { submit(input.correctionItems, input.details); } });
       }
 
       function loadDashboardApplicationDetail_(applicationId) {
