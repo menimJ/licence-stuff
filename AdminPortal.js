@@ -1278,6 +1278,72 @@ function buildAdminApplicationDetail_(
         ]
       ) || 'Applicant',
 
+    fullName:
+      getFirstAvailableValue_(
+        rowObject,
+        [
+          'Full Name',
+          'Applicant Name',
+        ]
+      ),
+
+    gender:
+      getFirstAvailableValue_(
+        rowObject,
+        ['Gender']
+      ),
+
+    dateOfBirth:
+      getFirstAvailableValue_(
+        rowObject,
+        ['Date of Birth']
+      ),
+
+    nationality:
+      getFirstAvailableValue_(
+        rowObject,
+        ['Nationality']
+      ),
+
+    stateOfOrigin:
+      getFirstAvailableValue_(
+        rowObject,
+        [
+          'State of Origin — Nigerian Applicants Only',
+          'State of Origin',
+        ]
+      ),
+
+    residentialAddress:
+      getFirstAvailableValue_(
+        rowObject,
+        ['Residential Address']
+      ),
+
+    meansOfIdentification:
+      getFirstAvailableValue_(
+        rowObject,
+        ['Means of Identification']
+      ),
+
+    idNumber:
+      getFirstAvailableValue_(
+        rowObject,
+        ['ID Number']
+      ),
+
+    areaOfPractice:
+      getFirstAvailableValue_(
+        rowObject,
+        ['Area of Practice']
+      ),
+
+    otherAreaOfPractice:
+      getFirstAvailableValue_(
+        rowObject,
+        ['If Other, please specify']
+      ),
+
     companyName:
       getFirstAvailableValue_(
         rowObject,
@@ -1297,7 +1363,28 @@ function buildAdminApplicationDetail_(
         ]
       ),
 
+    companyRcNumber:
+      getFirstAvailableValue_(
+        rowObject,
+        [
+          'Company RC Number',
+          'RC Number',
+          'CAC Registration Number',
+        ]
+      ),
+
     tin:
+      getFirstAvailableValue_(
+        rowObject,
+        [
+          'Company TIN',
+          'Company Tax Identification Number (TIN)',
+          'Tax Identification Number',
+          'TIN',
+        ]
+      ),
+
+    companyTin:
       getFirstAvailableValue_(
         rowObject,
         [
@@ -1331,6 +1418,17 @@ function buildAdminApplicationDetail_(
         ]
       ),
 
+    companyAddress:
+      getFirstAvailableValue_(
+        rowObject,
+        [
+          'Company Address',
+          'Company Office Address',
+          'Office Address',
+          'Address',
+        ]
+      ),
+
     positionHeld:
       getFirstAvailableValue_(
         rowObject,
@@ -1347,6 +1445,17 @@ function buildAdminApplicationDetail_(
       ),
 
     phoneNumber:
+      getFirstAvailableValue_(
+        rowObject,
+        [
+          'Company Contact Number',
+          'Phone Number',
+          'Phone',
+          'Contact Number',
+        ]
+      ),
+
+    phone:
       getFirstAvailableValue_(
         rowObject,
         [

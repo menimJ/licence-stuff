@@ -681,7 +681,7 @@ const APPLICATIONS_PAGE_SIZE = 20;
                 .filter(Boolean)
                 .join(' • ')
             );
-            setDashboardDetailText_('detailApplicantName', application.applicantName);
+            setDashboardDetailText_('detailApplicantName', application.fullName || application.applicantName);
             setDashboardDetailText_('detailGender', application.gender);
             setDashboardDetailText_('detailDateOfBirth', application.dateOfBirth);
             setDashboardDetailText_('detailNationality', application.nationality);
@@ -692,13 +692,13 @@ const APPLICATIONS_PAGE_SIZE = 20;
             setDashboardDetailText_('detailAreaOfPractice', application.areaOfPractice);
             setDashboardDetailText_('detailOtherAreaOfPractice', application.otherAreaOfPractice);
             setDashboardDetailText_('detailCompanyName', application.companyName);
-            setDashboardDetailText_('detailRcNumber', application.rcNumber);
-            setDashboardDetailText_('detailTin', application.tin);
+            setDashboardDetailText_('detailRcNumber', application.companyRcNumber || application.rcNumber);
+            setDashboardDetailText_('detailTin', application.companyTin || application.tin);
             setDashboardDetailText_('detailMembership', application.crffnMembershipNumber);
             setDashboardDetailText_('detailSerial', application.serialNumber);
             setDashboardDetailText_('detailEmail', application.email);
-            setDashboardDetailText_('detailPhone', application.phoneNumber);
-            setDashboardDetailText_('detailAddress', application.officeAddress);
+            setDashboardDetailText_('detailPhone', application.phone || application.phoneNumber);
+            setDashboardDetailText_('detailAddress', application.companyAddress || application.officeAddress);
             setDashboardDetailText_('detailPositionHeld', application.positionHeld);
             setDashboardDetailText_('detailSubmitted', application.submittedAt);
             setDashboardDetailText_('detailRecordStatus', application.recordStatus);
@@ -1637,5 +1637,4 @@ function getDashboardCorrectionIssueText_(code) {
 }
 
 </script>
-
 
