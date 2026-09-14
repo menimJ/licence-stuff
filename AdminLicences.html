@@ -78,9 +78,9 @@
     </div>
   </section>
 
-  <section id="dashboardLicenceWorkspace" class="dashboard-detail-card" style="display:none;">
+  <section id="dashboardLicenceWorkspace" class="dashboard-detail-card dashboard-licence-workspace" style="display:none;">
     <h3>Stage 3 — Licence Creation</h3>
-    <div class="dashboard-information-section">
+    <div class="dashboard-information-section dashboard-licence-status-section">
       <div class="dashboard-detail-grid">
         <div class="dashboard-detail-field"><span class="dashboard-detail-label">Licence Status</span><span id="licenceDetailStatus" class="dashboard-detail-value"></span></div>
         <div class="dashboard-detail-field"><span class="dashboard-detail-label">Licence Number</span><span id="licenceDetailNumber" class="dashboard-detail-value"></span></div>
@@ -91,18 +91,33 @@
 
     <div id="dashboardLicenceActionMessage" class="dashboard-review-note" aria-live="polite"></div>
 
-    <div id="licenceDetailDraftActions" class="dashboard-doc-actions" style="display:none;">
-      <a id="licenceDetailViewDraft" class="button" target="_blank" rel="noopener noreferrer">View Draft</a>
-      <a id="licenceDetailDownloadDraft" class="button button-secondary" target="_blank" rel="noopener noreferrer">Download Draft</a>
+    <div id="licenceDetailDraftStep" class="dashboard-licence-step" style="display:none;">
+      <div class="dashboard-licence-step-heading">
+        <span>Step 1</span>
+        <h4>Review Licence Draft</h4>
+        <p>Review the generated PDF before signing and stamping it.</p>
+      </div>
+      <div id="licenceDetailDraftActions" class="dashboard-doc-actions">
+        <a id="licenceDetailViewDraft" class="button" target="_blank" rel="noopener noreferrer">View Draft</a>
+        <a id="licenceDetailDownloadDraft" class="button button-secondary" target="_blank" rel="noopener noreferrer">Download Draft</a>
+        <button id="regenerateDashboardLicenceButton" class="dashboard-detail-link" type="button" onclick="regenerateDashboardLicenceDraft_()">Regenerate Draft PDF</button>
+      </div>
     </div>
 
-    <div id="licenceDetailGenerateActions" class="dashboard-doc-actions" style="display:none;">
-      <button id="generateDashboardLicenceButton" class="button" type="button" onclick="generateDashboardLicenceDraft_()">Generate Licence Draft</button>
+    <div id="licenceDetailGenerateActions" class="dashboard-licence-step" style="display:none;">
+      <div class="dashboard-licence-step-heading">
+        <span>Step 1</span>
+        <h4>Generate Licence Draft</h4>
+        <p>Create the draft PDF for review. A new licence number will be assigned once.</p>
+      </div>
+      <div class="dashboard-doc-actions">
+        <button id="generateDashboardLicenceButton" class="button" type="button" onclick="generateDashboardLicenceDraft_()">Generate Licence Draft</button>
+      </div>
     </div>
 
     <div id="licenceDetailStampedUpload" class="dashboard-information-section" style="display:none;">
-      <h4>Upload Stamped Licence</h4>
-      <p class="muted">Upload the signed and stamped PDF after reviewing the draft.</p>
+      <h4>Next Step — Upload Stamped Licence</h4>
+      <p class="muted">After reviewing the draft, upload the signed and stamped PDF.</p>
       <input id="dashboardStampedLicenceFile" class="file-input" type="file" accept="application/pdf,.pdf">
       <div class="dashboard-doc-actions">
         <button id="uploadDashboardStampedLicenceButton" class="button" type="button" onclick="uploadDashboardStampedLicence_()">Upload Stamped Licence</button>
@@ -110,7 +125,7 @@
     </div>
 
     <div id="licenceDetailStampedActions" class="dashboard-information-section" style="display:none;">
-      <h4>Stamped Licence</h4>
+      <h4>Final Step — Send Stamped Licence</h4>
       <div class="dashboard-doc-actions">
         <a id="licenceDetailViewStamped" class="button" target="_blank" rel="noopener noreferrer">View Stamped Licence</a>
         <a id="licenceDetailDownloadStamped" class="button button-secondary" target="_blank" rel="noopener noreferrer">Download Stamped Licence</a>

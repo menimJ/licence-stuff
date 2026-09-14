@@ -82,6 +82,9 @@ function generateLicenceForApplication_(options) {
       config.generatedBy || ''
     ).trim();
 
+  const regenerateDraft =
+    config.regenerateDraft === true;
+
   if (!applicationId) {
     throw new Error(
       'Application ID is required for licence generation.'
@@ -140,7 +143,8 @@ function generateLicenceForApplication_(options) {
 
   if (
     existingPdfUrl &&
-    existingLicenceNumber
+    existingLicenceNumber &&
+    !regenerateDraft
   ) {
     return {
       ok: true,
@@ -200,13 +204,24 @@ function generateLicenceForApplication_(options) {
       issueDate.getDate() - 1
     );
 
+  /*
+   * A dashboard re-generation corrects the draft PDF only. The licence
+   * number and document reference remain the original issued identifiers.
+   */
   const licenceNumber =
+    existingLicenceNumber ||
     generateLicenceNumber_(
       applicationId,
       issueDate
     );
 
   const documentReference =
+    String(
+      getAdminRecordValue_(
+        record,
+        'Document Reference'
+      ) || ''
+    ).trim() ||
     generateDocumentReference_(
       sheet,
       year
@@ -404,7 +419,9 @@ function generateLicenceForApplication_(options) {
         pdfFile.getUrl(),
 
       message:
-        'Unstamped licence generated successfully.'
+        regenerateDraft
+          ? 'Licence draft PDF regenerated successfully. The existing licence number was retained.'
+          : 'Unstamped licence generated successfully.'
     };
 
   } catch (error) {
@@ -505,17 +522,8 @@ function buildLicenceReplacementData_(
       ),
 
     '{{CRFFN_MEMBERSHIP_NUMBER}}':
-      getLicenceRecordValue_(
-        record,
-        [
-          'CRFFN Membership Number',
-
-          // Compatibility with existing records
-          'CRFFN Registration Number',
-          'CRFFN Number',
-          'CRFFN Registration No',
-          'CRFFN Reg Number'
-        ]
+      getLicenceCrffnMembershipNumber_(
+        record
       ),
 
     '{{OFFICE_ADDRESS}}':
@@ -610,6 +618,61 @@ function getLicenceRecordValue_(
   }
 
   return '';
+}
+
+
+/**
+ * Response sheets use a few historical labels for the CRFFN membership
+ * number. Match the known labels first, then safely recognise equivalent
+ * CRFFN membership/registration headers.
+ */
+function getLicenceCrffnMembershipNumber_(
+  record
+) {
+  const knownValue =
+    getLicenceRecordValue_(
+      record,
+      [
+        'CRFFN Membership Number',
+        'CRFFN Membership No',
+        'CRFFN Registration Number',
+        'CRFFN Registration No',
+        'CRFFN Reg Number',
+        'CRFFN Number',
+        'Registration Number'
+      ]
+    );
+
+  if (knownValue) {
+    return knownValue;
+  }
+
+  const matchingHeader =
+    Object.keys(record.headerMap || {})
+      .find(function(header) {
+        const normalized =
+          String(header || '')
+            .toLowerCase()
+            .replace(/[^a-z0-9]/g, '');
+
+        return (
+          normalized.indexOf('crffn') !== -1 &&
+          (
+            normalized.indexOf('membership') !== -1 ||
+            normalized.indexOf('registration') !== -1 ||
+            normalized.indexOf('regnumber') !== -1
+          )
+        );
+      });
+
+  return matchingHeader
+    ? String(
+        getAdminRecordValue_(
+          record,
+          matchingHeader
+        ) || ''
+      ).trim()
+    : '';
 }
 
 

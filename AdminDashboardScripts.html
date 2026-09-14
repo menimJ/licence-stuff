@@ -1384,12 +1384,12 @@ const APPLICATIONS_PAGE_SIZE = 20;
             renderDashboardLicenceInformation_(application);
             renderDashboardDocuments_(application.applicationId || applicationId, application.supportingDocuments, 'Complete', 'licenceDetailDocuments');
 
-            const draftActions = document.getElementById('licenceDetailDraftActions');
+            const draftStep = document.getElementById('licenceDetailDraftStep');
             const generateActions = document.getElementById('licenceDetailGenerateActions');
             const uploadPanel = document.getElementById('licenceDetailStampedUpload');
             const stampedActions = document.getElementById('licenceDetailStampedActions');
-            if (draftActions) { draftActions.style.display = hasDraft ? 'flex' : 'none'; }
-            if (generateActions) { generateActions.style.display = !hasDraft && !hasStamped && !released ? 'flex' : 'none'; }
+            if (draftStep) { draftStep.style.display = hasDraft ? 'block' : 'none'; }
+            if (generateActions) { generateActions.style.display = !hasDraft && !hasStamped && !released ? 'block' : 'none'; }
             if (uploadPanel) { uploadPanel.style.display = hasDraft && !hasStamped && !released ? 'block' : 'none'; }
             if (stampedActions) { stampedActions.style.display = hasStamped ? 'block' : 'none'; }
 
@@ -1433,6 +1433,33 @@ const APPLICATIONS_PAGE_SIZE = 20;
                 showDashboardReviewError_(getErrorMessage_(error), 'Generate Licence Draft');
               })
               .generateAdminDashboardLicenceDraft(ADMIN_SESSION_TOKEN, dashboardCurrentLicenceApplicationId_);
+          }
+        });
+      }
+
+      function regenerateDashboardLicenceDraft_() {
+        if (!dashboardCurrentLicenceApplicationId_) { return; }
+        showDashboardReviewDialog_({
+          title: 'Regenerate Draft PDF',
+          message: 'Regenerate the draft PDF using the existing licence number? The licence number will not change.',
+          confirmText: 'Regenerate PDF',
+          busyText: 'Regenerating...',
+          showDetails: false,
+          onConfirm: function() {
+            google.script.run
+              .withSuccessHandler(function(result) {
+                if (!result || result.ok !== true) {
+                  showDashboardReviewError_(result && result.message ? result.message : 'The licence draft PDF could not be regenerated.', 'Regenerate Draft PDF');
+                  return;
+                }
+                closeDashboardReviewDialog_();
+                setDashboardLicenceActionMessage_(result.message || 'Licence draft PDF regenerated successfully.');
+                loadDashboardLicenceDetail_(dashboardCurrentLicenceApplicationId_);
+              })
+              .withFailureHandler(function(error) {
+                showDashboardReviewError_(getErrorMessage_(error), 'Regenerate Draft PDF');
+              })
+              .regenerateAdminDashboardLicenceDraft(ADMIN_SESSION_TOKEN, dashboardCurrentLicenceApplicationId_);
           }
         });
       }

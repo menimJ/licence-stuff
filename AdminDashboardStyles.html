@@ -519,6 +519,88 @@
         word-break: break-word;
       }
 
+      /* Keep the Stage 3 workflow compact and visibly sequential. */
+      .dashboard-licence-workspace {
+        padding: 26px;
+      }
+
+      .dashboard-licence-workspace > h3 {
+        margin: 0 0 18px;
+      }
+
+      .dashboard-licence-status-section {
+        margin: 0;
+        padding: 0;
+        border: 0;
+      }
+
+      .dashboard-licence-status-section .dashboard-detail-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .dashboard-licence-status-section .dashboard-detail-field {
+        min-width: 0;
+        min-height: 84px;
+        padding: 15px;
+        background: #f9fafb;
+      }
+
+      .dashboard-licence-step,
+      .dashboard-licence-workspace #licenceDetailStampedUpload,
+      .dashboard-licence-workspace #licenceDetailStampedActions {
+        margin-top: 16px;
+        padding: 18px;
+        border: 1px solid #eaecf0;
+        border-radius: 10px;
+        background: #f9fafb;
+      }
+
+      .dashboard-licence-workspace #licenceDetailStampedUpload,
+      .dashboard-licence-workspace #licenceDetailStampedActions {
+        border-top: 1px solid #eaecf0;
+      }
+
+      .dashboard-licence-step-heading {
+        margin-bottom: 14px;
+      }
+
+      .dashboard-licence-step-heading span {
+        display: block;
+        margin-bottom: 3px;
+        color: var(--text-secondary);
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+      }
+
+      .dashboard-licence-step-heading h4,
+      .dashboard-licence-workspace #licenceDetailStampedUpload h4,
+      .dashboard-licence-workspace #licenceDetailStampedActions h4 {
+        margin: 0 0 5px;
+      }
+
+      .dashboard-licence-step-heading p,
+      .dashboard-licence-workspace #licenceDetailStampedUpload p {
+        margin: 0;
+        font-size: 13px;
+      }
+
+      .dashboard-licence-workspace .dashboard-doc-actions {
+        margin-top: 14px;
+      }
+
+      .dashboard-licence-workspace .file-input {
+        display: block;
+        width: 100%;
+        margin-top: 14px;
+        padding: 9px;
+        border: 1px solid #d0d5dd;
+        border-radius: 8px;
+        background: #ffffff;
+      }
+
       .dashboard-status-grid {
         display: grid;
         grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -641,6 +723,10 @@
         .dashboard-status-grid {
           grid-template-columns: repeat(2, minmax(0, 1fr));
         }
+
+        .dashboard-licence-status-section .dashboard-detail-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
       }
 
       @media (max-width: 650px) {
@@ -651,6 +737,10 @@
 
         .dashboard-detail-field.full {
           grid-column: auto;
+        }
+
+        .dashboard-licence-status-section .dashboard-detail-grid {
+          grid-template-columns: 1fr;
         }
 
         .dashboard-doc-row {

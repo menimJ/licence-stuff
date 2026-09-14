@@ -1321,6 +1321,95 @@ function generateAdminDashboardLicenceDraft(
 
 
 /**
+ * Regenerate only the dashboard draft PDF. This deliberately retains the
+ * existing licence number and never permits a released/stamped licence to be
+ * replaced through the draft workflow.
+ */
+function regenerateAdminDashboardLicenceDraft(
+  sessionToken,
+  applicationId
+) {
+  requireAdminAccess_(
+    sessionToken
+  );
+
+  const sheet =
+    getResponseSheet_(
+      SpreadsheetApp.getActiveSpreadsheet()
+    );
+
+  const record =
+    findAdminApplicationRecord_(
+      sheet,
+      applicationId
+    );
+
+  if (!record) {
+    throw new Error(
+      'The application record was not found.'
+    );
+  }
+
+  const licenceStatus =
+    String(
+      getAdminRecordValue_(
+        record,
+        'Licence Status'
+      ) || ''
+    ).trim().toLowerCase();
+
+  const stampedFileId =
+    String(
+      getAdminRecordValue_(
+        record,
+        'Stamped Licence File ID'
+      ) || ''
+    ).trim();
+
+  const licenceNumber =
+    String(
+      getAdminRecordValue_(
+        record,
+        'Licence Number'
+      ) || ''
+    ).trim();
+
+  const draftPdfUrl =
+    String(
+      getAdminRecordValue_(
+        record,
+        'Licence PDF URL'
+      ) || ''
+    ).trim();
+
+  if (licenceStatus === 'released' || stampedFileId) {
+    throw new Error(
+      'A stamped or released licence cannot be regenerated as a draft.'
+    );
+  }
+
+  if (!licenceNumber || !draftPdfUrl) {
+    throw new Error(
+      'Generate the initial licence draft before regenerating its PDF.'
+    );
+  }
+
+  const result =
+    approveAndGenerateLicence(
+      applicationId,
+      sessionToken,
+      { regenerateDraft: true }
+    );
+
+  invalidateAdminCachesAfterWrite_(
+    applicationId
+  );
+
+  return result;
+}
+
+
+/**
  * Store a stamped licence using the existing private-file workflow, then
  * refresh the dashboard detail cache.
  */
@@ -6113,8 +6202,16 @@ function validateLicenceGenerationReadiness_(
  */
 function approveAndGenerateLicence(
   applicationId,
-  sessionToken
+  sessionToken,
+  options
 ) {
+  const input =
+    options && typeof options === 'object'
+      ? options
+      : {};
+
+  const regenerateDraft =
+    input.regenerateDraft === true;
   const adminAccess =
     requireAdminAccess_(
       sessionToken
@@ -6197,7 +6294,8 @@ function approveAndGenerateLicence(
         existingLicenceStatus === 'generated' ||
         existingLicenceStatus === 'released'
       ) &&
-      existingLicenceUrl
+      existingLicenceUrl &&
+      !regenerateDraft
     ) {
       return {
         ok: true,
@@ -6267,6 +6365,9 @@ function approveAndGenerateLicence(
 
         generatedBy:
           adminAccess.email,
+
+        regenerateDraft:
+          regenerateDraft,
       });
 
     invalidateAdminCachesAfterWrite_(
