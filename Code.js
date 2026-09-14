@@ -326,7 +326,7 @@ function updateExistingCrffnFormFlow_(
               'After submitting this form, upload the following documents through your Practitioner Portal:',
               '',
               '• CAC Document',
-              '• Passport Photograph of Director or Company Owner',
+              '• Passport Photograph of Director or Company Owner. The photograph must have a white background, be clear, recent, and show the face properly.',
               '• Educational Certificates',
               '• Proof of Experience (CV of CEO)',
               '• Valid Means of Identification',
@@ -554,7 +554,7 @@ function buildForm_(form) {
         'After submitting this form, upload the following documents through your Practitioner Portal:',
         '',
         '• CAC Document',
-        '• Passport Photograph of Director or Company Owner',
+        '• Passport Photograph of Director or Company Owner. The photograph must have a white background, be clear, recent, and show the face properly.',
         '• Educational Certificates',
         '• Proof of Experience (CV of CEO)',
         '• Valid Means of Identification',
@@ -3373,7 +3373,7 @@ function sendApplicantPortalEmail_(
         '<div style="margin-top:30px;padding:24px;border:1px solid #e4e7ec;border-radius:14px;background:#f8fafc;">' +
           '<div style="margin-bottom:16px;color:#667085;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;">What to do next</div>' +
           '<div style="margin-bottom:14px;color:#344054;font-size:14px;line-height:1.6;"><strong style="color:#17202a;">1. Open your Practitioner Portal</strong><br>Use the secure button below to continue your application and monitor its progress.</div>' +
-          '<div style="margin-bottom:14px;color:#344054;font-size:14px;line-height:1.6;"><strong style="color:#17202a;">2. Upload supporting documents</strong><br>Upload the CAC Document, Passport Photograph, Educational Certificates, Proof of Experience and Valid Means of Identification.</div>' +
+          '<div style="margin-bottom:14px;color:#344054;font-size:14px;line-height:1.6;"><strong style="color:#17202a;">2. Upload the CAC Document, Passport Photograph, Educational Certificates, Proof of Experience and Valid Means of Identification. Passport Photograph must have a white background and clearly show the Director or Company Owner.</div>' +
           '<div style="margin-bottom:14px;color:#344054;font-size:14px;line-height:1.6;"><strong style="color:#17202a;">3. Wait for CRFFN review</strong><br>CRFFN will review your Application Information and Supporting Documents.</div>' +
           '<div style="margin-bottom:14px;color:#344054;font-size:14px;line-height:1.6;"><strong style="color:#17202a;">4. Payment comes later</strong><br>Payment is not required at this stage. You will receive a separate notification when payment becomes available.</div>' +
           '<div style="color:#344054;font-size:14px;line-height:1.6;"><strong style="color:#17202a;">5. Monitor your application</strong><br>Return to the Practitioner Portal at any time to check your application status.</div>' +

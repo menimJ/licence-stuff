@@ -26,7 +26,7 @@ function doGet(e) {
       : {};
 
   const view = String(
-    parameters.view || 'applicant'
+    parameters.view || 'verify'
   )
     .trim()
     .toLowerCase();
@@ -35,6 +35,10 @@ function doGet(e) {
     return renderApplicantPortal_(
       parameters
     );
+  }
+
+  if (view === 'verify') {
+    return renderPublicLicenceVerification_();
   }
 
   if (view === 'admin') {
@@ -72,6 +76,45 @@ function doGet(e) {
       ].join('')
     )
     .setTitle('Page Not Found');
+}
+
+
+function renderPublicLicenceVerification_() {
+  return HtmlService
+    .createTemplateFromFile('PublicLicenceVerification')
+    .evaluate()
+    .setTitle('CRFFN Licence Verification')
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+}
+
+
+/**
+ * Public, read-only verification of an issued licence. Although licence
+ * fields currently live beside the source submission, this searches only the
+ * issued licence record and returns an intentionally public-safe subset.
+ */
+function verifyPublicLicence(licenceNumber) {
+  const query = String(licenceNumber || '').trim().toLowerCase();
+  const invalid = function(message) {
+    return { valid: false, licence_number: String(licenceNumber || '').trim(), status: 'INVALID', message: message };
+  };
+  if (!query) { return invalid('Enter a licence number.'); }
+
+  const sheet = getResponseSheet_(SpreadsheetApp.getActiveSpreadsheet());
+  if (sheet.getLastRow() < 2) { return invalid('Licence number not found'); }
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getDisplayValues()[0];
+  const values = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getDisplayValues();
+  const index = function(names) { for (let i = 0; i < names.length; i++) { const found = headers.indexOf(names[i]); if (found !== -1) return found; } return -1; };
+  const numberIndex = index(['Licence Number', 'License Number']);
+  const statusIndex = index(['Licence Status', 'License Status']);
+  if (numberIndex === -1 || statusIndex === -1) { return invalid('Licence number not found'); }
+  const row = values.find(function(item) { return String(item[numberIndex] || '').trim().toLowerCase() === query && ['released', 'issued', 'active'].indexOf(String(item[statusIndex] || '').trim().toLowerCase()) !== -1; });
+  if (!row) { return invalid('Licence number not found'); }
+  const value = function(names) { const position = index(names); return position === -1 ? '' : String(row[position] || '').trim(); };
+  const issued = value(['Licence Released At', 'License Released At']);
+  let expiry = value(['Licence Expiry Date', 'License Expiry Date', 'Expiry Date', 'Valid Till']);
+  if (!expiry && issued) { const date = new Date(issued); if (!isNaN(date.getTime())) { date.setFullYear(date.getFullYear() + 1); date.setDate(date.getDate() - 1); expiry = Utilities.formatDate(date, Session.getScriptTimeZone(), 'dd MMM yyyy'); } }
+  return { valid: true, licence_number: value(['Licence Number', 'License Number']), status: 'ACTIVE', company_name: value(['Company Name', 'Business Name']), licence_type: value(['Licence Type', 'License Type', 'Licence Category', 'Service Category']) || 'Freight Logistics Services Provider', issued_date: issued, expiry_date: expiry };
 }
 
 /**
