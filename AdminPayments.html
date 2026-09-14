@@ -153,4 +153,22 @@
       <div id="paymentDetailDocuments" class="dashboard-documents-grid"></div>
     </div>
   </section>
+
+  <div id="dashboardReviewDialog" class="dashboard-review-dialog" style="display:none;">
+    <div class="dashboard-review-dialog-card" role="dialog" aria-modal="true" aria-labelledby="dashboardReviewDialogTitle">
+      <h3 id="dashboardReviewDialogTitle"></h3>
+      <p id="dashboardReviewDialogMessage" class="muted"></p>
+      <div id="dashboardReviewRowsLabel" class="dashboard-review-rows" style="display:none;">
+        <div id="dashboardReviewRows"></div>
+        <button class="dashboard-detail-link" type="button" id="dashboardReviewAddRow">Add Another Correction</button>
+      </div>
+      <label id="dashboardReviewTargetLabel" style="display:none;">Field requiring correction<select id="dashboardReviewTarget"></select></label>
+      <label id="dashboardReviewReasonLabel" style="display:none;">Reason<select id="dashboardReviewReason"></select></label>
+      <label id="dashboardReviewDetailsLabel" style="display:none;">Details<textarea id="dashboardReviewDetails" rows="3"></textarea></label>
+      <div class="dashboard-doc-actions">
+        <button class="button" type="button" id="dashboardReviewConfirm">Confirm</button>
+        <button class="dashboard-detail-link" type="button" onclick="closeDashboardReviewDialog_()">Cancel</button>
+      </div>
+    </div>
+  </div>
 </div>

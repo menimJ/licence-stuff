@@ -52,6 +52,25 @@ const APPLICATIONS_PAGE_SIZE = 20;
           '</span>';
       }
 
+      function formatDashboardPaymentAmount_(value) {
+        const text = String(value || '').trim();
+        const numeric = Number(text.replace(/[^0-9.]/g, ''));
+
+        if (!text) {
+          return '₦250,000';
+        }
+
+        if (isNaN(numeric)) {
+          return text;
+        }
+
+        return new Intl.NumberFormat('en-NG', {
+          style: 'currency',
+          currency: 'NGN',
+          maximumFractionDigits: 0
+        }).format(numeric);
+      }
+
       function applyApplicationFilters() {
         const search = document.getElementById('applicationsSearch');
         const status = document.getElementById('applicationsStatus');
@@ -1037,7 +1056,10 @@ const APPLICATIONS_PAGE_SIZE = 20;
             const paymentStatus = document.getElementById('paymentDetailStatus');
             if (paymentStatus) { paymentStatus.innerHTML = renderStatusPill_(status); }
             setDashboardDetailText_('paymentDetailReference', application.paymentReference);
-            setDashboardDetailText_('paymentDetailAmount', application.paymentAmount);
+            setDashboardDetailText_(
+              'paymentDetailAmount',
+              formatDashboardPaymentAmount_(application.paymentAmount)
+            );
             setDashboardDetailText_('paymentDetailDate', application.paymentDate);
             setDashboardDetailText_('paymentDetailSubmittedAt', application.paymentProofUploadedAt);
             setDashboardDetailText_('paymentDetailApplicationIdField', application.applicationId);

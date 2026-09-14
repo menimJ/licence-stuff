@@ -1795,7 +1795,10 @@ function buildAdminApplicationDetail_(
         typeof PAYMENT_CONFIG !== 'undefined' &&
         PAYMENT_CONFIG.AMOUNT
           ? String(PAYMENT_CONFIG.AMOUNT)
-          : ''
+          // The applicant portal and payment invitation already use this
+          // established licence-fee fallback when no row-specific amount is
+          // stored by Revop.
+          : '250000'
       ),
 
     paymentDate:
