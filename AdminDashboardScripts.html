@@ -931,6 +931,11 @@ const APPLICATIONS_PAGE_SIZE = 20;
                 ''
               );
 
+            const reviewUrl =
+              getDashboardPaymentDetailUrl_(
+                applicationId
+              );
+
             return (
               '<tr>' +
                 '<td><div class="application-primary">' +
@@ -978,14 +983,24 @@ const APPLICATIONS_PAGE_SIZE = 20;
                     '—'
                   ) +
                 '</td>' +
-                '<td><button class="button button-secondary" type="button" onclick="loadDashboardPaymentDetail_(' +
-                  escapeDashboardHtml_(JSON.stringify(applicationId)) +
-                ')">Review</button></td>' +
+                '<td><a class="review-link" href="' +
+                  escapeDashboardHtml_(reviewUrl) +
+                '">Review</a></td>' +
               '</tr>'
             );
           },
           loadPaymentsPage
         );
+      }
+
+
+      function getDashboardPaymentDetailUrl_(applicationId) {
+        return ADMIN_DASHBOARD_BASE_URL +
+          '?view=dashboard&section=payments' +
+          '&applicationId=' +
+          encodeURIComponent(applicationId || '') +
+          '&session=' +
+          encodeURIComponent(ADMIN_SESSION_TOKEN);
       }
 
 
@@ -1625,10 +1640,10 @@ const APPLICATIONS_PAGE_SIZE = 20;
           );
 
         if (paymentBackLink) {
-          paymentBackLink.onclick = function(event) {
-            event.preventDefault();
-            showDashboardPaymentsList_();
-          };
+          paymentBackLink.href =
+            ADMIN_DASHBOARD_BASE_URL +
+            '?view=dashboard&section=payments&session=' +
+            encodeURIComponent(ADMIN_SESSION_TOKEN);
         }
 
         const paymentsSearch =
@@ -1637,6 +1652,18 @@ const APPLICATIONS_PAGE_SIZE = 20;
           );
 
         if (paymentsSearch) {
+          if (
+            String(
+              DASHBOARD_APPLICATION_ID ||
+              ''
+            ).trim()
+          ) {
+            loadDashboardPaymentDetail_(
+              DASHBOARD_APPLICATION_ID
+            );
+            return;
+          }
+
           paymentsSearch.addEventListener(
             'keydown',
             function(event) {

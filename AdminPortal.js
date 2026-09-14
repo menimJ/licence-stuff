@@ -843,7 +843,7 @@ function getAdminLicencesPage(
         if (
           String(item.paymentStatus || '').trim().toLowerCase() !== 'confirmed' ||
           String(item.recordStatus || '').trim().toLowerCase() !==
-            'approved - awaiting licence creation'
+            'approved'
         ) {
           return false;
         }
@@ -1350,7 +1350,7 @@ function confirmAdminDashboardPayment(
     setAdminRecordMemory_(
       record,
       'Record Status',
-      'Approved - Awaiting Licence Creation'
+      'Approved'
     );
 
     commitAdminRecord_(sheet, record);
@@ -1360,7 +1360,7 @@ function confirmAdminDashboardPayment(
       ok: true,
       applicationId: cleanApplicationId,
       paymentStatus: 'Confirmed',
-      recordStatus: 'Approved - Awaiting Licence Creation',
+      recordStatus: 'Approved',
       message:
         'Payment confirmed. Application approved and ready for licence creation.'
     };
