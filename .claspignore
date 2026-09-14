@@ -5,3 +5,4 @@ deploy.sh
 .claspignore
 README.md
 credentials.md
+crffn-email-blast/*
