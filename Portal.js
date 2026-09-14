@@ -1044,6 +1044,30 @@ function parseApplicationCorrectionFields_(
 
 const APPLICATION_CORRECTION_TARGET_TO_FORM_TITLE =
   Object.freeze({
+    full_name:
+      'Full Name',
+    gender:
+      'Gender',
+    date_of_birth:
+      'Date of Birth',
+    nationality:
+      'Nationality',
+    state_of_origin:
+      'State of Origin — Nigerian Applicants Only',
+    residential_address:
+      'Residential Address',
+    phone_number:
+      'Phone Number',
+    email_address:
+      'Email Address',
+    means_of_identification:
+      'Means of Identification',
+    id_number:
+      'ID Number',
+    area_of_practice:
+      'Area of Practice',
+    other_area_of_practice:
+      'If Other, please specify',
     company_name:
       'Company Name',
     company_rc_number:
@@ -1054,22 +1078,8 @@ const APPLICATION_CORRECTION_TARGET_TO_FORM_TITLE =
       'CRFFN Membership Number',
     company_address:
       'Company Address',
-    full_name:
-      'Full Name',
-    phone_number:
-      'Phone Number',
-    residential_address:
-      'Residential Address',
-    means_of_identification:
-      'Means of Identification',
-    id_number:
-      'ID Number',
-    expiry_date:
-      'Expiry Date',
     position_held:
       'Position Held',
-    area_of_practice:
-      'Area of Practice',
   });
 
 
