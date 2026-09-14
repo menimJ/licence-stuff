@@ -414,6 +414,7 @@ function getAdminPrivateDocumentFile_(
       'Means of Identification URL'
     ],
     payment: [
+      'Payment Proof File ID',
       'Receipt PDF URL'
     ],
     draftlicence: [

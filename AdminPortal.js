@@ -316,6 +316,10 @@ function getAdminApplicationsPage(sessionToken, options) {
       : [];
 
   const filtered = applications.filter(function(application) {
+    if (!isDashboardStageOneApplication_(application)) {
+      return false;
+    }
+
     const searchable = [
       application.applicationId,
       application.applicantName,
@@ -374,6 +378,39 @@ function getAdminApplicationsPage(sessionToken, options) {
       ? ''
       : 'No applications match the current search or filter.'
   };
+}
+
+
+/**
+ * Dashboard Stage 1 is limited to information/document processing.
+ * Once both are complete, the record advances out of this queue.
+ */
+function isDashboardStageOneApplication_(application) {
+  const informationStatus =
+    String(application.informationStatus || '')
+      .trim()
+      .toLowerCase();
+  const documentStatus =
+    String(application.documentStatus || '')
+      .trim()
+      .toLowerCase();
+  const paymentStatus =
+    String(application.paymentStatus || '')
+      .trim()
+      .toLowerCase();
+
+  const stageOneComplete =
+    informationStatus === 'confirmed' &&
+    documentStatus === 'complete';
+
+  return (
+    !stageOneComplete &&
+    [
+      'pending verification',
+      'confirmed',
+      'rejected',
+    ].indexOf(paymentStatus) === -1
+  );
 }
 
 
@@ -612,6 +649,24 @@ function getAdminPaymentsPage(
                   'Payment Proof URL'
                 ]
               )
+            ),
+
+          informationStatus:
+            getFirstAvailableValue_(
+              rowObject,
+              ['Application Information Status', 'Information Status']
+            ),
+
+          documentStatus:
+            getFirstAvailableValue_(
+              rowObject,
+              ['Document Status', 'Documents Status']
+            ),
+
+          recordStatus:
+            getFirstAvailableValue_(
+              rowObject,
+              ['Record Status']
             )
         };
       })
@@ -620,6 +675,21 @@ function getAdminPaymentsPage(
         // been submitted. Applications still awaiting payment belong to
         // the applicant-facing payment step, not this admin queue.
         if (!item.hasPaymentProof) {
+          return false;
+        }
+
+        if (
+          String(item.informationStatus || '').trim().toLowerCase() !== 'confirmed' ||
+          String(item.documentStatus || '').trim().toLowerCase() !== 'complete'
+        ) {
+          return false;
+        }
+
+        if (
+          String(item.paymentStatus || '').trim().toLowerCase() === 'confirmed' ||
+          String(item.recordStatus || '').trim().toLowerCase() ===
+            'approved - awaiting licence creation'
+        ) {
           return false;
         }
 
@@ -754,10 +824,30 @@ function getAdminLicencesPage(
                 'Licence Released At',
                 'License Released At'
               ]
+            ),
+
+          paymentStatus:
+            getFirstAvailableValue_(
+              rowObject,
+              ['Payment Status']
+            ),
+
+          recordStatus:
+            getFirstAvailableValue_(
+              rowObject,
+              ['Record Status']
             )
         };
       })
       .filter(function(item) {
+        if (
+          String(item.paymentStatus || '').trim().toLowerCase() !== 'confirmed' ||
+          String(item.recordStatus || '').trim().toLowerCase() !==
+            'approved - awaiting licence creation'
+        ) {
+          return false;
+        }
+
         if (status) {
           const itemStatus =
             String(item.licenceStatus || '')

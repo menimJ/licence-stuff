@@ -306,10 +306,12 @@ const APPLICATIONS_PAGE_SIZE = 20;
       function renderDashboardDocuments_(
         applicationId,
         documents,
-        overallDocumentStatus
+        overallDocumentStatus,
+        containerId
       ) {
         const container =
           document.getElementById(
+            containerId ||
             'dashboardDocuments'
           );
 
@@ -989,36 +991,12 @@ const APPLICATIONS_PAGE_SIZE = 20;
 
 
       function renderDashboardPaymentDocuments_(documents) {
-        const container = document.getElementById('paymentDetailDocuments');
-        if (!container) { return; }
-
-        const items = Array.isArray(documents) ? documents : [];
-        if (!items.length) {
-          container.innerHTML = '<p class="muted">No supporting document information is available.</p>';
-          return;
-        }
-
-        container.innerHTML = items.map(function(document) {
-          return '<div class="dashboard-doc-row">' +
-            '<div><strong>' +
-              escapeDashboardHtml_(document.label || document.type) +
-            '</strong>' +
-            '<div class="dashboard-document-status">' +
-              renderStatusPill_(document.reviewStatus) +
-            '</div>' +
-            (document.uploadedAt
-              ? '<div class="muted">Uploaded: ' +
-                escapeDashboardHtml_(document.uploadedAt) +
-                '</div>'
-              : '') +
-            (document.reviewNotes
-              ? '<div class="dashboard-review-note"><strong>Review note:</strong> ' +
-                escapeDashboardHtml_(document.reviewNotes) +
-                '</div>'
-              : '') +
-            '</div>' +
-          '</div>';
-        }).join('');
+        renderDashboardDocuments_(
+          dashboardCurrentPaymentApplicationId_,
+          documents,
+          'Complete',
+          'paymentDetailDocuments'
+        );
       }
 
 
@@ -1086,8 +1064,12 @@ const APPLICATIONS_PAGE_SIZE = 20;
 
             const receipt = document.getElementById('paymentDetailReceipt');
             const receiptMissing = document.getElementById('paymentDetailReceiptMissing');
-            if (receipt && application.receiptPdfUrl) {
-              receipt.href = application.receiptPdfUrl;
+            if (receipt && application.hasPaymentProof) {
+              receipt.href = getDashboardDocumentUrl_(
+                application.applicationId || applicationId,
+                'payment',
+                'view'
+              );
               receipt.style.display = 'inline-flex';
               if (receiptMissing) { receiptMissing.style.display = 'none'; }
             } else {
