@@ -925,7 +925,7 @@ function getAdminApplicationDetail_(
 
     if (
       cached &&
-      cached.applicationDetailSchemaVersion === 2 &&
+      cached.applicationDetailSchemaVersion === 3 &&
       Object.prototype.hasOwnProperty.call(
         cached,
         'crffn_membership_number'
@@ -1258,21 +1258,13 @@ function buildAdminApplicationDetail_(
   rowObject
 ) {
   const crffnMembershipNumber =
-    getFirstAvailableValue_(
-      rowObject,
-      [
-        'CRFFN Membership Number',
-        'CRFFN Registration Number',
-        'CRFFN Number',
-        'CRFFN Registration No',
-        'CRFFN Reg Number',
-        'Registration Number',
-      ]
+    getCrffnMembershipNumber_(
+      rowObject
     );
 
   return {
     // Bump this when the cached detail-object shape changes.
-    applicationDetailSchemaVersion: 2,
+    applicationDetailSchemaVersion: 3,
 
     applicationId:
       getFirstAvailableValue_(
@@ -1813,6 +1805,55 @@ function getFirstAvailableValue_(
   }
 
   return '';
+}
+
+
+/**
+ * Returns the CRFFN membership value from the response row.
+ * Older response sheets use small variations of the same column title.
+ */
+function getCrffnMembershipNumber_(
+  rowObject
+) {
+  const knownValue =
+    getFirstAvailableValue_(
+      rowObject,
+      [
+        'CRFFN Membership Number',
+        'CRFFN Membership No',
+        'CRFFN Registration Number',
+        'CRFFN Registration No',
+        'CRFFN Reg Number',
+        'CRFFN Number',
+        'Registration Number',
+      ]
+    );
+
+  if (knownValue) {
+    return knownValue;
+  }
+
+  const matchingHeader =
+    Object.keys(rowObject || {})
+      .find(function(header) {
+        const normalizedHeader =
+          String(header || '')
+            .toLowerCase()
+            .replace(/[^a-z0-9]/g, '');
+
+        return (
+          normalizedHeader.indexOf('crffn') !== -1 &&
+          (
+            normalizedHeader.indexOf('membership') !== -1 ||
+            normalizedHeader.indexOf('registration') !== -1 ||
+            normalizedHeader.indexOf('regnumber') !== -1
+          )
+        );
+      });
+
+  return matchingHeader
+    ? String(rowObject[matchingHeader] || '').trim()
+    : '';
 }
 
 /**
