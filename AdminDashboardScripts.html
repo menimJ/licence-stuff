@@ -1285,6 +1285,31 @@ const APPLICATIONS_PAGE_SIZE = 20;
           ['Submitted At', application.submittedAt],
           ['Record Status', application.recordStatus]
         ]);
+        const paymentInformation = document.getElementById('licenceDetailPaymentInformation');
+        if (paymentInformation) {
+          const receiptUrl = getDashboardDocumentUrl_(
+            application.applicationId,
+            'payment',
+            'view'
+          );
+          const hasReceipt = Boolean(
+            application.paymentProofFileId ||
+            application.receiptPdfUrl
+          );
+          paymentInformation.innerHTML = '<h4>Payment Information</h4>' +
+            '<div class="dashboard-detail-grid">' +
+            dashboardLicenceField_('Payment Status', application.paymentStatus) +
+            dashboardLicenceField_('Payment Reference', application.paymentReference) +
+            dashboardLicenceField_('Amount', formatDashboardPaymentAmount_(application.paymentAmount)) +
+            dashboardLicenceField_('Payment Date', application.paymentDate) +
+            dashboardLicenceField_('Payment Submitted At', application.paymentProofUploadedAt) +
+            '<div class="dashboard-detail-field"><span class="dashboard-detail-label">Payment Receipt</span>' +
+            (hasReceipt
+              ? '<a class="button button-secondary" target="_blank" rel="noopener noreferrer" href="' +
+                escapeDashboardHtml_(receiptUrl) + '">View Receipt</a>'
+              : '<span class="dashboard-detail-value">—</span>') +
+            '</div></div>';
+        }
         renderGroup('licenceDetailApplicantInformation', 'Applicant Information', [
           ['Full Name', application.fullName || application.applicantName],
           ['Gender', application.gender],
