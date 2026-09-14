@@ -2345,6 +2345,20 @@ const APPLICATIONS_PAGE_SIZE = 20;
           );
       }
 
+      function loadDashboardReports_(period) {
+        const summary = document.getElementById('reportsSummary');
+        if (!summary) { return; }
+        google.script.run.withSuccessHandler(function(result) {
+          const c = result.counts || {};
+          const cards = function(items) { return items.map(function(item) { return '<div class="reports-card"><span>' + escapeDashboardHtml_(item[0]) + '</span><strong>' + escapeDashboardHtml_(item[1]) + '</strong></div>'; }).join(''); };
+          summary.innerHTML = cards([['Total Applications', c.total || 0], ['Pending Review', c.pending || 0], ['Awaiting Payment', c.awaitingPayment || 0], ['Licence Pending', c.licencePending || 0], ['Issued Licences', c.issued || 0]]);
+          document.getElementById('reportsPipeline').innerHTML = cards([['Submitted', c.total || 0], ['Stage 1 Completed', c.stageOne || 0], ['Payment Confirmed', c.paymentConfirmed || 0], ['Licence Issued', c.issued || 0]]);
+          document.getElementById('reportsQueues').innerHTML = cards([['Application Review', c.pending || 0], ['Payment Verification', c.paymentProof || 0], ['Licence Creation', c.licencePending || 0]]);
+          document.getElementById('reportsOperations').innerHTML = cards([['Payment Proof Submitted', c.paymentProof || 0], ['Confirmed Payments', c.paymentConfirmed || 0], ['Rejected Payments', c.paymentRejected || 0], ['Confirmed Revenue', formatDashboardPaymentAmount_(c.revenue || 0)], ['Drafts Generated', c.drafts || 0], ['Stamped Uploaded', c.stamped || 0], ['Licences Sent', c.issued || 0]]);
+          document.getElementById('reportsVolume').textContent = 'Application volume for the selected period: ' + (c.total || 0) + '. Detailed charting will use the same submitted application records.';
+        }).withFailureHandler(function(error) { summary.textContent = getErrorMessage_(error); }).getAdminDashboardReports(ADMIN_SESSION_TOKEN, period || 'month');
+      }
+
       let dashboardAdminUsers_ = [];
 
       function loadDashboardAdminUsers_() {
@@ -2417,6 +2431,7 @@ const APPLICATIONS_PAGE_SIZE = 20;
           initializeApplicationsSection_();
           initializeWorkflowQueues_();
           loadDashboardAdminUsers_();
+          loadDashboardReports_('month');
         }
       );
 

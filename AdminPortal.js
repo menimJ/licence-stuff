@@ -635,6 +635,32 @@ function findAdminDashboardApplicationRoute(
 }
 
 
+function getAdminDashboardReports(sessionToken, period) {
+  requireDashboardPermission_(sessionToken, 'reports');
+  const rows = getAdminDashboardLatestRows_(sessionToken);
+  const counts = { total: rows.length, pending: 0, awaitingPayment: 0, licencePending: 0, issued: 0, stageOne: 0, paymentProof: 0, paymentConfirmed: 0, paymentRejected: 0, drafts: 0, stamped: 0, revenue: 0 };
+  rows.forEach(function(row) {
+    const info = getFirstAvailableValue_(row, ['Application Information Status', 'Information Status']).toLowerCase();
+    const docs = getFirstAvailableValue_(row, ['Document Status', 'Documents Status']).toLowerCase();
+    const payment = getFirstAvailableValue_(row, ['Payment Status']).toLowerCase();
+    const licence = getFirstAvailableValue_(row, ['Licence Status', 'License Status']).toLowerCase();
+    const record = getFirstAvailableValue_(row, ['Record Status']).toLowerCase();
+    const proof = getFirstAvailableValue_(row, ['Payment Proof File ID', 'Receipt PDF URL', 'Payment Receipt URL', 'Payment Proof URL']);
+    const stamped = getFirstAvailableValue_(row, ['Stamped Licence File ID', 'Stamped License File ID']);
+    if (info !== 'confirmed' || docs !== 'complete') { counts.pending++; } else { counts.stageOne++; }
+    if (info === 'confirmed' && docs === 'complete' && !proof) { counts.awaitingPayment++; }
+    if (proof) { counts.paymentProof++; }
+    if (payment === 'confirmed') { counts.paymentConfirmed++; counts.revenue += Number(String(getFirstAvailableValue_(row, ['Payment Amount', 'Amount Paid', 'Amount']) || '250000').replace(/[^0-9.]/g, '')) || 250000; }
+    if (payment === 'rejected') { counts.paymentRejected++; }
+    if (payment === 'confirmed' && ['approved', 'awaiting licence creation'].indexOf(record) !== -1 && licence !== 'released') { counts.licencePending++; }
+    if (licence === 'generated') { counts.drafts++; }
+    if (stamped) { counts.stamped++; }
+    if (licence === 'released') { counts.issued++; }
+  });
+  return { ok: true, counts: counts, period: String(period || 'month') };
+}
+
+
 function paginateAdminDashboardItems_(
   items,
   options,

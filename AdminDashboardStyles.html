@@ -846,6 +846,16 @@
         grid-template-columns: minmax(180px, 1fr) 190px 150px auto;
       }
 
+      .reports-heading { display:flex; justify-content:space-between; gap:16px; align-items:start; margin-bottom:18px; }
+      .reports-heading h2 { margin-bottom:6px; }
+      .reports-summary-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:18px; }
+      .reports-card { padding:16px; border:1px solid var(--border); border-radius:10px; background:#f9fafb; }
+      .reports-card span { display:block; color:var(--text-secondary); font-size:11px; font-weight:700; text-transform:uppercase; }
+      .reports-card strong { display:block; margin-top:7px; font-size:22px; }
+      .reports-pipeline { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
+      .reports-periods { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+      .reports-volume { padding:14px; border-radius:8px; background:#f9fafb; color:var(--text-secondary); font-size:13px; }
+
       .dashboard-review-rows {
         display: grid;
         gap: 10px;

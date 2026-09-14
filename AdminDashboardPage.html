@@ -45,7 +45,7 @@
         applications: 'Applications',
         payments: 'Payments',
         licences: 'Licences',
-        'system-jobs': 'System Jobs',
+        reports: 'Reports',
         'admin-users': 'Admin Users'
       };
 
@@ -198,10 +198,10 @@
 
           <? if (safeAdminRole === 'Super Admin') { ?>
           <a
-            class="nav-link <?= safeDashboardSection === 'system-jobs' ? 'active' : '' ?>"
-            href="<?= APP_CONFIG.PRODUCTION_WEB_APP_URL ?>?view=dashboard&section=system-jobs&session=<?= adminSessionTokenEncoded ?>"
+            class="nav-link <?= safeDashboardSection === 'reports' ? 'active' : '' ?>"
+            href="<?= APP_CONFIG.PRODUCTION_WEB_APP_URL ?>?view=dashboard&section=reports&session=<?= adminSessionTokenEncoded ?>"
           >
-            <span>System Jobs</span>
+            <span>Reports</span>
           </a>
           <? } ?>
 
@@ -316,14 +316,8 @@
           <? } else if (safeDashboardSection === 'licences') { ?>
           <?!= includeDashboardHtml_('AdminLicences'); ?>
 
-          <? } else if (safeDashboardSection === 'system-jobs') { ?>
-          <section class="welcome-card">
-            <p class="eyebrow">System Jobs</p>
-            <h2>System jobs workspace</h2>
-            <p class="muted">
-              This dashboard route is ready for background-job visibility and administration.
-            </p>
-          </section>
+          <? } else if (safeDashboardSection === 'reports' && safeAdminRole === 'Super Admin') { ?>
+          <?!= includeDashboardHtml_('AdminReports'); ?>
 
           <? } else if (
             safeDashboardSection === 'admin-users' &&

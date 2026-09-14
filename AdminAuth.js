@@ -108,7 +108,7 @@ function hasDashboardPermission_(role, permission) {
    * system work, but only Super Admin may manage administrator accounts.
    */
   if (cleanRole === 'Admin') {
-    return cleanPermission !== 'admin-users';
+    return ['admin-users', 'reports'].indexOf(cleanPermission) === -1;
   }
 
   const permissions = {

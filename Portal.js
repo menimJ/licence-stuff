@@ -154,7 +154,7 @@ function renderAdminDashboard_(
     'applications',
     'payments',
     'licences',
-    'system-jobs',
+    'reports',
     'admin-users',
   ];
 
@@ -180,7 +180,7 @@ function renderAdminDashboard_(
     payments: 'payments',
     licences: 'licences',
     'admin-users': 'admin-users',
-    'system-jobs': 'system-jobs'
+    reports: 'reports'
   };
 
   const requiredPermission =
