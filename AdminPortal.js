@@ -925,6 +925,7 @@ function getAdminApplicationDetail_(
 
     if (
       cached &&
+      cached.applicationDetailSchemaVersion === 2 &&
       Object.prototype.hasOwnProperty.call(
         cached,
         'crffn_membership_number'
@@ -1256,7 +1257,23 @@ function buildAdminApplicationSummary_(
 function buildAdminApplicationDetail_(
   rowObject
 ) {
+  const crffnMembershipNumber =
+    getFirstAvailableValue_(
+      rowObject,
+      [
+        'CRFFN Membership Number',
+        'CRFFN Registration Number',
+        'CRFFN Number',
+        'CRFFN Registration No',
+        'CRFFN Reg Number',
+        'Registration Number',
+      ]
+    );
+
   return {
+    // Bump this when the cached detail-object shape changes.
+    applicationDetailSchemaVersion: 2,
+
     applicationId:
       getFirstAvailableValue_(
         rowObject,
@@ -1402,26 +1419,10 @@ function buildAdminApplicationDetail_(
       ),
 
     crffnMembershipNumber:
-  getFirstAvailableValue_(
-    rowObject,
-    [
-      'CRFFN Membership Number',
-
-      // Temporary compatibility with old records
-      'CRFFN Registration Number',
-      'Registration Number',
-    ]
-  ),
+      crffnMembershipNumber,
 
     crffn_membership_number:
-      getFirstAvailableValue_(
-        rowObject,
-        [
-          'CRFFN Membership Number',
-          'CRFFN Registration Number',
-          'Registration Number',
-        ]
-      ),
+      crffnMembershipNumber,
 
     officeAddress:
       getFirstAvailableValue_(
