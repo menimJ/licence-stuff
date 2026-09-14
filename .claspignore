@@ -6,3 +6,5 @@ deploy.sh
 README.md
 credentials.md
 crffn-email-blast/*
+crffn-email-blast/venv/lib/python3.12/site-packages/urllib3/contrib/emscripten/emscripten_fetch_worker
+crffn-email-blast/venv/lib/python3.12/site-packages/urllib3/contrib/emscripten/emscripten_fetch_worker.js
