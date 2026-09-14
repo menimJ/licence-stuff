@@ -3015,20 +3015,30 @@ const ADMIN_REJECTION_TARGETS =
           'Company Address',
         full_name:
           'Full Name',
+        gender:
+          'Gender',
+        date_of_birth:
+          'Date of Birth',
+        nationality:
+          'Nationality',
+        state_of_origin:
+          'State of Origin',
         phone_number:
           'Phone Number',
+        email_address:
+          'Email Address',
         residential_address:
           'Residential Address',
         means_of_identification:
           'Means of Identification',
         id_number:
           'ID Number',
-        expiry_date:
-          'Expiry Date',
         position_held:
           'Position Held',
         area_of_practice:
           'Area of Practice',
+        other_area_of_practice:
+          'If Other, please specify',
         other:
           'Other Application Information',
       }),

@@ -459,11 +459,42 @@ const APPLICATIONS_PAGE_SIZE = 20;
       ];
 
       let dashboardReviewAction_ = null;
+      let dashboardReviewBusy_ = false;
 
       function closeDashboardReviewDialog_() {
         const dialog = document.getElementById('dashboardReviewDialog');
         if (dialog) { dialog.style.display = 'none'; }
         dashboardReviewAction_ = null;
+        dashboardReviewBusy_ = false;
+      }
+
+      function setDashboardReviewBusy_(busy, text) {
+        const confirm = document.getElementById('dashboardReviewConfirm');
+        const cancel = document.querySelector('#dashboardReviewDialog [onclick="closeDashboardReviewDialog_()"]');
+        dashboardReviewBusy_ = busy;
+        if (confirm) {
+          confirm.disabled = busy;
+          if (text) { confirm.textContent = text; }
+        }
+        if (cancel) { cancel.disabled = busy; }
+      }
+
+      function completeDashboardReviewSuccess_(message, refresh) {
+        const messageElement = document.getElementById('dashboardReviewDialogMessage');
+        const confirm = document.getElementById('dashboardReviewConfirm');
+        setDashboardReviewBusy_(true, message || 'Approved successfully');
+        if (messageElement) { messageElement.textContent = message || 'Approved successfully'; }
+        if (confirm) { confirm.classList.remove('button-danger'); }
+        window.setTimeout(function() {
+          closeDashboardReviewDialog_();
+          if (refresh) { refreshDashboardApplicationDetail_(); }
+        }, 500);
+      }
+
+      function showDashboardReviewError_(message, confirmText) {
+        const messageElement = document.getElementById('dashboardReviewDialogMessage');
+        setDashboardReviewBusy_(false, confirmText || 'Try Again');
+        if (messageElement) { messageElement.textContent = message || 'The action could not be completed.'; }
       }
 
       function populateDashboardReviewSelect_(select, options, placeholder) {
@@ -528,9 +559,7 @@ const APPLICATIONS_PAGE_SIZE = 20;
           throw new Error('Add at least one correction.');
         }
         const details = String(document.getElementById('dashboardReviewDetails').value || '').trim();
-        if (correctionItems.some(function(item) { return item.targetCode === 'other' ||
-            item.targetCode === 'other_area_of_practice' ||
-            item.issueCode === 'other'; }) && !details) {
+        if (correctionItems.some(function(item) { return item.targetCode === 'other' || item.issueCode === 'other'; }) && !details) {
           throw new Error('Enter the specific custom reason for the item marked Other.');
         }
         return { correctionItems: correctionItems, details: details };
@@ -567,15 +596,19 @@ const APPLICATIONS_PAGE_SIZE = 20;
         if (config.targets) { target.innerHTML = config.targets.map(function(item) { return '<option value="' + escapeDashboardHtml_(item[0]) + '">' + escapeDashboardHtml_(item[1]) + '</option>'; }).join(''); }
         if (config.reasons) { reason.innerHTML = config.reasons.map(function(item) { return '<option value="' + escapeDashboardHtml_(item) + '">' + escapeDashboardHtml_(item) + '</option>'; }).join(''); }
         confirm.textContent = config.confirmText;
+        confirm.classList.toggle('button-danger', config.type === 'danger');
+        setDashboardReviewBusy_(false);
         dashboardReviewAction_ = config.onConfirm;
         confirm.onclick = function() {
+          if (dashboardReviewBusy_) { return; }
           try {
             const input = multiRows
               ? getDashboardInformationCorrectionPayload_()
               : { target: target.value, reason: reason.value, details: details.value };
+            setDashboardReviewBusy_(true, config.busyText || 'Processing...');
             dashboardReviewAction_(input);
           } catch (error) {
-            window.alert(error.message || 'Complete the correction details.');
+            showDashboardReviewError_(error.message || 'Complete the correction details.', config.confirmText);
           }
         };
         dialog.style.display = 'grid';
@@ -588,30 +621,28 @@ const APPLICATIONS_PAGE_SIZE = 20;
       function reviewDashboardDocument_(documentType, decision) {
         const submit = function(notes) {
           google.script.run.withSuccessHandler(function(result) {
-            if (!result || result.ok !== true) { window.alert(result && result.message ? result.message : 'The document review could not be saved.'); return; }
-            closeDashboardReviewDialog_();
-            refreshDashboardApplicationDetail_();
-          }).withFailureHandler(function(error) { window.alert(getErrorMessage_(error)); }).reviewSupportingDocument(dashboardCurrentApplicationId_, documentType, decision, notes || '', ADMIN_SESSION_TOKEN);
+            if (!result || result.ok !== true) { showDashboardReviewError_(result && result.message ? result.message : 'The document review could not be saved.', decision === 'approve' ? 'Approve Document' : 'Request Correction'); return; }
+            completeDashboardReviewSuccess_(decision === 'approve' ? 'Approved successfully' : 'Correction requested successfully', true);
+          }).withFailureHandler(function(error) { showDashboardReviewError_(getErrorMessage_(error), decision === 'approve' ? 'Approve Document' : 'Request Correction'); }).reviewSupportingDocument(dashboardCurrentApplicationId_, documentType, decision, notes || '', ADMIN_SESSION_TOKEN);
         };
         if (decision === 'approve') {
-          showDashboardReviewDialog_({ title: 'Approve Document', message: 'Approve this supporting document?', confirmText: 'Approve Document', showDetails: false, onConfirm: function() { submit(''); } });
+          showDashboardReviewDialog_({ title: 'Approve Document', message: 'Approve this supporting document?', confirmText: 'Approve Document', busyText: 'Approving...', showDetails: false, onConfirm: function() { submit(''); } });
           return;
         }
-        showDashboardReviewDialog_({ title: 'Request Document Correction', message: 'Select the reason this document requires correction.', reasons: DASHBOARD_DOCUMENT_CORRECTION_REASONS[documentType] || ['Other'], showDetails: true, confirmText: 'Request Correction', onConfirm: function(input) { const notes = input.reason === 'Other' ? String(input.details || '').trim() : input.reason; if (!notes) { window.alert('Enter the correction details.'); return; } submit(notes); } });
+        showDashboardReviewDialog_({ title: 'Request Document Correction', message: 'Select the reason this document requires correction.', reasons: DASHBOARD_DOCUMENT_CORRECTION_REASONS[documentType] || ['Other'], showDetails: true, confirmText: 'Request Correction', busyText: 'Processing...', type: 'danger', onConfirm: function(input) { const notes = input.reason === 'Other' ? String(input.details || '').trim() : input.reason; if (!notes) { throw new Error('Enter the correction details.'); } submit(notes); } });
       }
 
       function reviewDashboardInformation_(decision) {
         const submit = function(correctionItems, details) {
           const runner = google.script.run.withSuccessHandler(function(result) {
-            if (!result || result.ok !== true) { window.alert(result && result.message ? result.message : 'The information review could not be saved.'); return; }
-            closeDashboardReviewDialog_();
-            refreshDashboardApplicationDetail_();
-          }).withFailureHandler(function(error) { window.alert(getErrorMessage_(error)); });
+            if (!result || result.ok !== true) { showDashboardReviewError_(result && result.message ? result.message : 'The information review could not be saved.', decision === 'approve' ? 'Confirm Information' : 'Request Correction'); return; }
+            completeDashboardReviewSuccess_(decision === 'approve' ? 'Approved successfully' : 'Correction requested successfully', true);
+          }).withFailureHandler(function(error) { showDashboardReviewError_(getErrorMessage_(error), decision === 'approve' ? 'Confirm Information' : 'Request Correction'); });
           if (decision === 'approve') { runner.approveAdminReviewStage(dashboardCurrentApplicationId_, 'information', '', ADMIN_SESSION_TOKEN); }
           else { runner.rejectAdminReviewStage(dashboardCurrentApplicationId_, 'information', correctionItems, details, ADMIN_SESSION_TOKEN); }
         };
-        if (decision === 'approve') { showDashboardReviewDialog_({ title: 'Confirm Information', message: 'Confirm the application information?', confirmText: 'Confirm Information', showDetails: false, onConfirm: function() { submit([], ''); } }); return; }
-        showDashboardReviewDialog_({ title: 'Request Information Correction', message: 'Add every field requiring correction and select its issue.', multiRows: true, confirmText: 'Request Correction', onConfirm: function(input) { submit(input.correctionItems, input.details); } });
+        if (decision === 'approve') { showDashboardReviewDialog_({ title: 'Confirm Information', message: 'Confirm the application information?', confirmText: 'Confirm Information', busyText: 'Approving...', showDetails: false, onConfirm: function() { submit([], ''); } }); return; }
+        showDashboardReviewDialog_({ title: 'Request Information Correction', message: 'Add every field requiring correction and select its issue.', multiRows: true, confirmText: 'Request Correction', busyText: 'Processing...', type: 'danger', onConfirm: function(input) { submit(input.correctionItems, input.details); } });
       }
 
       function loadDashboardApplicationDetail_(applicationId) {
@@ -1637,4 +1668,3 @@ function getDashboardCorrectionIssueText_(code) {
 }
 
 </script>
-
