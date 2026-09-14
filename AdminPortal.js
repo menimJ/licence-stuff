@@ -923,7 +923,13 @@ function getAdminApplicationDetail_(
         normalizedApplicationId
       );
 
-    if (cached) {
+    if (
+      cached &&
+      Object.prototype.hasOwnProperty.call(
+        cached,
+        'crffn_membership_number'
+      )
+    ) {
       return {
         ok: true,
         applications: [],
@@ -1406,6 +1412,16 @@ function buildAdminApplicationDetail_(
       'Registration Number',
     ]
   ),
+
+    crffn_membership_number:
+      getFirstAvailableValue_(
+        rowObject,
+        [
+          'CRFFN Membership Number',
+          'CRFFN Registration Number',
+          'Registration Number',
+        ]
+      ),
 
     officeAddress:
       getFirstAvailableValue_(

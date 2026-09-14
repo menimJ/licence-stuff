@@ -743,7 +743,11 @@ const APPLICATIONS_PAGE_SIZE = 20;
             setDashboardDetailText_('detailCompanyName', application.companyName);
             setDashboardDetailText_('detailRcNumber', application.companyRcNumber || application.rcNumber);
             setDashboardDetailText_('detailTin', application.companyTin || application.tin);
-            setDashboardDetailText_('detailMembership', application.crffnMembershipNumber);
+            setDashboardDetailText_(
+              'detailMembership',
+              application.crffn_membership_number ||
+                application.crffnMembershipNumber
+            );
             setDashboardDetailText_('detailSerial', application.serialNumber);
             setDashboardDetailText_('detailEmail', application.email);
             setDashboardDetailText_('detailPhone', application.phone || application.phoneNumber);
