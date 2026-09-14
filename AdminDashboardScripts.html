@@ -587,14 +587,32 @@ const APPLICATIONS_PAGE_SIZE = 20;
         rowsLabel.style.display = multiRows ? 'grid' : 'none';
         targetLabel.style.display = !multiRows && config.targets ? 'grid' : 'none';
         reasonLabel.style.display = !multiRows && config.reasons ? 'grid' : 'none';
-        detailsLabel.style.display = !multiRows && config.showDetails ? 'grid' : 'none';
+        const updateReasonDetailsVisibility = function() {
+          detailsLabel.style.display =
+            !multiRows && (
+              config.showDetails === true ||
+              (
+                config.detailsWhenOther === true &&
+                reason.value === 'Other'
+              )
+            )
+              ? 'grid'
+              : 'none';
+        };
+        updateReasonDetailsVisibility();
         if (multiRows) {
           rows.innerHTML = '';
           addRow.onclick = addDashboardInformationCorrectionRow_;
           addDashboardInformationCorrectionRow_();
         }
         if (config.targets) { target.innerHTML = config.targets.map(function(item) { return '<option value="' + escapeDashboardHtml_(item[0]) + '">' + escapeDashboardHtml_(item[1]) + '</option>'; }).join(''); }
-        if (config.reasons) { reason.innerHTML = config.reasons.map(function(item) { return '<option value="' + escapeDashboardHtml_(item) + '">' + escapeDashboardHtml_(item) + '</option>'; }).join(''); }
+        if (config.reasons) {
+          reason.innerHTML = config.reasons.map(function(item) { return '<option value="' + escapeDashboardHtml_(item) + '">' + escapeDashboardHtml_(item) + '</option>'; }).join('');
+          reason.onchange = updateReasonDetailsVisibility;
+          updateReasonDetailsVisibility();
+        } else {
+          reason.onchange = null;
+        }
         confirm.textContent = config.confirmText;
         confirm.classList.toggle('button-danger', config.type === 'danger');
         setDashboardReviewBusy_(false);
@@ -629,7 +647,7 @@ const APPLICATIONS_PAGE_SIZE = 20;
           showDashboardReviewDialog_({ title: 'Approve Document', message: 'Approve this supporting document?', confirmText: 'Approve Document', busyText: 'Approving...', showDetails: false, onConfirm: function() { submit(''); } });
           return;
         }
-        showDashboardReviewDialog_({ title: 'Request Document Correction', message: 'Select the reason this document requires correction.', reasons: DASHBOARD_DOCUMENT_CORRECTION_REASONS[documentType] || ['Other'], showDetails: true, confirmText: 'Request Correction', busyText: 'Processing...', type: 'danger', onConfirm: function(input) { const notes = input.reason === 'Other' ? String(input.details || '').trim() : input.reason; if (!notes) { throw new Error('Enter the correction details.'); } submit(notes); } });
+        showDashboardReviewDialog_({ title: 'Request Document Correction', message: 'Select the reason this document requires correction.', reasons: DASHBOARD_DOCUMENT_CORRECTION_REASONS[documentType] || ['Other'], detailsWhenOther: true, confirmText: 'Request Correction', busyText: 'Processing...', type: 'danger', onConfirm: function(input) { const notes = input.reason === 'Other' ? String(input.details || '').trim() : input.reason; if (!notes) { throw new Error('Enter the correction details.'); } submit(notes); } });
       }
 
       function reviewDashboardInformation_(decision) {
