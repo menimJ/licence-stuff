@@ -283,6 +283,7 @@ function getAdminApplications_(
  * Legacy getAdminApplications_() remains unchanged.
  */
 function getAdminApplicationsPage(sessionToken, options) {
+  requireDashboardPermission_(sessionToken, 'applications');
   requireAdminAccess_(sessionToken);
 
   const input =
@@ -705,6 +706,7 @@ function getAdminPaymentsPage(
   sessionToken,
   options
 ) {
+  requireDashboardPermission_(sessionToken, 'payments');
   const input =
     options &&
     typeof options === 'object'
@@ -885,6 +887,7 @@ function getAdminLicencesPage(
   sessionToken,
   options
 ) {
+  requireDashboardPermission_(sessionToken, 'licences');
   const input =
     options &&
     typeof options === 'object'
@@ -1350,6 +1353,7 @@ function getAdminDashboardApplicationDetail(
   sessionToken,
   applicationId
 ) {
+  requireDashboardPermission_(sessionToken, 'applications');
   const result =
     getAdminApplicationDetail_(
       applicationId,
@@ -1381,6 +1385,7 @@ function getAdminDashboardPaymentDetail(
   sessionToken,
   applicationId
 ) {
+  requireDashboardPermission_(sessionToken, 'payments');
   const result =
     getAdminApplicationDetail_(
       applicationId,
@@ -1433,10 +1438,64 @@ function getAdminDashboardLicenceDetail(
   sessionToken,
   applicationId
 ) {
-  return getAdminDashboardApplicationDetail(
-    sessionToken,
-    applicationId
+  requireDashboardPermission_(sessionToken, 'licences');
+
+  const result = getAdminApplicationDetail_(
+    applicationId,
+    sessionToken
   );
+
+  if (result && result.ok === true && result.application) {
+    result.application.supportingDocuments =
+      getAdminDashboardSupportingDocuments_(sessionToken, applicationId);
+  }
+
+  return result;
+}
+
+
+function reviewDashboardSupportingDocument(
+  sessionToken,
+  applicationId,
+  documentType,
+  decision,
+  notes
+) {
+  requireDashboardPermission_(sessionToken, 'applications');
+  return reviewSupportingDocument(applicationId, documentType, decision, notes, sessionToken);
+}
+
+
+function approveDashboardApplicationStage(
+  sessionToken,
+  applicationId,
+  stage,
+  notes
+) {
+  requireDashboardPermission_(sessionToken, 'applications');
+  return approveAdminReviewStage(applicationId, stage, notes || '', sessionToken);
+}
+
+
+function rejectDashboardApplicationInformation(
+  sessionToken,
+  applicationId,
+  correctionItems,
+  details
+) {
+  requireDashboardPermission_(sessionToken, 'applications');
+  return rejectAdminReviewStage(applicationId, 'information', correctionItems, details || '', sessionToken);
+}
+
+
+function rejectAdminDashboardPayment(
+  sessionToken,
+  applicationId,
+  correctionItems,
+  details
+) {
+  requireDashboardPermission_(sessionToken, 'payments');
+  return rejectAdminReviewStage(applicationId, 'payment', correctionItems, details || '', sessionToken);
 }
 
 
@@ -1447,6 +1506,7 @@ function generateAdminDashboardLicenceDraft(
   sessionToken,
   applicationId
 ) {
+  requireDashboardPermission_(sessionToken, 'licences');
   const result =
     approveAndGenerateLicence(
       applicationId,
@@ -1558,6 +1618,7 @@ function uploadAdminDashboardStampedLicence(
   sessionToken,
   payload
 ) {
+  requireDashboardPermission_(sessionToken, 'licences');
   const input =
     payload && typeof payload === 'object'
       ? payload
@@ -1584,6 +1645,7 @@ function releaseAdminDashboardLicence(
   sessionToken,
   applicationId
 ) {
+  requireDashboardPermission_(sessionToken, 'licences');
   const result =
     approveAndReleaseStampedLicence(
       applicationId,
@@ -1607,6 +1669,7 @@ function confirmAdminDashboardPayment(
   sessionToken,
   applicationId
 ) {
+  requireDashboardPermission_(sessionToken, 'payments');
   const adminAccess =
     requireAdminAccess_(
       sessionToken

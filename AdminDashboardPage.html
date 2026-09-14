@@ -162,6 +162,7 @@
         </div>
 
         <nav class="nav" aria-label="Administration">
+          <? if (hasDashboardPermission_(safeAdminRole, 'applications')) { ?>
           <a
             class="nav-link <?= safeDashboardSection === 'dashboard' ? 'active' : '' ?>"
             href="<?= APP_CONFIG.PRODUCTION_WEB_APP_URL ?>?view=dashboard&section=dashboard&session=<?= adminSessionTokenEncoded ?>"
@@ -175,27 +176,34 @@
           >
             <span>Applications</span>
           </a>
+          <? } ?>
 
+          <? if (hasDashboardPermission_(safeAdminRole, 'payments')) { ?>
           <a
             class="nav-link <?= safeDashboardSection === 'payments' ? 'active' : '' ?>"
             href="<?= APP_CONFIG.PRODUCTION_WEB_APP_URL ?>?view=dashboard&section=payments&session=<?= adminSessionTokenEncoded ?>"
           >
             <span>Payments</span>
           </a>
+          <? } ?>
 
+          <? if (hasDashboardPermission_(safeAdminRole, 'licences')) { ?>
           <a
             class="nav-link <?= safeDashboardSection === 'licences' ? 'active' : '' ?>"
             href="<?= APP_CONFIG.PRODUCTION_WEB_APP_URL ?>?view=dashboard&section=licences&session=<?= adminSessionTokenEncoded ?>"
           >
             <span>Licences</span>
           </a>
+          <? } ?>
 
+          <? if (safeAdminRole === 'Super Admin') { ?>
           <a
             class="nav-link <?= safeDashboardSection === 'system-jobs' ? 'active' : '' ?>"
             href="<?= APP_CONFIG.PRODUCTION_WEB_APP_URL ?>?view=dashboard&section=system-jobs&session=<?= adminSessionTokenEncoded ?>"
           >
             <span>System Jobs</span>
           </a>
+          <? } ?>
 
           <? if (safeAdminRole === 'Super Admin') { ?>
           <a

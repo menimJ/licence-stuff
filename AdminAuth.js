@@ -78,6 +78,62 @@ const ADMIN_SESSION_HEADERS =
   ]);
 
 
+const ADMIN_DASHBOARD_ROLES =
+  Object.freeze([
+    'Super Admin',
+    'Admin',
+    'Application Reviewer',
+    'Payment Officer',
+    'Licence Officer'
+  ]);
+
+
+function isValidDashboardAdminRole_(role) {
+  return ADMIN_DASHBOARD_ROLES.indexOf(
+    String(role || '').trim()
+  ) !== -1;
+}
+
+
+function hasDashboardPermission_(role, permission) {
+  const cleanRole = String(role || '').trim();
+  const cleanPermission = String(permission || '').trim();
+
+  if (cleanRole === 'Super Admin') {
+    return true;
+  }
+
+  /*
+   * Admin is the full operational role. It can run all workflow stages and
+   * system work, but only Super Admin may manage administrator accounts.
+   */
+  if (cleanRole === 'Admin') {
+    return cleanPermission !== 'admin-users';
+  }
+
+  const permissions = {
+    'Application Reviewer': ['applications'],
+    'Payment Officer': ['payments'],
+    'Licence Officer': ['licences']
+  };
+
+  return (permissions[cleanRole] || []).indexOf(cleanPermission) !== -1;
+}
+
+
+function requireDashboardPermission_(sessionToken, permission) {
+  const admin = requireAdminSession_(sessionToken);
+
+  if (!hasDashboardPermission_(admin.role, permission)) {
+    throw new Error(
+      'You do not have permission to perform this dashboard action.'
+    );
+  }
+
+  return admin;
+}
+
+
 /**
  * Run ONCE from the Apps Script editor after adding this file.
  *
@@ -929,14 +985,9 @@ function updateAdminUserRole(
       role || ''
     ).trim();
 
-  if (
-    normalizedRole !==
-      'Admin' &&
-    normalizedRole !==
-      'Super Admin'
-  ) {
+  if (!isValidDashboardAdminRole_(normalizedRole)) {
     throw new Error(
-      'Role must be Admin or Super Admin.'
+      'Select a valid dashboard administrator role.'
     );
   }
 
@@ -1137,6 +1188,15 @@ function createAdminUser(
     );
   }
 
+  const normalizedRole =
+    String(role || '').trim();
+
+  if (!isValidDashboardAdminRole_(normalizedRole)) {
+    throw new Error(
+      'Select a valid dashboard administrator role.'
+    );
+  }
+
   const ss =
     SpreadsheetApp.getActiveSpreadsheet();
 
@@ -1172,10 +1232,7 @@ function createAdminUser(
       email:
         normalizedEmail,
       role:
-        String(
-          role || 'Admin'
-        ).trim() ||
-        'Admin',
+        normalizedRole,
       status:
         'Active',
       mustChangePassword:
@@ -1195,6 +1252,67 @@ function createAdminUser(
       defaultPassword,
     message:
       'Administrator created. They must change the temporary password on first login.'
+  };
+}
+
+
+/**
+ * Dashboard-only administrator creation. Password material is used only to
+ * create the salted hash and is never returned to the browser or sheet.
+ */
+function createDashboardAdminUser(
+  sessionToken,
+  input
+) {
+  const admin = requireAdminSession_(sessionToken);
+
+  if (String(admin.role || '').trim() !== 'Super Admin') {
+    throw new Error('Only a Super Admin can create administrator accounts.');
+  }
+
+  const data = input && typeof input === 'object' ? input : {};
+  const name = String(data.name || '').trim();
+  const email = normalizeAdminEmail_(data.email);
+  const role = String(data.role || '').trim();
+  const password = String(data.password || '');
+
+  if (!name) {
+    throw new Error('Administrator name is required.');
+  }
+  if (!email) {
+    throw new Error('A valid administrator email is required.');
+  }
+  if (!isValidDashboardAdminRole_(role)) {
+    throw new Error('Select a valid dashboard administrator role.');
+  }
+  if (password.length < ADMIN_AUTH_CONFIG.MIN_PASSWORD_LENGTH) {
+    throw new Error('Password must be at least ' + ADMIN_AUTH_CONFIG.MIN_PASSWORD_LENGTH + ' characters.');
+  }
+
+  const sheet = ensureAdminAuthSheet_(
+    SpreadsheetApp.getActiveSpreadsheet(),
+    ADMIN_AUTH_CONFIG.USERS_SHEET,
+    ADMIN_USER_HEADERS
+  );
+
+  if (findAdminUserByEmail_(sheet, email)) {
+    throw new Error('An administrator account already exists for this email address.');
+  }
+
+  createAdminUserRecord_(sheet, {
+    name: name,
+    email: email,
+    role: role,
+    status: 'Active',
+    mustChangePassword: false,
+    password: password,
+    createdBy: admin.email
+  });
+
+  return {
+    ok: true,
+    email: email,
+    message: 'Administrator account created.'
   };
 }
 

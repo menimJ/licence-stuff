@@ -175,12 +175,23 @@ function renderAdminDashboard_(
       'dashboard';
   }
 
+  const sectionPermissions = {
+    applications: 'applications',
+    payments: 'payments',
+    licences: 'licences',
+    'admin-users': 'admin-users',
+    'system-jobs': 'system-jobs'
+  };
+
+  const requiredPermission =
+    sectionPermissions[dashboardSection];
+
   if (
-    dashboardSection ===
-      'admin-users' &&
-    String(
-      accessResult.role || ''
-    ) !== 'Super Admin'
+    requiredPermission &&
+    !hasDashboardPermission_(
+      accessResult.role,
+      requiredPermission
+    )
   ) {
     dashboardSection =
       'dashboard';
@@ -248,8 +259,16 @@ function renderAdminDocumentViewer_(
       .toLowerCase();
 
   try {
-    requireAdminAccess_(
-      sessionToken
+    const documentPermission =
+      ['draftlicence', 'stampedlicence'].indexOf(documentType) !== -1
+        ? 'licences'
+        : documentType === 'payment'
+          ? 'payments'
+          : 'applications';
+
+    requireDashboardPermission_(
+      sessionToken,
+      documentPermission
     );
 
     const file =

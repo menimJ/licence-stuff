@@ -666,7 +666,7 @@ const APPLICATIONS_PAGE_SIZE = 20;
           google.script.run.withSuccessHandler(function(result) {
             if (!result || result.ok !== true) { showDashboardReviewError_(result && result.message ? result.message : 'The document review could not be saved.', decision === 'approve' ? 'Approve Document' : 'Request Correction'); return; }
             completeDashboardReviewSuccess_(decision === 'approve' ? 'Approved successfully' : 'Correction requested successfully', true);
-          }).withFailureHandler(function(error) { showDashboardReviewError_(getErrorMessage_(error), decision === 'approve' ? 'Approve Document' : 'Request Correction'); }).reviewSupportingDocument(dashboardCurrentApplicationId_, documentType, decision, notes || '', ADMIN_SESSION_TOKEN);
+          }).withFailureHandler(function(error) { showDashboardReviewError_(getErrorMessage_(error), decision === 'approve' ? 'Approve Document' : 'Request Correction'); }).reviewDashboardSupportingDocument(ADMIN_SESSION_TOKEN, dashboardCurrentApplicationId_, documentType, decision, notes || '');
         };
         if (decision === 'approve') {
           showDashboardReviewDialog_({ title: 'Approve Document', message: 'Approve this supporting document?', confirmText: 'Approve Document', busyText: 'Approving...', showDetails: false, onConfirm: function() { submit(''); } });
@@ -681,8 +681,8 @@ const APPLICATIONS_PAGE_SIZE = 20;
             if (!result || result.ok !== true) { showDashboardReviewError_(result && result.message ? result.message : 'The information review could not be saved.', decision === 'approve' ? 'Confirm Information' : 'Request Correction'); return; }
             completeDashboardReviewSuccess_(decision === 'approve' ? 'Approved successfully' : 'Correction requested successfully', true);
           }).withFailureHandler(function(error) { showDashboardReviewError_(getErrorMessage_(error), decision === 'approve' ? 'Confirm Information' : 'Request Correction'); });
-          if (decision === 'approve') { runner.approveAdminReviewStage(dashboardCurrentApplicationId_, 'information', '', ADMIN_SESSION_TOKEN); }
-          else { runner.rejectAdminReviewStage(dashboardCurrentApplicationId_, 'information', correctionItems, details, ADMIN_SESSION_TOKEN); }
+          if (decision === 'approve') { runner.approveDashboardApplicationStage(ADMIN_SESSION_TOKEN, dashboardCurrentApplicationId_, 'information', ''); }
+          else { runner.rejectDashboardApplicationInformation(ADMIN_SESSION_TOKEN, dashboardCurrentApplicationId_, correctionItems, details); }
         };
         if (decision === 'approve') { showDashboardReviewDialog_({ title: 'Confirm Information', message: 'Confirm the application information?', confirmText: 'Confirm Information', busyText: 'Approving...', showDetails: false, onConfirm: function() { submit([], ''); } }); return; }
         showDashboardReviewDialog_({ title: 'Request Information Correction', message: 'Add every field requiring correction and select its issue.', multiRows: true, confirmText: 'Request Correction', busyText: 'Processing...', type: 'danger', onConfirm: function(input) { submit(input.correctionItems, input.details); } });
@@ -1194,12 +1194,11 @@ const APPLICATIONS_PAGE_SIZE = 20;
               .withFailureHandler(function(error) {
                 showDashboardReviewError_(getErrorMessage_(error), 'Reject Payment');
               })
-              .rejectAdminReviewStage(
+              .rejectAdminDashboardPayment(
+                ADMIN_SESSION_TOKEN,
                 dashboardCurrentPaymentApplicationId_,
-                'payment',
                 [input.reason],
-                details,
-                ADMIN_SESSION_TOKEN
+                details
               );
           }
         });
@@ -2346,11 +2345,78 @@ const APPLICATIONS_PAGE_SIZE = 20;
           );
       }
 
+      let dashboardAdminUsers_ = [];
+
+      function loadDashboardAdminUsers_() {
+        const message = document.getElementById('dashboardAdminUsersMessage');
+        if (!message) { return; }
+        google.script.run.withSuccessHandler(function(result) {
+          dashboardAdminUsers_ = result && result.ok ? (result.users || []) : [];
+          filterDashboardAdminUsers_();
+        }).withFailureHandler(function(error) {
+          message.textContent = getErrorMessage_(error);
+        }).getAdminUsers(ADMIN_SESSION_TOKEN);
+      }
+
+      function filterDashboardAdminUsers_() {
+        const query = String((document.getElementById('dashboardAdminUsersSearch') || {}).value || '').trim().toLowerCase();
+        const role = String((document.getElementById('dashboardAdminUsersRole') || {}).value || '');
+        const status = String((document.getElementById('dashboardAdminUsersStatus') || {}).value || '');
+        const users = dashboardAdminUsers_.filter(function(user) {
+          const userStatus = String(user.status || '').toLowerCase() === 'active' ? 'Active' : 'Inactive';
+          return (!query || [user.name, user.email].join(' ').toLowerCase().indexOf(query) !== -1) && (!role || user.role === role) && (!status || userStatus === status);
+        });
+        const body = document.getElementById('dashboardAdminUsersTableBody');
+        const area = document.getElementById('dashboardAdminUsersTableArea');
+        const message = document.getElementById('dashboardAdminUsersMessage');
+        const count = document.getElementById('dashboardAdminUsersCount');
+        if (count) { count.textContent = users.length + (users.length === 1 ? ' administrator' : ' administrators'); }
+        if (!users.length) { if (area) { area.style.display = 'none'; } if (message) { message.style.display = 'block'; message.textContent = 'No administrators found.'; } return; }
+        if (message) { message.style.display = 'none'; }
+        if (area) { area.style.display = 'block'; }
+        body.innerHTML = users.map(function(user) {
+          const inactive = String(user.status || '').toLowerCase() !== 'active';
+          return '<tr><td>' + escapeDashboardHtml_(user.name || '—') + '</td><td>' + escapeDashboardHtml_(user.email) + '</td><td>' + escapeDashboardHtml_(user.role) + '</td><td>' + renderStatusPill_(inactive ? 'Inactive' : 'Active') + '</td><td>' + escapeDashboardHtml_(user.createdAt || '—') + '</td><td>' + escapeDashboardHtml_(user.lastLogin || 'Never') + '</td><td><div class="dashboard-doc-actions"><button class="dashboard-detail-link" type="button" onclick="openDashboardAdminUserForm_(\'' + escapeDashboardHtml_(user.email) + '\')">Edit</button><button class="dashboard-detail-link" type="button" onclick="resetDashboardAdminUserPassword_(\'' + escapeDashboardHtml_(user.email) + '\')">Reset Password</button><button class="dashboard-detail-link" type="button" onclick="setDashboardAdminUserStatus_(\'' + escapeDashboardHtml_(user.email) + '\', \'' + (inactive ? 'Active' : 'Inactive') + '\')">' + (inactive ? 'Activate' : 'Deactivate') + '</button></div></td></tr>';
+        }).join('');
+      }
+
+      function openDashboardAdminUserForm_(email) {
+        const user = dashboardAdminUsers_.find(function(item) { return item.email === email; }) || null;
+        const dialog = document.getElementById('dashboardAdminUserDialog');
+        document.getElementById('dashboardAdminUserForm').reset();
+        document.getElementById('dashboardAdminUserOriginalEmail').value = user ? user.email : '';
+        document.getElementById('dashboardAdminUserDialogTitle').textContent = user ? 'Edit Admin User' : 'Add Admin User';
+        document.getElementById('dashboardAdminUserSaveButton').textContent = user ? 'Save Changes' : 'Create User';
+        document.getElementById('dashboardAdminUserEmail').disabled = Boolean(user);
+        document.getElementById('dashboardAdminUserPasswordLabel').style.display = user ? 'none' : 'grid';
+        document.getElementById('dashboardAdminUserConfirmLabel').style.display = user ? 'none' : 'grid';
+        document.getElementById('dashboardAdminUserPassword').required = !user;
+        document.getElementById('dashboardAdminUserConfirmPassword').required = !user;
+        if (user) { document.getElementById('dashboardAdminUserName').value = user.name || ''; document.getElementById('dashboardAdminUserEmail').value = user.email; document.getElementById('dashboardAdminUserRole').value = user.role; }
+        dialog.style.display = 'grid';
+      }
+
+      function closeDashboardAdminUserDialog_() { document.getElementById('dashboardAdminUserDialog').style.display = 'none'; }
+      function saveDashboardAdminUser_(event) {
+        event.preventDefault();
+        const original = document.getElementById('dashboardAdminUserOriginalEmail').value;
+        const name = document.getElementById('dashboardAdminUserName').value.trim();
+        const email = document.getElementById('dashboardAdminUserEmail').value.trim();
+        const role = document.getElementById('dashboardAdminUserRole').value;
+        const password = document.getElementById('dashboardAdminUserPassword').value;
+        if (!original && password !== document.getElementById('dashboardAdminUserConfirmPassword').value) { alert('Password confirmation does not match.'); return; }
+        if (!original) { google.script.run.withSuccessHandler(function() { closeDashboardAdminUserDialog_(); loadDashboardAdminUsers_(); }).withFailureHandler(function(error) { document.getElementById('dashboardAdminUserDialogMessage').textContent = getErrorMessage_(error); }).createDashboardAdminUser(ADMIN_SESSION_TOKEN, {name:name,email:email,role:role,password:password}); return; }
+        google.script.run.withSuccessHandler(function() { google.script.run.withSuccessHandler(function() { closeDashboardAdminUserDialog_(); loadDashboardAdminUsers_(); }).updateAdminUserRole(ADMIN_SESSION_TOKEN, original, role); }).withFailureHandler(function(error) { document.getElementById('dashboardAdminUserDialogMessage').textContent = getErrorMessage_(error); }).updateAdminUserName(ADMIN_SESSION_TOKEN, original, name);
+      }
+      function setDashboardAdminUserStatus_(email, status) { if (!window.confirm((status === 'Active' ? 'Activate ' : 'Deactivate ') + email + '?')) return; google.script.run.withSuccessHandler(loadDashboardAdminUsers_).withFailureHandler(function(error) { alert(getErrorMessage_(error)); }).setAdminUserStatus(ADMIN_SESSION_TOKEN, email, status); }
+      function resetDashboardAdminUserPassword_(email) { if (!window.confirm('Reset the password for ' + email + '?')) return; google.script.run.withSuccessHandler(function(result) { alert(result.message); loadDashboardAdminUsers_(); }).withFailureHandler(function(error) { alert(getErrorMessage_(error)); }).resetAdminPassword(ADMIN_SESSION_TOKEN, email); }
+
       document.addEventListener(
         'DOMContentLoaded',
         function() {
           initializeApplicationsSection_();
           initializeWorkflowQueues_();
+          loadDashboardAdminUsers_();
         }
       );
 

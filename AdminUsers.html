@@ -1,7 +1,13 @@
-<section class="welcome-card">
-  <p class="eyebrow">Super Admin</p>
-  <h2>Admin Users</h2>
-  <p class="muted">
-    This route is ready and will reuse the existing Admin Users and authentication backend.
-  </p>
+<section class="applications-card">
+  <div class="applications-toolbar admin-users-toolbar">
+    <label>Search<input id="dashboardAdminUsersSearch" type="search" placeholder="Name or email" autocomplete="off"></label>
+    <label>Role<select id="dashboardAdminUsersRole"><option value="">All roles</option><option>Super Admin</option><option>Admin</option><option>Application Reviewer</option><option>Payment Officer</option><option>Licence Officer</option></select></label>
+    <label>Status<select id="dashboardAdminUsersStatus"><option value="">All statuses</option><option value="Active">Active</option><option value="Inactive">Inactive</option></select></label>
+    <button class="button" type="button" onclick="filterDashboardAdminUsers_()">Apply</button>
+  </div>
+  <div class="applications-summary"><span id="dashboardAdminUsersCount">Loading administrators...</span><button class="button" type="button" onclick="openDashboardAdminUserForm_()">Add Admin User</button></div>
+  <div id="dashboardAdminUsersMessage" class="applications-state">Loading administrators...</div>
+  <div id="dashboardAdminUsersTableArea" class="applications-table-wrap" style="display:none;"><table class="applications-table"><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Created Date</th><th>Last Login</th><th>Actions</th></tr></thead><tbody id="dashboardAdminUsersTableBody"></tbody></table></div>
 </section>
+
+<div id="dashboardAdminUserDialog" class="dashboard-review-dialog" style="display:none;"><div class="dashboard-review-dialog-card" role="dialog" aria-modal="true"><h3 id="dashboardAdminUserDialogTitle">Add Admin User</h3><p id="dashboardAdminUserDialogMessage" class="muted"></p><form id="dashboardAdminUserForm" class="dashboard-admin-user-form" onsubmit="saveDashboardAdminUser_(event)"><input id="dashboardAdminUserOriginalEmail" type="hidden"><label>Full Name<input id="dashboardAdminUserName" type="text" required></label><label>Email Address<input id="dashboardAdminUserEmail" type="email" required></label><label>Role<select id="dashboardAdminUserRole" required><option>Admin</option><option>Application Reviewer</option><option>Payment Officer</option><option>Licence Officer</option><option>Super Admin</option></select></label><label id="dashboardAdminUserPasswordLabel">Password<input id="dashboardAdminUserPassword" type="password" minlength="10"></label><label id="dashboardAdminUserConfirmLabel">Confirm Password<input id="dashboardAdminUserConfirmPassword" type="password" minlength="10"></label><div class="dashboard-doc-actions"><button id="dashboardAdminUserSaveButton" class="button" type="submit">Create User</button><button class="dashboard-detail-link" type="button" onclick="closeDashboardAdminUserDialog_()">Cancel</button></div></form></div></div>
