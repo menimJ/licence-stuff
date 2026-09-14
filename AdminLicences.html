@@ -1,3 +1,4 @@
+<div id="dashboardLicencesList">
 <section class="applications-card">
   <div class="applications-toolbar">
     <label>
@@ -61,3 +62,90 @@
     <div id="licencesPageButtons" class="pagination-controls"></div>
   </div>
 </section>
+</div>
+
+<div id="dashboardLicenceDetail" style="display:none;">
+  <a id="dashboardLicencesBackLink" class="dashboard-back-link" href="#">
+    ← Back to Licences
+  </a>
+
+  <section class="dashboard-detail-header">
+    <div id="dashboardLicenceDetailLoading">Loading licence...</div>
+    <div id="dashboardLicenceDetailContent" style="display:none;">
+      <p class="eyebrow">Stage 3</p>
+      <h2 id="licenceDetailApplicationId" style="margin:0 0 6px;"></h2>
+      <p id="licenceDetailSubtitle" class="muted"></p>
+    </div>
+  </section>
+
+  <section id="dashboardLicenceWorkspace" class="dashboard-detail-card" style="display:none;">
+    <h3>Stage 3 — Licence Creation</h3>
+    <div class="dashboard-information-section">
+      <div class="dashboard-detail-grid">
+        <div class="dashboard-detail-field"><span class="dashboard-detail-label">Licence Status</span><span id="licenceDetailStatus" class="dashboard-detail-value"></span></div>
+        <div class="dashboard-detail-field"><span class="dashboard-detail-label">Licence Number</span><span id="licenceDetailNumber" class="dashboard-detail-value"></span></div>
+        <div class="dashboard-detail-field"><span class="dashboard-detail-label">Generated</span><span id="licenceDetailGeneratedAt" class="dashboard-detail-value"></span></div>
+        <div class="dashboard-detail-field"><span class="dashboard-detail-label">Issued</span><span id="licenceDetailReleasedAt" class="dashboard-detail-value"></span></div>
+      </div>
+    </div>
+
+    <div id="dashboardLicenceActionMessage" class="dashboard-review-note" aria-live="polite"></div>
+
+    <div id="licenceDetailDraftActions" class="dashboard-doc-actions" style="display:none;">
+      <a id="licenceDetailViewDraft" class="button" target="_blank" rel="noopener noreferrer">View Draft</a>
+      <a id="licenceDetailDownloadDraft" class="button button-secondary" target="_blank" rel="noopener noreferrer">Download Draft</a>
+    </div>
+
+    <div id="licenceDetailGenerateActions" class="dashboard-doc-actions" style="display:none;">
+      <button id="generateDashboardLicenceButton" class="button" type="button" onclick="generateDashboardLicenceDraft_()">Generate Licence Draft</button>
+    </div>
+
+    <div id="licenceDetailStampedUpload" class="dashboard-information-section" style="display:none;">
+      <h4>Upload Stamped Licence</h4>
+      <p class="muted">Upload the signed and stamped PDF after reviewing the draft.</p>
+      <input id="dashboardStampedLicenceFile" class="file-input" type="file" accept="application/pdf,.pdf">
+      <div class="dashboard-doc-actions">
+        <button id="uploadDashboardStampedLicenceButton" class="button" type="button" onclick="uploadDashboardStampedLicence_()">Upload Stamped Licence</button>
+      </div>
+    </div>
+
+    <div id="licenceDetailStampedActions" class="dashboard-information-section" style="display:none;">
+      <h4>Stamped Licence</h4>
+      <div class="dashboard-doc-actions">
+        <a id="licenceDetailViewStamped" class="button" target="_blank" rel="noopener noreferrer">View Stamped Licence</a>
+        <a id="licenceDetailDownloadStamped" class="button button-secondary" target="_blank" rel="noopener noreferrer">Download Stamped Licence</a>
+        <button id="sendDashboardLicenceButton" class="button" type="button" onclick="sendDashboardLicence_()">Send Licence</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="dashboardLicenceApplicantInformation" class="dashboard-detail-card" style="display:none;">
+    <h3>Application Detail</h3>
+    <div id="licenceDetailApplicationInformation" class="dashboard-information-section"></div>
+    <div id="licenceDetailApplicantInformation" class="dashboard-information-section"></div>
+    <div id="licenceDetailCompanyInformation" class="dashboard-information-section"></div>
+    <div id="licenceDetailProfessionalInformation" class="dashboard-information-section"></div>
+    <div class="dashboard-information-section">
+      <h4>Supporting Documents</h4>
+      <div id="licenceDetailDocuments" class="dashboard-documents-grid"></div>
+    </div>
+  </section>
+
+  <div id="dashboardReviewDialog" class="dashboard-review-dialog" style="display:none;">
+    <div class="dashboard-review-dialog-card" role="dialog" aria-modal="true" aria-labelledby="dashboardReviewDialogTitle">
+      <h3 id="dashboardReviewDialogTitle"></h3>
+      <p id="dashboardReviewDialogMessage" class="muted"></p>
+      <div id="dashboardReviewRowsLabel" class="dashboard-review-rows" style="display:none;">
+        <div id="dashboardReviewRows"></div>
+        <button class="dashboard-detail-link" type="button" id="dashboardReviewAddRow">Add Another Correction</button>
+      </div>
+      <label id="dashboardReviewTargetLabel" style="display:none;">Field requiring correction<select id="dashboardReviewTarget"></select></label>
+      <label id="dashboardReviewReasonLabel" style="display:none;">Reason<select id="dashboardReviewReason"></select></label>
+      <label id="dashboardReviewDetailsLabel" style="display:none;">Details<textarea id="dashboardReviewDetails" rows="3"></textarea></label>
+      <div class="dashboard-doc-actions">
+        <button class="button" type="button" id="dashboardReviewConfirm">Confirm</button>
+        <button class="dashboard-detail-link" type="button" onclick="closeDashboardReviewDialog_()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1206,6 +1206,288 @@ const APPLICATIONS_PAGE_SIZE = 20;
       }
 
 
+      let dashboardCurrentLicenceApplicationId_ = '';
+
+      function getDashboardLicenceStatusLabel_(application) {
+        const item = application || {};
+        const status = String(item.licenceStatus || '')
+          .trim()
+          .toLowerCase();
+
+        if (status === 'released') {
+          return 'Issued';
+        }
+
+        if (item.hasStampedLicence || item.stampedLicenceFileId) {
+          return 'Stamped Licence Uploaded';
+        }
+
+        if (status === 'generated' || item.hasLicenceDraft || item.licencePdfUrl) {
+          return 'Draft Generated';
+        }
+
+        return 'Awaiting Creation';
+      }
+
+      function getDashboardLicenceDetailUrl_(applicationId) {
+        return ADMIN_DASHBOARD_BASE_URL +
+          '?view=dashboard&section=licences' +
+          '&applicationId=' +
+          encodeURIComponent(applicationId || '') +
+          '&session=' +
+          encodeURIComponent(ADMIN_SESSION_TOKEN);
+      }
+
+      function setDashboardLicenceActionMessage_(message, isError) {
+        const element = document.getElementById('dashboardLicenceActionMessage');
+        if (!element) { return; }
+        element.textContent = message || '';
+        element.className = isError
+          ? 'dashboard-review-note status-danger'
+          : 'dashboard-review-note';
+      }
+
+      function setDashboardLicenceButtonBusy_(id, busy, label) {
+        const button = document.getElementById(id);
+        if (!button) { return; }
+        if (busy) {
+          button.dataset.dashboardOriginalLabel = button.textContent;
+          button.disabled = true;
+          button.textContent = label;
+        } else {
+          button.disabled = false;
+          button.textContent = button.dataset.dashboardOriginalLabel || button.textContent;
+        }
+      }
+
+      function dashboardLicenceField_(label, value, full) {
+        return '<div class="dashboard-detail-field' + (full ? ' full' : '') + '">' +
+          '<span class="dashboard-detail-label">' + escapeDashboardHtml_(label) + '</span>' +
+          '<span class="dashboard-detail-value">' + escapeDashboardHtml_(value || '—') + '</span>' +
+          '</div>';
+      }
+
+      function renderDashboardLicenceInformation_(application) {
+        const renderGroup = function(id, title, fields) {
+          const element = document.getElementById(id);
+          if (!element) { return; }
+          element.innerHTML = '<h4>' + escapeDashboardHtml_(title) + '</h4>' +
+            '<div class="dashboard-detail-grid">' +
+            fields.map(function(field) {
+              return dashboardLicenceField_(field[0], field[1], field[2]);
+            }).join('') +
+            '</div>';
+        };
+
+        renderGroup('licenceDetailApplicationInformation', 'Application Information', [
+          ['Application ID', application.applicationId],
+          ['Serial Number', application.serialNumber],
+          ['Submitted At', application.submittedAt],
+          ['Record Status', application.recordStatus]
+        ]);
+        renderGroup('licenceDetailApplicantInformation', 'Applicant Information', [
+          ['Full Name', application.fullName || application.applicantName],
+          ['Gender', application.gender],
+          ['Date of Birth', application.dateOfBirth],
+          ['Nationality', application.nationality],
+          ['State of Origin', application.stateOfOrigin],
+          ['Residential Address', application.residentialAddress, true],
+          ['Phone Number', application.phone || application.phoneNumber],
+          ['Email Address', application.email]
+        ]);
+        renderGroup('licenceDetailCompanyInformation', 'Company Information', [
+          ['Company Name', application.companyName],
+          ['RC Number', application.companyRcNumber || application.rcNumber],
+          ['TIN', application.companyTin || application.tin],
+          ['CRFFN Membership Number', application.crffn_membership_number || application.crffnMembershipNumber],
+          ['Company Address', application.companyAddress || application.officeAddress, true]
+        ]);
+        renderGroup('licenceDetailProfessionalInformation', 'Professional Information', [
+          ['Position Held', application.positionHeld],
+          ['Area of Practice', application.areaOfPractice],
+          ['Other Area of Practice', application.otherAreaOfPractice]
+        ]);
+      }
+
+      function showDashboardLicencesList_() {
+        const list = document.getElementById('dashboardLicencesList');
+        const detail = document.getElementById('dashboardLicenceDetail');
+        if (detail) { detail.style.display = 'none'; }
+        if (list) { list.style.display = 'block'; }
+        dashboardCurrentLicenceApplicationId_ = '';
+        loadLicencesPage();
+      }
+
+      function loadDashboardLicenceDetail_(applicationId) {
+        const list = document.getElementById('dashboardLicencesList');
+        const detail = document.getElementById('dashboardLicenceDetail');
+        const loading = document.getElementById('dashboardLicenceDetailLoading');
+        if (!applicationId || !detail || !loading) { return; }
+
+        dashboardCurrentLicenceApplicationId_ = applicationId;
+        if (list) { list.style.display = 'none'; }
+        detail.style.display = 'block';
+        loading.style.display = 'block';
+        loading.textContent = 'Loading licence...';
+        setDashboardLicenceActionMessage_('');
+
+        google.script.run
+          .withSuccessHandler(function(result) {
+            if (!result || result.ok !== true || !result.application) {
+              loading.textContent = result && result.message ? result.message : 'Licence could not be loaded.';
+              return;
+            }
+
+            const application = result.application;
+            const status = String(application.licenceStatus || '').toLowerCase();
+            const hasStamped = Boolean(application.stampedLicenceFileId || application.stampedLicencePdfUrl);
+            const hasDraft = Boolean(application.licencePdfUrl);
+            const released = status === 'released';
+            loading.style.display = 'none';
+            ['dashboardLicenceDetailContent', 'dashboardLicenceWorkspace', 'dashboardLicenceApplicantInformation'].forEach(function(id) {
+              const element = document.getElementById(id);
+              if (element) { element.style.display = 'block'; }
+            });
+
+            setDashboardDetailText_('licenceDetailApplicationId', application.applicationId);
+            setDashboardDetailText_('licenceDetailSubtitle', [application.applicantName, application.companyName].filter(Boolean).join(' • '));
+            const statusElement = document.getElementById('licenceDetailStatus');
+            if (statusElement) { statusElement.innerHTML = renderStatusPill_(getDashboardLicenceStatusLabel_(application)); }
+            setDashboardDetailText_('licenceDetailNumber', application.licenceNumber);
+            setDashboardDetailText_('licenceDetailGeneratedAt', application.licenceGeneratedAt);
+            setDashboardDetailText_('licenceDetailReleasedAt', application.licenceReleasedAt);
+            renderDashboardLicenceInformation_(application);
+            renderDashboardDocuments_(application.applicationId || applicationId, application.supportingDocuments, 'Complete', 'licenceDetailDocuments');
+
+            const draftActions = document.getElementById('licenceDetailDraftActions');
+            const generateActions = document.getElementById('licenceDetailGenerateActions');
+            const uploadPanel = document.getElementById('licenceDetailStampedUpload');
+            const stampedActions = document.getElementById('licenceDetailStampedActions');
+            if (draftActions) { draftActions.style.display = hasDraft ? 'flex' : 'none'; }
+            if (generateActions) { generateActions.style.display = !hasDraft && !hasStamped && !released ? 'flex' : 'none'; }
+            if (uploadPanel) { uploadPanel.style.display = hasDraft && !hasStamped && !released ? 'block' : 'none'; }
+            if (stampedActions) { stampedActions.style.display = hasStamped ? 'block' : 'none'; }
+
+            if (hasDraft) {
+              document.getElementById('licenceDetailViewDraft').href = getDashboardDocumentUrl_(application.applicationId || applicationId, 'draftlicence', 'view');
+              document.getElementById('licenceDetailDownloadDraft').href = getDashboardDocumentUrl_(application.applicationId || applicationId, 'draftlicence', 'download');
+            }
+            if (hasStamped) {
+              document.getElementById('licenceDetailViewStamped').href = getDashboardDocumentUrl_(application.applicationId || applicationId, 'stampedlicence', 'view');
+              document.getElementById('licenceDetailDownloadStamped').href = getDashboardDocumentUrl_(application.applicationId || applicationId, 'stampedlicence', 'download');
+              const send = document.getElementById('sendDashboardLicenceButton');
+              if (send) { send.disabled = released; send.style.display = released ? 'none' : 'inline-flex'; }
+            }
+          })
+          .withFailureHandler(function(error) {
+            loading.textContent = getErrorMessage_(error);
+          })
+          .getAdminDashboardLicenceDetail(ADMIN_SESSION_TOKEN, applicationId);
+      }
+
+      function generateDashboardLicenceDraft_() {
+        if (!dashboardCurrentLicenceApplicationId_) { return; }
+        showDashboardReviewDialog_({
+          title: 'Generate Licence Draft',
+          message: 'Generate the licence draft for review?',
+          confirmText: 'Generate Draft',
+          busyText: 'Generating...',
+          showDetails: false,
+          onConfirm: function() {
+            google.script.run
+              .withSuccessHandler(function(result) {
+                if (!result || result.ok !== true) {
+                  showDashboardReviewError_(result && result.message ? result.message : 'The licence draft could not be generated.', 'Generate Licence Draft');
+                  return;
+                }
+                closeDashboardReviewDialog_();
+                setDashboardLicenceActionMessage_(result.message || 'Licence draft generated successfully.');
+                loadDashboardLicenceDetail_(dashboardCurrentLicenceApplicationId_);
+              })
+              .withFailureHandler(function(error) {
+                showDashboardReviewError_(getErrorMessage_(error), 'Generate Licence Draft');
+              })
+              .generateAdminDashboardLicenceDraft(ADMIN_SESSION_TOKEN, dashboardCurrentLicenceApplicationId_);
+          }
+        });
+      }
+
+      function uploadDashboardStampedLicence_() {
+        const input = document.getElementById('dashboardStampedLicenceFile');
+        const file = input && input.files && input.files[0];
+        if (!file) {
+          setDashboardLicenceActionMessage_('Select the signed and stamped PDF before uploading.', true);
+          return;
+        }
+        if ((file.type && file.type !== 'application/pdf') && !String(file.name || '').toLowerCase().endsWith('.pdf')) {
+          setDashboardLicenceActionMessage_('Only PDF files are allowed.', true);
+          return;
+        }
+        if (file.size > 10 * 1024 * 1024) {
+          setDashboardLicenceActionMessage_('The stamped licence must not exceed 10 MB.', true);
+          return;
+        }
+
+        setDashboardLicenceButtonBusy_('uploadDashboardStampedLicenceButton', true, 'Uploading...');
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          const value = String(event.target.result || '');
+          const base64Data = value.indexOf(',') === -1 ? value : value.split(',')[1];
+          google.script.run
+            .withSuccessHandler(function(result) {
+              setDashboardLicenceButtonBusy_('uploadDashboardStampedLicenceButton', false);
+              if (!result || result.ok !== true) {
+                setDashboardLicenceActionMessage_(result && result.message ? result.message : 'The stamped licence could not be uploaded.', true);
+                return;
+              }
+              setDashboardLicenceActionMessage_(result.message || 'Stamped licence uploaded successfully.');
+              loadDashboardLicenceDetail_(dashboardCurrentLicenceApplicationId_);
+            })
+            .withFailureHandler(function(error) {
+              setDashboardLicenceButtonBusy_('uploadDashboardStampedLicenceButton', false);
+              setDashboardLicenceActionMessage_(getErrorMessage_(error), true);
+            })
+            .uploadAdminDashboardStampedLicence(ADMIN_SESSION_TOKEN, {
+              applicationId: dashboardCurrentLicenceApplicationId_,
+              fileName: file.name,
+              mimeType: file.type || 'application/pdf',
+              base64Data: base64Data
+            });
+        };
+        reader.onerror = function() {
+          setDashboardLicenceButtonBusy_('uploadDashboardStampedLicenceButton', false);
+          setDashboardLicenceActionMessage_('The selected file could not be read.', true);
+        };
+        reader.readAsDataURL(file);
+      }
+
+      function sendDashboardLicence_() {
+        if (!dashboardCurrentLicenceApplicationId_) { return; }
+        showDashboardReviewDialog_({
+          title: 'Send Licence',
+          message: 'Send this stamped licence to the applicant? This will release it in the applicant portal.',
+          confirmText: 'Send Licence',
+          busyText: 'Sending...',
+          showDetails: false,
+          onConfirm: function() {
+            google.script.run
+              .withSuccessHandler(function(result) {
+                if (!result || result.ok !== true) {
+                  showDashboardReviewError_(result && result.message ? result.message : 'The licence could not be sent.', 'Send Licence');
+                  return;
+                }
+                closeDashboardReviewDialog_();
+                setDashboardLicenceActionMessage_(result.message || 'Licence issued and sent successfully.');
+                loadDashboardLicenceDetail_(dashboardCurrentLicenceApplicationId_);
+              })
+              .withFailureHandler(function(error) {
+                showDashboardReviewError_(getErrorMessage_(error), 'Send Licence');
+              })
+              .releaseAdminDashboardLicence(ADMIN_SESSION_TOKEN, dashboardCurrentLicenceApplicationId_);
+          }
+        });
+      }
+
       function applyLicenceFilters() {
         const search =
           document.getElementById(
@@ -1280,6 +1562,14 @@ const APPLICATIONS_PAGE_SIZE = 20;
           result,
           licencesState,
           function(item) {
+            const applicationId =
+              String(item.applicationId || '');
+
+            const reviewUrl =
+              getDashboardLicenceDetailUrl_(
+                applicationId
+              );
+
             return (
               '<tr>' +
                 '<td><div class="application-primary">' +
@@ -1308,7 +1598,7 @@ const APPLICATIONS_PAGE_SIZE = 20;
                 '</td>' +
                 '<td>' +
                   renderStatusPill_(
-                    item.licenceStatus
+                    getDashboardLicenceStatusLabel_(item)
                   ) +
                 '</td>' +
                 '<td>' +
@@ -1323,7 +1613,9 @@ const APPLICATIONS_PAGE_SIZE = 20;
                     '—'
                   ) +
                 '</td>' +
-                '<td><span class="muted">Manage screen next</span></td>' +
+                '<td><a class="review-link" href="' +
+                  escapeDashboardHtml_(reviewUrl) +
+                '">Manage</a></td>' +
               '</tr>'
             );
           },
@@ -1683,6 +1975,30 @@ const APPLICATIONS_PAGE_SIZE = 20;
           );
 
         if (licencesSearch) {
+          const licenceBackLink =
+            document.getElementById(
+              'dashboardLicencesBackLink'
+            );
+
+          if (licenceBackLink) {
+            licenceBackLink.href =
+              ADMIN_DASHBOARD_BASE_URL +
+              '?view=dashboard&section=licences&session=' +
+              encodeURIComponent(ADMIN_SESSION_TOKEN);
+          }
+
+          if (
+            String(
+              DASHBOARD_APPLICATION_ID ||
+              ''
+            ).trim()
+          ) {
+            loadDashboardLicenceDetail_(
+              DASHBOARD_APPLICATION_ID
+            );
+            return;
+          }
+
           licencesSearch.addEventListener(
             'keydown',
             function(event) {

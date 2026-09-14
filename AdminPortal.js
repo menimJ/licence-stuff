@@ -826,6 +826,30 @@ function getAdminLicencesPage(
               ]
             ),
 
+          hasLicenceDraft:
+            Boolean(
+              getFirstAvailableValue_(
+                rowObject,
+                [
+                  'Licence PDF URL',
+                  'License PDF URL'
+                ]
+              )
+            ),
+
+          hasStampedLicence:
+            Boolean(
+              getFirstAvailableValue_(
+                rowObject,
+                [
+                  'Stamped Licence File ID',
+                  'Stamped License File ID',
+                  'Stamped Licence PDF URL',
+                  'Stamped License PDF URL'
+                ]
+              )
+            ),
+
           paymentStatus:
             getFirstAvailableValue_(
               rowObject,
@@ -842,8 +866,14 @@ function getAdminLicencesPage(
       .filter(function(item) {
         if (
           String(item.paymentStatus || '').trim().toLowerCase() !== 'confirmed' ||
-          String(item.recordStatus || '').trim().toLowerCase() !==
-            'approved'
+          [
+            'approved',
+            'awaiting licence creation'
+          ].indexOf(
+            String(item.recordStatus || '')
+              .trim()
+              .toLowerCase()
+          ) === -1
         ) {
           return false;
         }
@@ -1022,7 +1052,7 @@ function getAdminApplicationDetail_(
 
     if (
       cached &&
-      cached.applicationDetailSchemaVersion === 4 &&
+      cached.applicationDetailSchemaVersion === 5 &&
       Object.prototype.hasOwnProperty.call(
         cached,
         'crffn_membership_number'
@@ -1249,6 +1279,90 @@ function getAdminDashboardPaymentDetail(
         'This application has not submitted payment proof.'
     };
   }
+
+  return result;
+}
+
+
+/**
+ * Dashboard-only Stage 3 detail endpoint. The legacy Admin Portal keeps its
+ * own licence screen; this endpoint only supplies the dashboard shell.
+ */
+function getAdminDashboardLicenceDetail(
+  sessionToken,
+  applicationId
+) {
+  return getAdminDashboardApplicationDetail(
+    sessionToken,
+    applicationId
+  );
+}
+
+
+/**
+ * Generate the existing draft licence from the new dashboard.
+ */
+function generateAdminDashboardLicenceDraft(
+  sessionToken,
+  applicationId
+) {
+  const result =
+    approveAndGenerateLicence(
+      applicationId,
+      sessionToken
+    );
+
+  invalidateAdminCachesAfterWrite_(
+    applicationId
+  );
+
+  return result;
+}
+
+
+/**
+ * Store a stamped licence using the existing private-file workflow, then
+ * refresh the dashboard detail cache.
+ */
+function uploadAdminDashboardStampedLicence(
+  sessionToken,
+  payload
+) {
+  const input =
+    payload && typeof payload === 'object'
+      ? payload
+      : {};
+
+  input.sessionToken = sessionToken;
+
+  const result =
+    uploadStampedLicence(input);
+
+  invalidateAdminCachesAfterWrite_(
+    input.applicationId
+  );
+
+  return result;
+}
+
+
+/**
+ * Release a reviewed stamped licence through the established release/email
+ * workflow, then refresh the dashboard detail cache.
+ */
+function releaseAdminDashboardLicence(
+  sessionToken,
+  applicationId
+) {
+  const result =
+    approveAndReleaseStampedLicence(
+      applicationId,
+      sessionToken
+    );
+
+  invalidateAdminCachesAfterWrite_(
+    applicationId
+  );
 
   return result;
 }
@@ -1529,7 +1643,7 @@ function buildAdminApplicationDetail_(
 
   return {
     // Bump this when the cached detail-object shape changes.
-    applicationDetailSchemaVersion: 4,
+    applicationDetailSchemaVersion: 5,
 
     applicationId:
       getFirstAvailableValue_(
@@ -1933,6 +2047,15 @@ function buildAdminApplicationDetail_(
         [
           'Licence Number',
           'License Number',
+        ]
+      ),
+
+    licenceGeneratedAt:
+      getFirstAvailableValue_(
+        rowObject,
+        [
+          'Licence Generated At',
+          'License Generated At',
         ]
       ),
 
