@@ -988,6 +988,40 @@ const APPLICATIONS_PAGE_SIZE = 20;
       }
 
 
+      function renderDashboardPaymentDocuments_(documents) {
+        const container = document.getElementById('paymentDetailDocuments');
+        if (!container) { return; }
+
+        const items = Array.isArray(documents) ? documents : [];
+        if (!items.length) {
+          container.innerHTML = '<p class="muted">No supporting document information is available.</p>';
+          return;
+        }
+
+        container.innerHTML = items.map(function(document) {
+          return '<div class="dashboard-doc-row">' +
+            '<div><strong>' +
+              escapeDashboardHtml_(document.label || document.type) +
+            '</strong>' +
+            '<div class="dashboard-document-status">' +
+              renderStatusPill_(document.reviewStatus) +
+            '</div>' +
+            (document.uploadedAt
+              ? '<div class="muted">Uploaded: ' +
+                escapeDashboardHtml_(document.uploadedAt) +
+                '</div>'
+              : '') +
+            (document.reviewNotes
+              ? '<div class="dashboard-review-note"><strong>Review note:</strong> ' +
+                escapeDashboardHtml_(document.reviewNotes) +
+                '</div>'
+              : '') +
+            '</div>' +
+          '</div>';
+        }).join('');
+      }
+
+
       function loadDashboardPaymentDetail_(applicationId) {
         const list = document.getElementById('dashboardPaymentsList');
         const detail = document.getElementById('dashboardPaymentDetail');
@@ -1028,7 +1062,16 @@ const APPLICATIONS_PAGE_SIZE = 20;
             setDashboardDetailText_('paymentDetailAmount', application.paymentAmount);
             setDashboardDetailText_('paymentDetailDate', application.paymentDate);
             setDashboardDetailText_('paymentDetailSubmittedAt', application.paymentProofUploadedAt);
+            setDashboardDetailText_('paymentDetailApplicationIdField', application.applicationId);
+            setDashboardDetailText_('paymentDetailSerial', application.serialNumber);
+            setDashboardDetailText_('paymentDetailApplicationSubmittedAt', application.submittedAt);
+            setDashboardDetailText_('paymentDetailRecordStatus', application.recordStatus);
             setDashboardDetailText_('paymentDetailApplicantName', application.fullName || application.applicantName);
+            setDashboardDetailText_('paymentDetailGender', application.gender);
+            setDashboardDetailText_('paymentDetailDateOfBirth', application.dateOfBirth);
+            setDashboardDetailText_('paymentDetailNationality', application.nationality);
+            setDashboardDetailText_('paymentDetailStateOfOrigin', application.stateOfOrigin);
+            setDashboardDetailText_('paymentDetailResidentialAddress', application.residentialAddress);
             setDashboardDetailText_('paymentDetailCompanyName', application.companyName);
             setDashboardDetailText_('paymentDetailRcNumber', application.companyRcNumber || application.rcNumber);
             setDashboardDetailText_('paymentDetailTin', application.companyTin || application.tin);
@@ -1036,6 +1079,10 @@ const APPLICATIONS_PAGE_SIZE = 20;
             setDashboardDetailText_('paymentDetailEmail', application.email);
             setDashboardDetailText_('paymentDetailPhone', application.phone || application.phoneNumber);
             setDashboardDetailText_('paymentDetailAddress', application.companyAddress || application.officeAddress);
+            setDashboardDetailText_('paymentDetailPositionHeld', application.positionHeld);
+            setDashboardDetailText_('paymentDetailAreaOfPractice', application.areaOfPractice);
+            setDashboardDetailText_('paymentDetailOtherAreaOfPractice', application.otherAreaOfPractice);
+            renderDashboardPaymentDocuments_(application.supportingDocuments);
 
             const receipt = document.getElementById('paymentDetailReceipt');
             const receiptMissing = document.getElementById('paymentDetailReceiptMissing');

@@ -1137,6 +1137,14 @@ function getAdminDashboardPaymentDetail(
   const application =
     result.application;
 
+  // Reuse the same read-only document summary displayed in the
+  // application-detail workspace. Payment review does not change it.
+  application.supportingDocuments =
+    getAdminDashboardSupportingDocuments_(
+      sessionToken,
+      applicationId
+    );
+
   application.hasPaymentProof =
     Boolean(
       application.paymentProofFileId ||
