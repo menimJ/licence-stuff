@@ -593,7 +593,7 @@ const APPLICATIONS_PAGE_SIZE = 20;
               config.showDetails === true ||
               (
                 config.detailsWhenOther === true &&
-                reason.value === 'Other'
+                String(reason.value || '').toLowerCase() === 'other'
               )
             )
               ? 'grid'
@@ -607,7 +607,11 @@ const APPLICATIONS_PAGE_SIZE = 20;
         }
         if (config.targets) { target.innerHTML = config.targets.map(function(item) { return '<option value="' + escapeDashboardHtml_(item[0]) + '">' + escapeDashboardHtml_(item[1]) + '</option>'; }).join(''); }
         if (config.reasons) {
-          reason.innerHTML = config.reasons.map(function(item) { return '<option value="' + escapeDashboardHtml_(item) + '">' + escapeDashboardHtml_(item) + '</option>'; }).join('');
+          reason.innerHTML = config.reasons.map(function(item) {
+            const value = Array.isArray(item) ? item[0] : item;
+            const label = Array.isArray(item) ? item[1] : item;
+            return '<option value="' + escapeDashboardHtml_(value) + '">' + escapeDashboardHtml_(label) + '</option>';
+          }).join('');
           reason.onchange = updateReasonDetailsVisibility;
           updateReasonDetailsVisibility();
         } else {
@@ -808,6 +812,17 @@ const APPLICATIONS_PAGE_SIZE = 20;
         status: ''
       };
 
+      let dashboardCurrentPaymentApplicationId_ = '';
+
+      const DASHBOARD_PAYMENT_REJECTION_REASONS = [
+        ['', 'Select a reason'],
+        ['unreadable', 'Payment receipt is unclear'],
+        ['incorrect_amount', 'Payment amount is incorrect'],
+        ['invalid_reference', 'Payment reference is invalid'],
+        ['unverifiable', 'Payment proof does not belong to this application'],
+        ['other', 'Other']
+      ];
+
       const licencesState = {
         page: 1,
         search: '',
@@ -942,12 +957,186 @@ const APPLICATIONS_PAGE_SIZE = 20;
                     '—'
                   ) +
                 '</td>' +
-                '<td><span class="muted">Review screen next</span></td>' +
+                '<td><button class="button button-secondary" type="button" onclick="loadDashboardPaymentDetail_(' +
+                  escapeDashboardHtml_(JSON.stringify(applicationId)) +
+                ')">Review</button></td>' +
               '</tr>'
             );
           },
           loadPaymentsPage
         );
+      }
+
+
+      function showDashboardPaymentsList_() {
+        const list = document.getElementById('dashboardPaymentsList');
+        const detail = document.getElementById('dashboardPaymentDetail');
+        if (detail) { detail.style.display = 'none'; }
+        if (list) { list.style.display = 'block'; }
+        dashboardCurrentPaymentApplicationId_ = '';
+        loadPaymentsPage();
+      }
+
+
+      function setDashboardPaymentActionMessage_(message, isError) {
+        const element = document.getElementById('dashboardPaymentActionMessage');
+        if (!element) { return; }
+        element.textContent = message || '';
+        element.className = isError
+          ? 'dashboard-review-note status-danger'
+          : 'dashboard-review-note';
+      }
+
+
+      function loadDashboardPaymentDetail_(applicationId) {
+        const list = document.getElementById('dashboardPaymentsList');
+        const detail = document.getElementById('dashboardPaymentDetail');
+        const loading = document.getElementById('dashboardPaymentDetailLoading');
+
+        if (!applicationId || !detail || !loading) { return; }
+
+        dashboardCurrentPaymentApplicationId_ = applicationId;
+        if (list) { list.style.display = 'none'; }
+        detail.style.display = 'block';
+        loading.style.display = 'block';
+        loading.textContent = 'Loading payment...';
+        setDashboardPaymentActionMessage_('');
+
+        google.script.run
+          .withSuccessHandler(function(result) {
+            if (!result || result.ok !== true || !result.application) {
+              loading.textContent = result && result.message
+                ? result.message
+                : 'Payment could not be loaded.';
+              return;
+            }
+
+            const application = result.application;
+            loading.style.display = 'none';
+            ['dashboardPaymentDetailContent', 'dashboardPaymentWorkspace', 'dashboardPaymentApplicantInformation']
+              .forEach(function(id) {
+                const element = document.getElementById(id);
+                if (element) { element.style.display = 'block'; }
+              });
+
+            setDashboardDetailText_('paymentDetailApplicationId', application.applicationId);
+            setDashboardDetailText_('paymentDetailSubtitle', [application.applicantName, application.companyName].filter(Boolean).join(' • '));
+            const status = String(application.paymentStatus || 'Not Available');
+            const paymentStatus = document.getElementById('paymentDetailStatus');
+            if (paymentStatus) { paymentStatus.innerHTML = renderStatusPill_(status); }
+            setDashboardDetailText_('paymentDetailReference', application.paymentReference);
+            setDashboardDetailText_('paymentDetailAmount', application.paymentAmount);
+            setDashboardDetailText_('paymentDetailDate', application.paymentDate);
+            setDashboardDetailText_('paymentDetailSubmittedAt', application.paymentProofUploadedAt);
+            setDashboardDetailText_('paymentDetailApplicantName', application.fullName || application.applicantName);
+            setDashboardDetailText_('paymentDetailCompanyName', application.companyName);
+            setDashboardDetailText_('paymentDetailRcNumber', application.companyRcNumber || application.rcNumber);
+            setDashboardDetailText_('paymentDetailTin', application.companyTin || application.tin);
+            setDashboardDetailText_('paymentDetailMembership', application.crffn_membership_number || application.crffnMembershipNumber);
+            setDashboardDetailText_('paymentDetailEmail', application.email);
+            setDashboardDetailText_('paymentDetailPhone', application.phone || application.phoneNumber);
+            setDashboardDetailText_('paymentDetailAddress', application.companyAddress || application.officeAddress);
+
+            const receipt = document.getElementById('paymentDetailReceipt');
+            const receiptMissing = document.getElementById('paymentDetailReceiptMissing');
+            if (receipt && application.receiptPdfUrl) {
+              receipt.href = application.receiptPdfUrl;
+              receipt.style.display = 'inline-flex';
+              if (receiptMissing) { receiptMissing.style.display = 'none'; }
+            } else {
+              if (receipt) { receipt.style.display = 'none'; }
+              if (receiptMissing) { receiptMissing.style.display = 'inline'; }
+            }
+
+            const finalised = ['confirmed', 'rejected'].indexOf(status.toLowerCase()) !== -1;
+            ['confirmDashboardPaymentButton', 'rejectDashboardPaymentButton'].forEach(function(id) {
+              const button = document.getElementById(id);
+              if (button) { button.disabled = finalised; }
+            });
+          })
+          .withFailureHandler(function(error) {
+            loading.textContent = getErrorMessage_(error);
+          })
+          .getAdminDashboardPaymentDetail(
+            ADMIN_SESSION_TOKEN,
+            applicationId
+          );
+      }
+
+
+      function confirmDashboardPayment_() {
+        if (!dashboardCurrentPaymentApplicationId_) { return; }
+        showDashboardReviewDialog_({
+          title: 'Confirm Payment',
+          message: 'Confirm this payment and approve the application for licence creation?',
+          confirmText: 'Confirm Payment',
+          busyText: 'Confirming...',
+          showDetails: false,
+          onConfirm: function() {
+            google.script.run
+              .withSuccessHandler(function(result) {
+                if (!result || result.ok !== true) {
+                  showDashboardReviewError_(result && result.message ? result.message : 'Payment could not be confirmed.', 'Confirm Payment');
+                  return;
+                }
+                closeDashboardReviewDialog_();
+                setDashboardPaymentActionMessage_(result.message || 'Payment confirmed. Application is ready for licence creation.');
+                loadDashboardPaymentDetail_(dashboardCurrentPaymentApplicationId_);
+              })
+              .withFailureHandler(function(error) {
+                showDashboardReviewError_(getErrorMessage_(error), 'Confirm Payment');
+              })
+              .confirmAdminDashboardPayment(
+                ADMIN_SESSION_TOKEN,
+                dashboardCurrentPaymentApplicationId_
+              );
+          }
+        });
+      }
+
+
+      function rejectDashboardPayment_() {
+        if (!dashboardCurrentPaymentApplicationId_) { return; }
+        showDashboardReviewDialog_({
+          title: 'Reject Payment',
+          message: 'Select the reason this payment cannot be accepted.',
+          reasons: DASHBOARD_PAYMENT_REJECTION_REASONS,
+          detailsWhenOther: true,
+          confirmText: 'Reject Payment',
+          busyText: 'Rejecting...',
+          type: 'danger',
+          onConfirm: function(input) {
+            if (!input.reason) {
+              throw new Error('Select a rejection reason.');
+            }
+            const details = input.reason === 'other'
+              ? String(input.details || '').trim()
+              : '';
+            if (input.reason === 'other' && !details) {
+              throw new Error('Enter the rejection reason.');
+            }
+            google.script.run
+              .withSuccessHandler(function(result) {
+                if (!result || result.ok !== true) {
+                  showDashboardReviewError_(result && result.message ? result.message : 'Payment could not be rejected.', 'Reject Payment');
+                  return;
+                }
+                closeDashboardReviewDialog_();
+                setDashboardPaymentActionMessage_(result.message || 'Payment rejected.');
+                loadDashboardPaymentDetail_(dashboardCurrentPaymentApplicationId_);
+              })
+              .withFailureHandler(function(error) {
+                showDashboardReviewError_(getErrorMessage_(error), 'Reject Payment');
+              })
+              .rejectAdminReviewStage(
+                dashboardCurrentPaymentApplicationId_,
+                'payment',
+                [input.reason],
+                details,
+                ADMIN_SESSION_TOKEN
+              );
+          }
+        });
       }
 
 
@@ -1379,6 +1568,18 @@ const APPLICATIONS_PAGE_SIZE = 20;
 
 
       function initializeWorkflowQueues_() {
+        const paymentBackLink =
+          document.getElementById(
+            'dashboardPaymentsBackLink'
+          );
+
+        if (paymentBackLink) {
+          paymentBackLink.onclick = function(event) {
+            event.preventDefault();
+            showDashboardPaymentsList_();
+          };
+        }
+
         const paymentsSearch =
           document.getElementById(
             'paymentsSearch'

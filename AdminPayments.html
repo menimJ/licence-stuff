@@ -1,3 +1,4 @@
+<div id="dashboardPaymentsList">
 <section class="applications-card">
   <div class="applications-toolbar">
     <label>
@@ -62,3 +63,55 @@
     <div id="paymentsPageButtons" class="pagination-controls"></div>
   </div>
 </section>
+</div>
+
+<div id="dashboardPaymentDetail" style="display:none;">
+  <a id="dashboardPaymentsBackLink" class="dashboard-back-link" href="#">
+    ← Back to Payments
+  </a>
+
+  <section class="dashboard-detail-header">
+    <div id="dashboardPaymentDetailLoading">Loading payment...</div>
+    <div id="dashboardPaymentDetailContent" style="display:none;">
+      <p class="eyebrow">Payment Verification</p>
+      <h2 id="paymentDetailApplicationId" style="margin:0 0 6px;"></h2>
+      <p id="paymentDetailSubtitle" class="muted"></p>
+    </div>
+  </section>
+
+  <section id="dashboardPaymentWorkspace" class="dashboard-detail-card" style="display:none;">
+    <h3>Payment Verification</h3>
+    <div class="dashboard-information-section">
+      <div class="dashboard-detail-grid">
+        <div class="dashboard-detail-field"><span class="dashboard-detail-label">Payment Status</span><span id="paymentDetailStatus" class="dashboard-detail-value"></span></div>
+        <div class="dashboard-detail-field"><span class="dashboard-detail-label">Payment Reference</span><span id="paymentDetailReference" class="dashboard-detail-value"></span></div>
+        <div class="dashboard-detail-field"><span class="dashboard-detail-label">Amount</span><span id="paymentDetailAmount" class="dashboard-detail-value"></span></div>
+        <div class="dashboard-detail-field"><span class="dashboard-detail-label">Payment Date</span><span id="paymentDetailDate" class="dashboard-detail-value"></span></div>
+        <div class="dashboard-detail-field"><span class="dashboard-detail-label">Submitted At</span><span id="paymentDetailSubmittedAt" class="dashboard-detail-value"></span></div>
+        <div class="dashboard-detail-field"><span class="dashboard-detail-label">Payment Receipt</span><a id="paymentDetailReceipt" class="button button-secondary" target="_blank" rel="noopener noreferrer" style="display:none;">View Receipt</a><span id="paymentDetailReceiptMissing" class="dashboard-detail-value">—</span></div>
+      </div>
+    </div>
+
+    <div class="dashboard-review-actions">
+      <div id="dashboardPaymentActionMessage" class="dashboard-review-note" aria-live="polite"></div>
+      <div class="dashboard-doc-actions">
+        <button id="confirmDashboardPaymentButton" class="button" type="button" onclick="confirmDashboardPayment_()">Confirm Payment</button>
+        <button id="rejectDashboardPaymentButton" class="button button-danger" type="button" onclick="rejectDashboardPayment_()">Reject Payment</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="dashboardPaymentApplicantInformation" class="dashboard-detail-card" style="display:none;">
+    <h3>Applicant Information</h3>
+    <div class="dashboard-detail-grid">
+      <div class="dashboard-detail-field"><span class="dashboard-detail-label">Applicant Name</span><span id="paymentDetailApplicantName" class="dashboard-detail-value"></span></div>
+      <div class="dashboard-detail-field"><span class="dashboard-detail-label">Company Name</span><span id="paymentDetailCompanyName" class="dashboard-detail-value"></span></div>
+      <div class="dashboard-detail-field"><span class="dashboard-detail-label">RC Number</span><span id="paymentDetailRcNumber" class="dashboard-detail-value"></span></div>
+      <div class="dashboard-detail-field"><span class="dashboard-detail-label">TIN</span><span id="paymentDetailTin" class="dashboard-detail-value"></span></div>
+      <div class="dashboard-detail-field"><span class="dashboard-detail-label">CRFFN Membership Number</span><span id="paymentDetailMembership" class="dashboard-detail-value"></span></div>
+      <div class="dashboard-detail-field"><span class="dashboard-detail-label">Email</span><span id="paymentDetailEmail" class="dashboard-detail-value"></span></div>
+      <div class="dashboard-detail-field"><span class="dashboard-detail-label">Phone</span><span id="paymentDetailPhone" class="dashboard-detail-value"></span></div>
+      <div class="dashboard-detail-field full"><span class="dashboard-detail-label">Office Address</span><span id="paymentDetailAddress" class="dashboard-detail-value"></span></div>
+    </div>
+  </section>
+</div>

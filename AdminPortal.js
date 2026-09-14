@@ -616,6 +616,13 @@ function getAdminPaymentsPage(
         };
       })
       .filter(function(item) {
+        // The dashboard payment queue starts only after a receipt has
+        // been submitted. Applications still awaiting payment belong to
+        // the applicant-facing payment step, not this admin queue.
+        if (!item.hasPaymentProof) {
+          return false;
+        }
+
         if (status) {
           const itemStatus =
             String(item.paymentStatus || '')
@@ -925,7 +932,7 @@ function getAdminApplicationDetail_(
 
     if (
       cached &&
-      cached.applicationDetailSchemaVersion === 3 &&
+      cached.applicationDetailSchemaVersion === 4 &&
       Object.prototype.hasOwnProperty.call(
         cached,
         'crffn_membership_number'
@@ -1106,6 +1113,166 @@ function getAdminDashboardApplicationDetail(
 
 
 /**
+ * Dashboard-only payment detail endpoint.
+ * The existing admin portal payment view is intentionally not used.
+ */
+function getAdminDashboardPaymentDetail(
+  sessionToken,
+  applicationId
+) {
+  const result =
+    getAdminApplicationDetail_(
+      applicationId,
+      sessionToken
+    );
+
+  if (
+    !result ||
+    result.ok !== true ||
+    !result.application
+  ) {
+    return result;
+  }
+
+  const application =
+    result.application;
+
+  application.hasPaymentProof =
+    Boolean(
+      application.paymentProofFileId ||
+      application.receiptPdfUrl
+    );
+
+  if (!application.hasPaymentProof) {
+    return {
+      ok: false,
+      application: null,
+      message:
+        'This application has not submitted payment proof.'
+    };
+  }
+
+  return result;
+}
+
+
+/**
+ * Confirms a payment from the new dashboard and immediately makes the
+ * application eligible for licence creation. This does not call or alter
+ * the legacy Admin Portal payment workflow.
+ */
+function confirmAdminDashboardPayment(
+  sessionToken,
+  applicationId
+) {
+  const adminAccess =
+    requireAdminAccess_(
+      sessionToken
+    );
+
+  const cleanApplicationId =
+    String(applicationId || '').trim();
+
+  if (!cleanApplicationId) {
+    throw new Error('Application ID is required.');
+  }
+
+  const lock =
+    LockService.getScriptLock();
+
+  if (!lock.tryLock(5000)) {
+    throw new Error(
+      'Another administrator action is still being saved. Please try again in a moment.'
+    );
+  }
+
+  try {
+    const sheet =
+      getResponseSheet_(
+        SpreadsheetApp.getActiveSpreadsheet()
+      );
+
+    const record =
+      findAdminApplicationRecord_(
+        sheet,
+        cleanApplicationId
+      );
+
+    if (!record) {
+      throw new Error('Application record was not found.');
+    }
+
+    const hasPaymentProof =
+      Boolean(
+        String(
+          getAdminRecordValue_(
+            record,
+            'Payment Proof File ID'
+          ) ||
+          getAdminRecordValue_(
+            record,
+            'Receipt PDF URL'
+          ) ||
+          ''
+        ).trim()
+      );
+
+    if (!hasPaymentProof) {
+      throw new Error(
+        'Payment proof must be submitted before payment can be confirmed.'
+      );
+    }
+
+    const now = new Date();
+    const adminEmail =
+      String(adminAccess.email || '').trim();
+
+    setAdminRecordMemory_(
+      record,
+      'Payment Status',
+      'Confirmed'
+    );
+    setAdminRecordMemory_(
+      record,
+      'Payment Review Notes',
+      'Payment confirmed in the Admin Dashboard.'
+    );
+    setAdminRecordMemory_(record, 'Payment Verified At', now);
+    setAdminRecordMemory_(record, 'Payment Verified By', adminEmail);
+
+    // Dashboard payment confirmation is the final approval gate.
+    setAdminRecordMemory_(record, 'Verification Status', 'Approved');
+    setAdminRecordMemory_(
+      record,
+      'Verification Notes',
+      'Automatically approved after payment confirmation in the Admin Dashboard.'
+    );
+    setAdminRecordMemory_(record, 'Verification Completed At', now);
+    setAdminRecordMemory_(record, 'Verification Completed By', adminEmail);
+    setAdminRecordMemory_(
+      record,
+      'Record Status',
+      'Approved - Awaiting Licence Creation'
+    );
+
+    commitAdminRecord_(sheet, record);
+    invalidateAdminCachesAfterWrite_(cleanApplicationId);
+
+    return {
+      ok: true,
+      applicationId: cleanApplicationId,
+      paymentStatus: 'Confirmed',
+      recordStatus: 'Approved - Awaiting Licence Creation',
+      message:
+        'Payment confirmed. Application approved and ready for licence creation.'
+    };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+
+/**
  * Builds one row for the admin
  * application list.
  */
@@ -1264,7 +1431,7 @@ function buildAdminApplicationDetail_(
 
   return {
     // Bump this when the cached detail-object shape changes.
-    applicationDetailSchemaVersion: 3,
+    applicationDetailSchemaVersion: 4,
 
     applicationId:
       getFirstAvailableValue_(
@@ -1515,6 +1682,38 @@ function buildAdminApplicationDetail_(
         rowObject,
         [
           'Payment Proof Uploaded At',
+        ]
+      ),
+
+    paymentAmount:
+      getFirstAvailableValue_(
+        rowObject,
+        [
+          'Payment Amount',
+          'Amount Paid',
+          'Amount',
+        ]
+      ) || (
+        typeof PAYMENT_CONFIG !== 'undefined' &&
+        PAYMENT_CONFIG.AMOUNT
+          ? String(PAYMENT_CONFIG.AMOUNT)
+          : ''
+      ),
+
+    paymentDate:
+      getFirstAvailableValue_(
+        rowObject,
+        [
+          'Payment Date',
+          'Payment Proof Uploaded At',
+        ]
+      ),
+
+    paymentProofFileId:
+      getFirstAvailableValue_(
+        rowObject,
+        [
+          'Payment Proof File ID',
         ]
       ),
 
