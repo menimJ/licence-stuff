@@ -270,6 +270,150 @@
         font-size: 13px;
       }
 
+      .dashboard-guide {
+        padding: 28px;
+        background: #ffffff;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(16, 24, 40, 0.04);
+      }
+
+      .dashboard-guide h2 {
+        margin-bottom: 8px;
+      }
+
+      .dashboard-guide-intro {
+        max-width: 720px;
+        margin-bottom: 26px;
+        color: var(--text-secondary);
+      }
+
+      .dashboard-guide-stages {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .dashboard-guide-stage {
+        position: relative;
+        min-width: 0;
+        padding: 20px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: #f9fafb;
+      }
+
+      .dashboard-guide-stage:not(:last-child)::after {
+        position: absolute;
+        top: 50%;
+        right: -13px;
+        z-index: 1;
+        width: 10px;
+        height: 10px;
+        border-top: 2px solid #98a2b3;
+        border-right: 2px solid #98a2b3;
+        content: '';
+        transform: translateY(-50%) rotate(45deg);
+      }
+
+      .dashboard-guide-stage-number {
+        display: inline-flex;
+        margin-bottom: 10px;
+        padding: 4px 8px;
+        border-radius: 999px;
+        background: #eaf2f8;
+        color: var(--primary);
+        font-size: 11px;
+        font-weight: 700;
+      }
+
+      .dashboard-guide-stage h3,
+      .dashboard-application-search h3 {
+        margin: 0 0 7px;
+        font-size: 16px;
+      }
+
+      .dashboard-guide-stage p {
+        margin-bottom: 10px;
+        color: var(--text-secondary);
+        font-size: 13px;
+      }
+
+      .dashboard-guide-stage ul {
+        margin: 0;
+        padding-left: 18px;
+        color: #475467;
+        font-size: 12px;
+      }
+
+      .dashboard-guide-stage li + li {
+        margin-top: 5px;
+      }
+
+      .dashboard-guide-stage .dashboard-guide-note {
+        margin: 14px 0 0;
+        padding-top: 12px;
+        border-top: 1px solid #e4e7ec;
+        font-weight: 600;
+      }
+
+      .dashboard-application-search {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(300px, .9fr);
+        gap: 22px;
+        margin-top: 24px;
+        padding: 22px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: #f8fafc;
+      }
+
+      .dashboard-application-search .eyebrow {
+        margin-bottom: 4px;
+      }
+
+      .dashboard-application-search-form {
+        align-self: center;
+      }
+
+      .dashboard-application-search-form label {
+        display: block;
+        margin-bottom: 7px;
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .dashboard-application-search-form > div {
+        display: flex;
+        gap: 8px;
+      }
+
+      .dashboard-application-search-form input {
+        min-width: 0;
+        flex: 1;
+        min-height: 42px;
+        padding: 9px 11px;
+        border: 1px solid #d0d5dd;
+        border-radius: 8px;
+        background: #ffffff;
+      }
+
+      .dashboard-application-search-message,
+      .dashboard-application-search-help {
+        grid-column: 1 / -1;
+        margin: -8px 0 0;
+        color: var(--text-secondary);
+        font-size: 12px;
+      }
+
+      .dashboard-application-search-message.error {
+        color: var(--danger-text);
+      }
+
+      .dashboard-application-search-message.success {
+        color: var(--success-text);
+      }
+
       .applications-card {
         background: #fff;
         border: 1px solid var(--border);
@@ -727,6 +871,19 @@
         .dashboard-licence-status-section .dashboard-detail-grid {
           grid-template-columns: repeat(2, minmax(0, 1fr));
         }
+
+        .dashboard-guide-stages,
+        .dashboard-application-search {
+          grid-template-columns: 1fr;
+        }
+
+        .dashboard-guide-stage:not(:last-child)::after {
+          top: auto;
+          right: auto;
+          bottom: -12px;
+          left: 50%;
+          transform: translateX(-50%) rotate(135deg);
+        }
       }
 
       @media (max-width: 650px) {
@@ -741,6 +898,15 @@
 
         .dashboard-licence-status-section .dashboard-detail-grid {
           grid-template-columns: 1fr;
+        }
+
+        .dashboard-guide,
+        .dashboard-application-search {
+          padding: 18px;
+        }
+
+        .dashboard-application-search-form > div {
+          flex-direction: column;
         }
 
         .dashboard-doc-row {

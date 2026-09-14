@@ -232,16 +232,70 @@
 
         <main class="content">
           <? if (safeDashboardSection === 'dashboard') { ?>
-          <section class="welcome-card">
-            <p class="eyebrow">Dashboard Home</p>
-            <h2>Administration dashboard is ready.</h2>
-            <p class="muted">
-              This is the new CRFFN administration experience. All dashboard navigation now stays inside the dashboard UI.
+          <section class="dashboard-guide">
+            <p class="eyebrow">CRFFN Licensing Dashboard</p>
+            <h2>Manage applications from submission to licence issuance.</h2>
+            <p class="dashboard-guide-intro">
+              Applications progress through three workflow stages. Review each stage before the application moves to the next one.
             </p>
 
-            <div class="menu-note">
-              Applications, Payments, Licences, System Jobs and Admin Users now have their own dashboard routes. Their working screens will be migrated into this UI one section at a time.
+            <div class="dashboard-guide-stages" aria-label="Licensing workflow stages">
+              <article class="dashboard-guide-stage">
+                <span class="dashboard-guide-stage-number">Stage 1</span>
+                <h3>Application Review</h3>
+                <p>Review applicant information and supporting documents.</p>
+                <ul>
+                  <li>Review submitted information</li>
+                  <li>Review uploaded documents</li>
+                  <li>Request corrections where required</li>
+                  <li>Approve applications for payment</li>
+                </ul>
+              </article>
+
+              <article class="dashboard-guide-stage">
+                <span class="dashboard-guide-stage-number">Stage 2</span>
+                <h3>Payment Verification</h3>
+                <p>Verify applicant payment submissions.</p>
+                <ul>
+                  <li>Review payment receipt</li>
+                  <li>Confirm payment</li>
+                  <li>Reject invalid payment submissions</li>
+                </ul>
+                <p class="dashboard-guide-note">Confirmed payments move automatically to licence creation.</p>
+              </article>
+
+              <article class="dashboard-guide-stage">
+                <span class="dashboard-guide-stage-number">Stage 3</span>
+                <h3>Licence Creation</h3>
+                <p>Generate and issue the final licence.</p>
+                <ul>
+                  <li>Generate, view, or download the draft</li>
+                  <li>Upload the stamped licence</li>
+                  <li>Send the licence to the applicant</li>
+                </ul>
+              </article>
             </div>
+
+            <section class="dashboard-application-search" aria-labelledby="dashboardApplicationSearchTitle">
+              <div>
+                <p class="eyebrow">Application Search</p>
+                <h3 id="dashboardApplicationSearchTitle">Find an application by ID or applicant email</h3>
+                <p class="muted">The search identifies the application’s current workflow stage and opens the correct detail page.</p>
+              </div>
+
+              <form class="dashboard-application-search-form" onsubmit="searchDashboardApplication(event)">
+                <label for="dashboardApplicationSearchInput">Application ID or applicant email</label>
+                <div>
+                  <input id="dashboardApplicationSearchInput" type="search" autocomplete="off" placeholder="APP-0001 or company@email.com" required>
+                  <button id="dashboardApplicationSearchButton" class="button" type="submit">Search</button>
+                </div>
+              </form>
+
+              <div id="dashboardApplicationSearchMessage" class="dashboard-application-search-message" aria-live="polite"></div>
+              <p class="dashboard-application-search-help">
+                Search only locates the application. Full information, documents, payment details, and licence details load only after opening its detail page.
+              </p>
+            </section>
           </section>
 
           <? } else if (safeDashboardSection === 'applications') { ?>

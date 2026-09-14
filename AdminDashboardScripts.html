@@ -2275,6 +2275,77 @@ const APPLICATIONS_PAGE_SIZE = 20;
           .adminLogout(ADMIN_SESSION_TOKEN);
       }
 
+      function searchDashboardApplication(event) {
+        if (event) { event.preventDefault(); }
+
+        const input = document.getElementById('dashboardApplicationSearchInput');
+        const button = document.getElementById('dashboardApplicationSearchButton');
+        const message = document.getElementById('dashboardApplicationSearchMessage');
+        const query = String(input && input.value || '').trim();
+
+        if (!query) {
+          if (message) {
+            message.className = 'dashboard-application-search-message error';
+            message.textContent = 'Enter an application ID or applicant email address.';
+          }
+          return;
+        }
+
+        if (button) {
+          button.disabled = true;
+          button.textContent = 'Searching...';
+        }
+        if (message) {
+          message.className = 'dashboard-application-search-message';
+          message.textContent = 'Finding application...';
+        }
+
+        google.script.run
+          .withSuccessHandler(function(result) {
+            if (!result || result.ok !== true) {
+              if (button) {
+                button.disabled = false;
+                button.textContent = 'Search';
+              }
+              if (message) {
+                message.className = 'dashboard-application-search-message error';
+                message.textContent = result && result.message
+                  ? result.message
+                  : 'The application could not be located.';
+              }
+              return;
+            }
+
+            if (message) {
+              message.className = 'dashboard-application-search-message success';
+              message.textContent = 'Opening ' + result.stage + '...';
+            }
+
+            window.top.location.href =
+              ADMIN_DASHBOARD_BASE_URL +
+              '?view=dashboard&section=' +
+              encodeURIComponent(result.section) +
+              '&applicationId=' +
+              encodeURIComponent(result.applicationId) +
+              '&session=' +
+              encodeURIComponent(ADMIN_SESSION_TOKEN);
+          })
+          .withFailureHandler(function(error) {
+            if (button) {
+              button.disabled = false;
+              button.textContent = 'Search';
+            }
+            if (message) {
+              message.className = 'dashboard-application-search-message error';
+              message.textContent = getErrorMessage_(error);
+            }
+          })
+          .findAdminDashboardApplicationRoute(
+            ADMIN_SESSION_TOKEN,
+            query
+          );
+      }
+
       document.addEventListener(
         'DOMContentLoaded',
         function() {

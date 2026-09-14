@@ -493,6 +493,147 @@ function getAdminDashboardLatestRows_(sessionToken) {
 }
 
 
+/**
+ * Locates one dashboard application without loading its full detail object.
+ * The returned section is derived only from the current workflow fields so
+ * the browser can route to the appropriate detail page.
+ */
+function findAdminDashboardApplicationRoute(
+  sessionToken,
+  query
+) {
+  const cleanQuery =
+    String(query || '')
+      .trim()
+      .toLowerCase();
+
+  if (!cleanQuery) {
+    return {
+      ok: false,
+      message:
+        'Enter an application ID or applicant email address.'
+    };
+  }
+
+  const matches =
+    getAdminDashboardLatestRows_(
+      sessionToken
+    )
+      .filter(function(rowObject) {
+        const applicationId =
+          getFirstAvailableValue_(
+            rowObject,
+            ['Application ID']
+          ).toLowerCase();
+
+        const email =
+          getFirstAvailableValue_(
+            rowObject,
+            [
+              'Email Address',
+              'Email',
+              'Applicant Email',
+              'Company Email',
+              'Company Email Address'
+            ]
+          ).toLowerCase();
+
+        return applicationId === cleanQuery || email === cleanQuery;
+      });
+
+  if (!matches.length) {
+    return {
+      ok: false,
+      message:
+        'No application matches that ID or email address.'
+    };
+  }
+
+  if (matches.length > 1) {
+    return {
+      ok: false,
+      message:
+        'More than one application uses that email address. Search by application ID instead.'
+    };
+  }
+
+  const rowObject = matches[0];
+  const applicationId =
+    getFirstAvailableValue_(
+      rowObject,
+      ['Application ID']
+    );
+
+  const informationStatus =
+    getFirstAvailableValue_(
+      rowObject,
+      ['Application Information Status', 'Information Status']
+    ).toLowerCase();
+
+  const documentStatus =
+    getFirstAvailableValue_(
+      rowObject,
+      ['Document Status', 'Documents Status']
+    ).toLowerCase();
+
+  const paymentStatus =
+    getFirstAvailableValue_(
+      rowObject,
+      ['Payment Status']
+    ).toLowerCase();
+
+  const recordStatus =
+    getFirstAvailableValue_(
+      rowObject,
+      ['Record Status']
+    ).toLowerCase();
+
+  const hasPaymentProof =
+    Boolean(
+      getFirstAvailableValue_(
+        rowObject,
+        [
+          'Payment Proof File ID',
+          'Receipt PDF URL',
+          'Payment Receipt URL',
+          'Payment Proof URL'
+        ]
+      )
+    );
+
+  let section = 'applications';
+  let stage = 'Stage 1 — Application Review';
+
+  if (
+    paymentStatus === 'confirmed' &&
+    [
+      'approved',
+      'awaiting licence creation',
+      'approved - awaiting licence creation'
+    ].indexOf(recordStatus) !== -1
+  ) {
+    section = 'licences';
+    stage = 'Stage 3 — Licence Creation';
+  } else if (
+    informationStatus === 'confirmed' &&
+    documentStatus === 'complete' &&
+    hasPaymentProof &&
+    paymentStatus !== 'confirmed'
+  ) {
+    section = 'payments';
+    stage = 'Stage 2 — Payment Verification';
+  }
+
+  return {
+    ok: true,
+    applicationId: applicationId,
+    section: section,
+    stage: stage,
+    message: ''
+  };
+}
+
+
 function paginateAdminDashboardItems_(
   items,
   options,
