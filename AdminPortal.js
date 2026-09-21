@@ -2561,6 +2561,7 @@ function getCrffnMembershipNumber_(
     getFirstAvailableValue_(
       rowObject,
       [
+        'CRFFN Corporate Membership Number',
         'CRFFN Membership Number',
         'CRFFN Membership No',
         'CRFFN Registration Number',

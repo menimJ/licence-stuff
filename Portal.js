@@ -1138,7 +1138,7 @@ const APPLICATION_CORRECTION_TARGET_TO_FORM_TITLE =
     company_tin:
       'Company TIN',
     crffn_membership_number:
-      'CRFFN Membership Number',
+      'CRFFN Corporate Membership Number',
     company_address:
       'Company Address',
     position_held:

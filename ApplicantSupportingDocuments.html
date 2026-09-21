@@ -357,12 +357,18 @@
       '<div class="support-doc-actions"></div>',
       '<div class="support-doc-row-message"></div>'
     ].join('');
+    const displayLabel = {
+        passport:
+          'Passport Photograph of Director or Company Owner — White Background Passport Required',
+
+        experience:
+          'Proof of Experience — CV of Applicant'
+      };
 
     card
-      .querySelector(
-        '.support-doc-title'
-      )
+      .querySelector('.support-doc-title')
       .textContent =
+        displayLabel[documentData.type] ||
         documentData.label;
 
     const meta =

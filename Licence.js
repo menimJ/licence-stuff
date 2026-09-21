@@ -633,6 +633,7 @@ function getLicenceCrffnMembershipNumber_(
     getLicenceRecordValue_(
       record,
       [
+        'CRFFN Corporate Membership Number',
         'CRFFN Membership Number',
         'CRFFN Membership No',
         'CRFFN Registration Number',

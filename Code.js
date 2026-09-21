@@ -388,13 +388,13 @@ function ensureRequiredFormFields_(form) {
     }
 
     if (
-      !existingTitles.includes(
-        'CRFFN Membership Number'
-      )
+      !existingTitles.includes('CRFFN Membership Number') &&
+      !existingTitles.includes('CRFFN Corporate Membership Number')
     ) {
       form
         .addTextItem()
-        .setTitle('CRFFN Membership Number')
+        .setTitle('CRFFN Corporate Membership Number')
+        .setHelpText("If you don't have your CRFFN Corporate Membership Number, kindly visit https://www.crffn.gov.ng, register and get your CRFFN Corporate Membership Number.")
         .setRequired(true);
     }
   }
@@ -533,7 +533,8 @@ function buildForm_(form) {
 
   form
     .addTextItem()
-    .setTitle('CRFFN Membership Number')
+    .setTitle('CRFFN Corporate Membership Number')
+    .setHelpText("If you don't have your CRFFN Corporate Membership Number, kindly visit https://www.crffn.gov.ng, register and get your CRFFN Corporate Membership Number.")
     .setRequired(true);
 
   form
