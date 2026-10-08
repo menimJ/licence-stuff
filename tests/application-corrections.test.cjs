@@ -390,3 +390,94 @@ test('a missing correction storage column requires review without creating heade
   assert.deepEqual(s.snapshot(), before);
   assert.equal(Object.hasOwn(s.snapshot(), 'Application Correction Fields JSON'), false);
 });
+
+// Exercise the actual server-rendered alert, including its escaped output expressions.
+function renderInformationCorrectionAlert(portalData) {
+  const html = read('ApplicantPortal.html');
+  const start = html.indexOf('      <? var correctionReasons');
+  const template = html.slice(start, html.indexOf('      <div class="correction-actions">', start));
+  let code = 'let output = "";\n', offset = 0;
+  for (const match of template.matchAll(/<\?([\s\S]*?)\?>/g)) {
+    code += 'output += ' + JSON.stringify(template.slice(offset, match.index)) + ';\n';
+    code += match[1].startsWith('=') ? 'output += escapeHtml(' + match[1].slice(1) + ');\n' : match[1] + '\n';
+    offset = match.index + match[0].length;
+  }
+  code += 'output += ' + JSON.stringify(template.slice(offset)) + ';\noutput;';
+  return vm.runInNewContext(code, { portalData, escapeHtml: value => String(value).replace(/[&<>"']/g, char => '&#' + char.charCodeAt(0) + ';') });
+}
+function correctionPortalData(s) {
+  return s.ctx.getApplicantPortalDataUncached_('APP-1', 'valid-token');
+}
+test('portal CRFFN Other reason uses only structured custom details and preserves audit notes and stable field identity', () => {
+  const reason = 'What the system requires for your license application process is your CRFFN\ncorporate membership number...';
+  const notes = 'CRFFN Membership Number requires correction.\nCRFFN Membership Number appears invalid.\nCRFFN Membership Number has another issue: ' + reason;
+  const s = legacyFixture(notes, JSON.stringify([{ targetCode: 'crffn_membership_number', targetLabel: 'CRFFN Membership Number',
+    issueCode: 'other', issueText: 'has another issue', reason: notes, customDetails: reason, status: 'pending' }]));
+  const before = s.snapshot();
+  const data = correctionPortalData(s);
+  assert.equal(data.applicationCorrectionReasons[0].reason, reason);
+  assert.equal(data.informationReviewNotes, notes);
+  const rendered = renderInformationCorrectionAlert(data);
+  assert.ok(rendered.includes(reason));
+  assert.doesNotMatch(rendered, /CRFFN Membership Number has another issue:|requires correction|appears invalid|has another issue/);
+  const field = s.load().fields[0];
+  assert.equal(field.reason, reason);
+  assert.equal(field.label, 'CRFFN Corporate Membership Number');
+  assert.equal(field.key, 'crffn_membership_number');
+  assert.deepEqual(s.snapshot(), before);
+  assert.equal(s.writes(), 0);
+  assert.equal(s.submit({ crffn_membership_number: 'RFFC-349547' }).ok, true);
+  assert.equal(s.snapshot()['Application Information Review Notes'], notes);
+});
+test('portal multiple targets display individual custom instructions with authoritative registry labels', () => {
+  const items = [
+    { targetCode: 'crffn_membership_number', targetLabel: 'Old membership label', customDetails: 'Please provide the valid corporate membership number.' },
+    { targetCode: 'company_tin', targetLabel: 'Old TIN label', reason: 'Please provide the current company TIN.', customDetails: '  ' },
+    { targetCode: 'company_address', reason: 'Please provide the registered company address.' }
+  ].map(item => ({ status: 'pending', issueText: 'appears invalid', ...item }));
+  const s = legacyFixture('Audit history must not be displayed.', JSON.stringify(items));
+  const before = s.snapshot();
+  const data = correctionPortalData(s);
+  const rendered = renderInformationCorrectionAlert(data);
+  assert.match(rendered, /Administrator&#39;s reasons:/);
+  const fields = s.load().fields;
+  items.forEach((item, index) => {
+    const reason = (item.customDetails || '').trim() || item.reason;
+    assert.ok(rendered.includes('<strong>' + s.registry[item.targetCode].label + ':</strong>'));
+    assert.ok(rendered.includes(reason));
+    assert.equal(fields[index].key, item.targetCode);
+    assert.equal(fields[index].reason, reason);
+  });
+  assert.doesNotMatch(rendered, /Audit history|Old membership label|Old TIN label|appears invalid/);
+  assert.deepEqual(s.snapshot(), before);
+  assert.equal(s.submit({ crffn_membership_number: 'RFFC-349547', company_tin: 'TIN123', company_address: 'Registered Address' }).ok, true);
+  assert.equal(s.snapshot()['Application Information Review Notes'], before['Application Information Review Notes']);
+});
+test('new Admin structured reason renders and submits without changing audit notes', () => {
+  const s = fixture();
+  s.request(['crffn_membership_number'], 'Please supply your corporate membership number.');
+  const before = s.snapshot();
+  const rendered = renderInformationCorrectionAlert(correctionPortalData(s));
+  assert.ok(rendered.includes('Please supply your corporate membership number.'));
+  assert.doesNotMatch(rendered, /has another issue|requires correction|appears invalid/);
+  assert.equal(s.submit({ crffn_membership_number: 'RFFC-349547' }).ok, true);
+  assert.equal(s.snapshot()['Application Information Review Notes'], before['Application Information Review Notes']);
+});
+test('portal legacy fallback retains safe instructions and never guesses unsafe or completed targets', () => {
+  const notes = 'CRFFN Membership Number has another issue: Provide the corporate number.';
+  const s = legacyFixture(notes);
+  assert.ok(renderInformationCorrectionAlert(correctionPortalData(s)).includes(notes));
+  assert.equal(s.load().fields[0].key, 'crffn_membership_number');
+  assert.equal(s.snapshot()['Application Information Review Notes'], notes);
+  for (const t of [legacyFixture('Please fix something.'), legacyFixture(notes, JSON.stringify([{ targetCode: 'company_name', status: 'submitted' }]))]) {
+    assert.equal(correctionPortalData(t).applicationCorrectionReasons.length, 0);
+    assert.throws(() => t.load(), /administrator review|already been submitted/);
+    assert.equal(t.writes(), 0);
+  }
+});
+test('portal escapes administrator instructions as text', () => {
+  const s = legacyFixture('Audit text', JSON.stringify([{ targetCode: 'company_name', customDetails: '<script>alert("reason")</script>', status: 'pending' }]));
+  const rendered = renderInformationCorrectionAlert(correctionPortalData(s));
+  assert.doesNotMatch(rendered, /<script>/);
+  assert.match(rendered, /&#60;script&#62;/);
+});

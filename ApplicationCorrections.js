@@ -187,6 +187,28 @@ function requireApplicantCorrectionRecord_(applicationId, secureToken) {
   return { sheet: sheet, record: record };
 }
 
+// Presentation only: never replace the administrator's stored audit/history text.
+function getApplicantApplicationCorrectionReason_(item) {
+  const customDetails = typeof item.customDetails === 'string' ? item.customDetails.trim() : '';
+  const reason = typeof item.reason === 'string' ? item.reason.trim() : '';
+  return customDetails || reason || item.issueText || '';
+}
+
+function getApplicantApplicationCorrectionReasons_(record) {
+  if (String(getAdminRecordValue_(record, 'Application Information Status') || '').trim().toLowerCase() !== 'correction required') { return []; }
+  let items;
+  try { items = getPendingApplicationCorrectionItems_(record); }
+  catch (error) {
+    // The editor retains its existing administrator-review error for unsafe requests.
+    return [];
+  }
+  const registry = getApplicationCorrectionRegistry_();
+  return items.map(function(item) {
+    return { key: item.targetCode, label: registry[item.targetCode].label,
+      reason: getApplicantApplicationCorrectionReason_(item) };
+  });
+}
+
 function getApplicantApplicationCorrections(applicationId, secureToken) {
   const record = requireApplicantCorrectionRecord_(applicationId, secureToken).record;
   const items = getPendingApplicationCorrectionItems_(record);
@@ -195,7 +217,7 @@ function getApplicantApplicationCorrections(applicationId, secureToken) {
     const field = registry[item.targetCode];
     return { key: field.key, label: field.label, type: field.type, required: field.required,
       choices: getApplicationCorrectionChoices_(field), value: getApplicationCorrectionValue_(record, field.key),
-      reason: item.reason || item.issueText || '' };
+      reason: getApplicantApplicationCorrectionReason_(item) };
   }) };
 }
 

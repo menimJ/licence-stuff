@@ -1020,6 +1020,13 @@ function getApplicantPortalDataUncached_(
         'Application Information Review Notes'
       ] || '',
 
+    applicationCorrectionReasons:
+      getApplicantApplicationCorrectionReasons_({
+        headers: headers,
+        headerMap: headerMap,
+        rowValues: matchingRow,
+      }),
+
     applicationCorrectionFields:
       parseApplicationCorrectionFields_(
         rowObject[

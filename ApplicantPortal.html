@@ -1433,10 +1433,18 @@
         Your application information needs to be corrected before processing can continue.
       </p>
 
-      <? if (portalData.informationReviewNotes) { ?>
+      <? var correctionReasons = portalData.applicationCorrectionReasons || []; ?>
+      <? if (correctionReasons.length) { ?>
       <div class="correction-reason">
-        <strong>Administrator's reason:</strong><br>
-        <?= portalData.informationReviewNotes ?>
+        <strong><?= correctionReasons.length > 1 ? "Administrator's reasons:" : "Administrator's reason:" ?></strong><br>
+        <? correctionReasons.forEach(function(item) { ?>
+        <p>
+          <? if (correctionReasons.length > 1) { ?>
+          <strong><?= item.label ?>:</strong><br>
+          <? } ?>
+          <span style="white-space:pre-wrap;"><?= item.reason ?></span>
+        </p>
+        <? }); ?>
       </div>
       <? } ?>
 
