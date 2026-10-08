@@ -965,6 +965,13 @@ function getApplicantPortalDataUncached_(
     matchingRow
   );
 
+  let correctionItems = [];
+  let correctionError = '';
+  if (String(rowObject['Application Information Status'] || '').trim().toLowerCase() === 'correction required') {
+    try { correctionItems = resolveApplicationCorrectionItems_(rowObject); }
+    catch (error) { correctionError = error.message; }
+  }
+
   return {
     ok: true,
 
@@ -1025,14 +1032,11 @@ function getApplicantPortalDataUncached_(
         headers: headers,
         headerMap: headerMap,
         rowValues: matchingRow,
-      }),
+      }, correctionItems),
 
-    applicationCorrectionFields:
-      parseApplicationCorrectionFields_(
-        rowObject[
-          'Application Correction Fields JSON'
-        ]
-      ),
+    applicationCorrectionFields: correctionItems,
+
+    applicationCorrectionError: correctionError,
 
     // Application corrections now use the token-bound portal editor. The
     // original Google Form remains unchanged for ordinary applications.
@@ -1109,12 +1113,16 @@ const APPLICATION_CORRECTION_TARGET_TO_FORM_TITLE = getApplicationCorrectionLabe
 /**
  * Returns the exact correction targets for the current application.
  *
- * Structured JSON is the primary source.
- * Requests without structured targets must be reissued by an administrator.
+ * Adapt the portal row to the same resolver used by the editor and submission.
+ * Structured targets remain authoritative; legacy requests use the safe fallback.
  */
 function resolveApplicationCorrectionItems_(rowObject) {
-  // Structured targets are authoritative. Never infer identity from review notes.
-  return parseApplicationCorrectionFields_(rowObject['Application Correction Fields JSON']);
+  const headers = Object.keys(rowObject);
+  return getPendingApplicationCorrectionItems_({
+    headers: headers,
+    headerMap: getHeaderMap_(headers),
+    rowValues: headers.map(function(header) { return rowObject[header]; }),
+  });
 }
 
 
@@ -1467,7 +1475,7 @@ function buildPrefilledCorrectionFormUrl_(
   /*
    * Prefer the structured JSON saved by the admin workflow.
    *
-   * No text fallback: an administrator must reissue requests without JSON.
+   * The shared resolver also recognises safe legacy requests.
    * This legacy Form helper is not used by the secure portal editor.
    */
   const correctionItems =

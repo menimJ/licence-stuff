@@ -481,3 +481,131 @@ test('portal escapes administrator instructions as text', () => {
   assert.doesNotMatch(rendered, /<script>/);
   assert.match(rendered, /&#60;script&#62;/);
 });
+
+for (const [legacyLabel, key, value] of [
+  ['CRFFN Membership Number', 'crffn_membership_number', 'RFFC-349547'],
+  ['State of Origin', 'state_of_origin', 'Lagos']
+]) test(`shared portal resolution and submission for legacy ${key} with blank, malformed or unavailable JSON`, () => {
+  for (const json of ['', undefined, '{bad']) {
+    const notes = legacyLabel + ' has another issue: Please provide the correct value.';
+    const s = legacyFixture(notes, json);
+    const before = s.snapshot();
+    const resolver = s.ctx.getPendingApplicationCorrectionItems_;
+    let resolutions = 0;
+    s.ctx.getPendingApplicationCorrectionItems_ = record => { resolutions++; return resolver(record); };
+    const portal = correctionPortalData(s);
+    assert.equal(portal.ok, true);
+    assert.equal(portal.applicationCorrectionError, '');
+    assert.equal(resolutions, 1, 'summary and reasons share one resolution');
+    assert.deepEqual(Array.from(portal.applicationCorrectionFields, item => item.targetCode), [key]);
+    assert.equal(portal.applicationCorrectionFields[0].targetLabel, s.registry[key].label);
+    assert.equal(portal.applicationCorrectionReasons[0].key, key);
+    assert.equal(s.ctx.resolveApplicationCorrectionItems_(before)[0].targetCode, key);
+    const editor = s.load();
+    assert.equal(editor.fields[0].key, key);
+    assert.equal(editor.fields[0].label, s.registry[key].label);
+    assert.equal(editor.fields[0].value, 'Old value');
+    assert.equal(editor.fields[0].reason, portal.applicationCorrectionReasons[0].reason);
+    assert.equal(s.writes(), 0);
+    assert.deepEqual(s.snapshot(), before);
+    // Another summary read must not invalidate the editor's existing revision.
+    correctionPortalData(s);
+    assert.equal(s.ctx.submitApplicantApplicationCorrections({ applicationId: 'APP-1', secureToken: 'valid-token',
+      revision: editor.revision, values: { [key]: value } }).ok, true);
+    const after = s.snapshot();
+    assert.equal(after[s.registry[key].label], value);
+    assert.equal(after['Application Information Status'], 'Pending');
+    const changed = new Set([s.registry[key].label, 'Application Correction Fields JSON', 'Application Information Status', 'Record Status']);
+    for (const header of Object.keys(before)) if (!changed.has(header)) assert.deepEqual(after[header], before[header], header);
+    assert.deepEqual(Object.keys(after), Object.keys(before), 'no header changes');
+    assert.equal(correctionPortalData(s).applicationCorrectionFields.length, 0);
+  }
+});
+test('portal and editor resolve the same multiple legacy targets and retain their audit history on submission', () => {
+  const s = legacyFixture('CRFFN Membership Number has another issue: Provide your corporate number.\nState of Origin has another issue: Provide your state.');
+  const before = s.snapshot();
+  const portal = correctionPortalData(s);
+  const editor = s.load();
+  assert.deepEqual(Array.from(portal.applicationCorrectionFields, item => item.targetCode), ['crffn_membership_number', 'state_of_origin']);
+  assert.deepEqual(Array.from(portal.applicationCorrectionFields, item => item.targetCode), Array.from(editor.fields, field => field.key));
+  assert.deepEqual(Array.from(portal.applicationCorrectionReasons, item => item.reason), Array.from(editor.fields, field => field.reason));
+  assert.equal(s.submit({ crffn_membership_number: 'RFFC-349547', state_of_origin: 'Lagos' }).ok, true);
+  assert.equal(s.snapshot()['Application Information Review Notes'], before['Application Information Review Notes']);
+});
+test('portal resolver gives structured targets precedence and keeps custom reasons clean', () => {
+  const s = legacyFixture('State of Origin has another issue: Legacy state request.', JSON.stringify([
+    { targetCode: 'crffn_membership_number', targetLabel: 'CRFFN Membership Number', issueText: 'has another issue',
+      customDetails: 'Provide your corporate membership number.', status: 'pending' }
+  ]));
+  const portal = correctionPortalData(s);
+  assert.equal(portal.applicationCorrectionFields.length, 1);
+  assert.equal(portal.applicationCorrectionFields[0].targetCode, 'crffn_membership_number');
+  assert.equal(portal.applicationCorrectionReasons[0].label, 'CRFFN Corporate Membership Number');
+  assert.equal(portal.applicationCorrectionReasons[0].reason, 'Provide your corporate membership number.');
+  assert.doesNotMatch(renderInformationCorrectionAlert(portal), /has another issue|Legacy state request/);
+  assert.equal(s.load().fields[0].reason, portal.applicationCorrectionReasons[0].reason);
+  assert.equal(s.submit({ crffn_membership_number: 'RFFC-349547' }).ok, true);
+  assert.equal(s.snapshot()['State of Origin — Nigerian Applicants Only'], 'Old value');
+});
+test('unsafe legacy requests produce the same administrator-review error in the portal and editor', () => {
+  for (const notes of ['Fix this application.', 'CRFFN Membership Number and State of Origin has another issue: Wrong.',
+    'CRFFN Membership Number has another issue: Wrong.\nUnknown Field requires correction.']) {
+    const s = legacyFixture(notes);
+    const before = s.snapshot();
+    const portal = correctionPortalData(s);
+    assert.equal(portal.ok, true, 'the applicant can still view their existing portal');
+    assert.match(portal.applicationCorrectionError, /requires administrator review/);
+    assert.equal(portal.applicationCorrectionFields.length, 0);
+    assert.equal(portal.applicationCorrectionReasons.length, 0);
+    assert.throws(() => s.ctx.resolveApplicationCorrectionItems_(before), { message: portal.applicationCorrectionError });
+    assert.throws(() => s.load(), { message: portal.applicationCorrectionError });
+    assert.deepEqual(s.snapshot(), before);
+    assert.equal(s.writes(), 0);
+  }
+  assert.ok(read('ApplicantPortal.html').includes("<?= portalData.applicationCorrectionError || '' ?>"));
+});
+test('completed structured targets cannot fall back to stale legacy notes in the portal', () => {
+  for (const status of ['submitted', 'resolved']) {
+    const s = legacyFixture('State of Origin requires correction.', JSON.stringify([{ targetCode: 'company_name', status }]));
+    const portal = correctionPortalData(s);
+    assert.match(portal.applicationCorrectionError, /already been submitted/);
+    assert.equal(portal.applicationCorrectionFields.length, 0);
+    assert.equal(portal.applicationCorrectionReasons.length, 0);
+  }
+});
+test('portal cache schema skips old summaries, retains caching, token isolation and application version invalidation', () => {
+  const s = legacyFixture('CRFFN Membership Number has another issue: Provide your corporate number.');
+  s.ctx.Utilities.Charset = { UTF_8: 'UTF-8' };
+  const properties = new Map();
+  s.ctx.PropertiesService = { getScriptProperties: () => ({
+    getProperty: key => properties.get(key), setProperty: (key, value) => properties.set(key, value)
+  }) };
+  const cache = new Map();
+  s.ctx.crffnGetCachedJson_ = key => cache.has(key) ? JSON.parse(cache.get(key)) : null;
+  s.ctx.crffnPutCachedJson_ = (key, value, ttl) => {
+    assert.equal(ttl, 45);
+    cache.set(key, JSON.stringify(value));
+  };
+  const base = s.ctx.crffnApplicantCacheBaseKey_('APP-1', 'valid-token');
+  cache.set(s.ctx.crffnVersionedApplicantKey_(base + ':portal', 'APP-1'), JSON.stringify({ ok: true, applicationCorrectionFields: [] }));
+  const loadPortal = () => s.ctx.getApplicantPortalData_('APP-1', 'valid-token');
+  const first = loadPortal();
+  assert.equal(first.performanceCache, 'MISS');
+  assert.equal(first.applicationCorrectionFields[0].targetCode, 'crffn_membership_number');
+  const second = loadPortal();
+  assert.equal(second.performanceCache, 'HIT');
+  assert.equal(second.applicationCorrectionFields[0].targetCode, 'crffn_membership_number');
+  const invalid = s.ctx.getApplicantPortalData_('APP-1', 'wrong-token');
+  assert.equal(invalid.ok, false);
+  assert.equal(invalid.errorCode, 'INVALID_ACCESS');
+  assert.equal(s.ctx.getApplicantPortalData_('APP-OTHER', 'valid-token').ok, false);
+  assert.equal(s.ctx.getApplicantPortalData_('APP-1', '').ok, false);
+  // Exercise the real application-version invalidation when the submission commits.
+  s.ctx.invalidateAdminCachesAfterWrite_ = id => s.ctx.invalidateApplicantCacheByApplicationId_(id);
+  s.submit({ crffn_membership_number: 'RFFC-349547' });
+  const after = loadPortal();
+  assert.equal(after.performanceCache, 'MISS');
+  assert.equal(after.informationStatus, 'Pending');
+  assert.equal(after.applicationCorrectionFields.length, 0);
+  assert.equal(loadPortal().performanceCache, 'HIT');
+});

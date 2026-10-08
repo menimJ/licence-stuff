@@ -1452,7 +1452,7 @@
         <button id="applicationCorrectionOpen" type="button" class="button" onclick="loadApplicationCorrections_()">Continue Correction</button>
       </div>
       <p class="correction-help">Review and correct the requested fields below. Your application reference, payment and supporting documents will be retained.</p>
-      <p id="applicationCorrectionMessage" role="status" aria-live="polite"></p>
+      <p id="applicationCorrectionMessage" role="status" aria-live="polite"><?= portalData.applicationCorrectionError || '' ?></p>
       <form id="applicationCorrectionForm" style="display:none;" onsubmit="submitApplicationCorrections_(event)">
         <fieldset id="applicationCorrectionFields" style="border:0;padding:0;"></fieldset>
         <button id="applicationCorrectionSubmit" class="button" type="submit">Submit Corrections</button>

@@ -194,10 +194,10 @@ function getApplicantApplicationCorrectionReason_(item) {
   return customDetails || reason || item.issueText || '';
 }
 
-function getApplicantApplicationCorrectionReasons_(record) {
+function getApplicantApplicationCorrectionReasons_(record, resolvedItems) {
   if (String(getAdminRecordValue_(record, 'Application Information Status') || '').trim().toLowerCase() !== 'correction required') { return []; }
   let items;
-  try { items = getPendingApplicationCorrectionItems_(record); }
+  try { items = resolvedItems || getPendingApplicationCorrectionItems_(record); }
   catch (error) {
     // The editor retains its existing administrator-review error for unsafe requests.
     return [];

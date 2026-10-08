@@ -147,7 +147,8 @@ function crffnApplicantPortalCacheKey_(
       applicationId,
       secureToken
     ) +
-    ':portal'
+    // Version the summary shape/resolution without changing other applicant caches.
+    ':portal:corrections-v2'
   );
 }
 
