@@ -148,7 +148,25 @@ function prepareLegacyCorrectionMigration_(record) {
     const marker = ' ' + item.issueText + ':';
     const offset = item.reason.toLowerCase().indexOf(marker.toLowerCase());
     if (item.issueCode === 'other' && offset !== -1) {
-      result.customDetails = item.reason.slice(offset + marker.length).trim();
+      let details = item.reason.slice(offset + marker.length).trim();
+      // Some historical notes repeated the generated target/issue prefix after
+      // the first prefix. Remove only those leading generated prefixes; preserve
+      // all actual administrator instruction text and the original audit note.
+      const registryField = getApplicationCorrectionRegistry_()[item.targetCode];
+      let removedPrefix = true;
+      while (removedPrefix) {
+        removedPrefix = false;
+        (registryField ? registryField.aliases : []).some(function(alias) {
+          const repeatedPrefix = alias + ' ' + item.issueText + ':';
+          if (details.slice(0, repeatedPrefix.length).toLowerCase() === repeatedPrefix.toLowerCase()) {
+            details = details.slice(repeatedPrefix.length).trim();
+            removedPrefix = true;
+            return true;
+          }
+          return false;
+        });
+      }
+      result.customDetails = details;
       result.reason = result.customDetails;
     }
     return result;

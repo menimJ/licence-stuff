@@ -99,6 +99,17 @@ test('custom Other instruction is a reason, never a submitted correction value',
     assert.deepEqual(s.snapshot(), before);
   }
 });
+test('duplicated legacy another-issue prefixes are removed only from generated reason and customDetails', () => {
+  const note = 'CRFFN Membership Number has another issue: CRFFN Membership Number has another issue: Kindly update your profile and enter the corporate number.';
+  const s = fixture([{ 'Application Information Review Notes': note }]);
+  const before = s.snapshot();
+  const item = preview(first(s))[0];
+  assert.equal(item.reason, 'Kindly update your profile and enter the corporate number.');
+  assert.equal(item.customDetails, item.reason);
+  assert.equal(item.targetCode, 'crffn_membership_number');
+  assert.equal(s.snapshot()[0][s.headers.indexOf('Application Information Review Notes')], note);
+  assert.deepEqual(s.snapshot(), before);
+});
 for (const note of ['Please correct your company information.', 'Other Application Information has another issue: Explain.',
   'Company Name and Company Address requires correction.', 'Company RC Number requires correction.\nCompany RC Number appears invalid.',
   'Company RC Number requires correction.\nUnknown field is missing.']) test('unsafe legacy note skipped: ' + note, () => {
