@@ -3,6 +3,9 @@
  * Default is read-only. Explicit { dryRun: false } is reserved for a separately
  * approved production run; no triggers, menus, deployment or automatic execution.
  */
+function runLegacyCorrectionMigrationDryRun() {
+  return migrateLegacyApplicationCorrections_({ dryRun: true });
+}
 function migrateLegacyApplicationCorrections_(options) {
   const dryRun = !options || options.dryRun !== false;
   const report = { dryRun: dryRun, startedAt: new Date().toISOString(), entries: [], counts: {} };
