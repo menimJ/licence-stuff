@@ -105,17 +105,62 @@ function buildApplicationCorrectionRequest_(record, items, details) {
   });
 }
 
+// Only recognise complete sentences produced by the legacy Admin correction formatter.
+// Never search the explanatory text for field names or accept a partially matched request.
+function getLegacyApplicationCorrectionItems_(record) {
+  const fail = function() { throw new Error('This correction requires administrator review because its requested fields cannot be safely identified.'); };
+  if (String(getAdminRecordValue_(record, 'Application Information Status') || '').trim().toLowerCase() !== 'correction required' ||
+      !record.headerMap['Application Correction Fields JSON']) { return fail(); }
+  const registry = getApplicationCorrectionRegistry_();
+  const notes = String(getAdminRecordValue_(record, 'Application Information Review Notes') || '').trim();
+  if (!notes) { return fail(); }
+  const seen = {};
+  const items = notes.split(/\r?\n/).filter(function(line) { return line.trim(); }).map(function(line) {
+    const text = line.trim().replace(/\s+/g, ' ');
+    const matches = [];
+    Object.keys(registry).forEach(function(key) {
+      // A generic explanation is not an identifiable application field.
+      if (key === 'other') { return; }
+      Object.keys(ADMIN_TARGET_ISSUES.information).forEach(function(issueCode) {
+        const issueText = ADMIN_TARGET_ISSUES.information[issueCode];
+        registry[key].aliases.forEach(function(alias) {
+          const prefix = (alias + ' ' + issueText).replace(/\s+/g, ' ');
+          if (text.slice(0, prefix.length).toLowerCase() !== prefix.toLowerCase()) { return; }
+          const suffix = text.slice(prefix.length);
+          // The old formatter appended custom details only for the "other" issue.
+          if (!/^[.!?]?$/.test(suffix) && !(issueCode === 'other' && /^:\s+\S/.test(suffix))) { return; }
+          if (!matches.some(function(item) { return item.targetCode === key && item.issueCode === issueCode; })) {
+            matches.push({ targetCode: key, targetLabel: registry[key].label, issueCode: issueCode,
+              issueText: issueText, reason: text, status: 'pending' });
+          }
+        });
+      });
+    });
+    if (matches.length !== 1 || seen[matches[0].targetCode] || !getApplicationCorrectionHeader_(record, matches[0].targetCode)) { return fail(); }
+    seen[matches[0].targetCode] = true;
+    return matches[0];
+  });
+  const requestId = Utilities.getUuid();
+  return items.map(function(item) { return Object.assign(item, { requestId: requestId }); });
+}
+
 function getPendingApplicationCorrectionItems_(record) {
   let items;
   try { items = JSON.parse(String(getAdminRecordValue_(record, 'Application Correction Fields JSON') || '')); }
-  catch (error) { throw new Error('This correction request needs to be reissued by an administrator.'); }
-  if (!Array.isArray(items) || !items.length) { throw new Error('This correction request needs to be reissued by an administrator.'); }
+  catch (error) { return getLegacyApplicationCorrectionItems_(record); }
   const registry = getApplicationCorrectionRegistry_();
   const seen = {};
-  items.forEach(function(item) {
-    if (!item || !Object.prototype.hasOwnProperty.call(registry, item.targetCode) || seen[item.targetCode] ||
-        (item.status && item.status !== 'pending')) { throw new Error('The correction request is invalid or has already been submitted. Please contact the administrator.'); }
+  // Do not resurrect a submitted/resolved structured request from stale review notes.
+  if (Array.isArray(items) && items.some(function(item) { return item && item.status && item.status !== 'pending'; })) {
+    throw new Error('The correction request is invalid or has already been submitted. Please contact the administrator.');
+  }
+  const valid = Array.isArray(items) && items.length && items.every(function(item) {
+    if (!item || !Object.prototype.hasOwnProperty.call(registry, item.targetCode) || seen[item.targetCode]) { return false; }
     seen[item.targetCode] = true;
+    return true;
+  });
+  if (!valid) { return getLegacyApplicationCorrectionItems_(record); }
+  items.forEach(function(item) {
     if (item.targetCode !== 'other' && !getApplicationCorrectionHeader_(record, item.targetCode)) {
       throw new Error('The requested field is unavailable: ' + registry[item.targetCode].label + '. Please contact the administrator.');
     }
@@ -155,10 +200,11 @@ function getApplicantApplicationCorrections(applicationId, secureToken) {
 }
 
 function getApplicationCorrectionRevision_(record) {
-  // Include the review timestamp and row so legacy JSON and old tabs cannot silently win.
+  // Include legacy notes so an edited request invalidates an already-open editor.
   const source = JSON.stringify([record.rowNumber,
     getAdminRecordValue_(record, 'Application Correction Fields JSON'),
-    getAdminRecordValue_(record, 'Application Information Verified At')]);
+    getAdminRecordValue_(record, 'Application Information Verified At'),
+    getAdminRecordValue_(record, 'Application Information Review Notes')]);
   return Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, source));
 }
 

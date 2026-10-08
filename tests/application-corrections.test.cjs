@@ -45,6 +45,7 @@ function fixture(options = {}) {
   });
   if (options.legacy) { initial['CRFFN Membership Number'] = initial['CRFFN Corporate Membership Number']; delete initial['CRFFN Corporate Membership Number']; }
   if (options.noExpiry) delete initial['Expiry Date'];
+  if (options.noCorrectionColumn) delete initial['Application Correction Fields JSON'];
   if (options.aliasSwap) { const [key, alias] = options.aliasSwap; initial[alias] = initial[registry[key].label]; delete initial[registry[key].label]; }
   const headers = Object.keys(initial);
   let row = Object.values(initial);
@@ -186,10 +187,10 @@ test('Admin approval retains correction history and marks targets resolved', () 
   const item = JSON.parse(s.snapshot()['Application Correction Fields JSON'])[0];
   assert.equal(item.status, 'resolved'); assert.equal(item.submittedValue, 'Corrected Name');
 });
-test('missing/corrupt structured request never falls back to free text', () => {
+test('missing/corrupt structured request never guesses a target from arbitrary free text', () => {
   for (const json of ['', '{bad', '[]', '[{"targetCode":"unknown"}]']) {
-    const s = fixture({ values: { 'Application Information Status': 'Correction Required', 'Application Correction Fields JSON': json, 'Application Information Review Notes': 'CRFFN Membership Number has another issue: RFFC-349547.' } });
-    assert.throws(() => s.load(), /reissued|invalid/);
+    const s = fixture({ values: { 'Application Information Status': 'Correction Required', 'Application Correction Fields JSON': json, 'Application Information Review Notes': 'Please look at CRFFN Membership Number and fix whatever is wrong.' } });
+    assert.throws(() => s.load(), /administrator review/);
   }
 });
 test('failed Sheet commit leaves corrected values and completion state unchanged', () => {
@@ -296,4 +297,96 @@ test('all registry aliases read and persist to existing legacy headers', () => {
       assert.equal(Object.hasOwn(s.snapshot(), field.label), false);
     }
   }
+});
+
+function legacyFixture(notes, json = '', options = {}) {
+  return fixture({ ...options, values: { ...options.values,
+    'Application Information Status': 'Correction Required',
+    'Application Correction Fields JSON': json,
+    'Application Information Review Notes': notes } });
+}
+test('pre-deployment CRFFN request uses existing portal, persists structured submission and allows normal Admin review', () => {
+  for (const json of ['', undefined, '{bad', '[]', 'null', '[{"targetCode":"unknown"}]']) {
+    for (const legacy of [false, true]) {
+      const s = legacyFixture('CRFFN Membership Number has another issue: Your valid corporate membership is RFFC-349547.', json, { legacy });
+      const before = s.snapshot();
+      const editor = s.load();
+      assert.equal(editor.fields.length, 1);
+      assert.equal(editor.fields[0].key, 'crffn_membership_number');
+      assert.equal(editor.fields[0].label, 'CRFFN Corporate Membership Number');
+      assert.equal(s.writes(), 0);
+      assert.equal(s.submit({ crffn_membership_number: 'RFFC-349547' }).ok, true);
+      const after = s.snapshot();
+      const header = legacy ? 'CRFFN Membership Number' : 'CRFFN Corporate Membership Number';
+      assert.equal(after[header], 'RFFC-349547');
+      assert.equal(after['Application Information Status'], 'Pending');
+      const item = JSON.parse(after['Application Correction Fields JSON'])[0];
+      assert.equal(item.targetCode, 'crffn_membership_number');
+      assert.equal(item.status, 'submitted');
+      assert.equal(item.submittedValue, 'RFFC-349547');
+      assert.ok(item.requestId);
+      const changed = new Set([header, 'Application Correction Fields JSON', 'Application Information Status', 'Record Status']);
+      for (const key of Object.keys(before)) if (!changed.has(key)) assert.deepEqual(after[key], before[key], key);
+      s.ctx.updateAdminReviewStage_({ applicationId: 'APP-1', stage: 'information', approved: true, notes: '' }, 'session');
+      assert.equal(JSON.parse(s.snapshot()['Application Correction Fields JSON'])[0].status, 'resolved');
+    }
+  }
+});
+test('legacy State of Origin aliases resolve and submit through the existing editor', () => {
+  for (const label of ['State of Origin', 'State of Origin — Nigerian Applicants Only']) {
+    const s = legacyFixture(label + ' has another issue: Select your actual state.');
+    assert.equal(s.load().fields[0].key, 'state_of_origin');
+    s.submit({ state_of_origin: 'Lagos' });
+    assert.equal(s.snapshot()['State of Origin — Nigerian Applicants Only'], 'Lagos');
+    assert.equal(s.snapshot()['Application Information Status'], 'Pending');
+  }
+});
+test('unsafe legacy notes reject both reads and direct writes without changing the application', () => {
+  for (const notes of ['', 'Fix this application.', 'CRFFN Membership Number and State of Origin has another issue: Wrong.',
+    'CRFFN Membership Number has another issue: Wrong.\nAn unknown field requires correction.',
+    'Company Name requires correction of Company Address.', 'Other Application Information has another issue: Anything.']) {
+    const s = legacyFixture(notes); const before = s.snapshot();
+    assert.throws(() => s.load(), /administrator review/);
+    assert.throws(() => s.ctx.submitApplicantApplicationCorrections({ applicationId: 'APP-1', secureToken: 'valid-token', revision: '', values: { full_name: 'Wrong' } }), /administrator review/);
+    assert.equal(s.writes(), 0); assert.deepEqual(s.snapshot(), before);
+  }
+});
+test('valid structured targets override legacy notes and completed targets cannot be resurrected', () => {
+  const notes = 'State of Origin has another issue: Wrong.';
+  const s = legacyFixture(notes, JSON.stringify([{ targetCode: 'company_name', status: 'pending' }]));
+  assert.equal(s.load().fields[0].key, 'company_name');
+  s.submit({ company_name: 'Correct Company' });
+  assert.equal(s.snapshot()['State of Origin — Nigerian Applicants Only'], 'Old value');
+  for (const status of ['submitted', 'resolved']) {
+    const completed = legacyFixture(notes, JSON.stringify([{ targetCode: 'company_name', status }]));
+    assert.throws(() => completed.load(), /already been submitted/);
+    assert.equal(completed.writes(), 0);
+  }
+});
+test('legacy multi-field requests require exactly their targets and never infer fields from explanations', () => {
+  const s = legacyFixture('CRFFN Corporate Membership Number has another issue: State of Origin is mentioned only as explanation.\nState of Origin requires correction.');
+  assert.deepEqual(Array.from(s.load().fields, f => f.key), ['crffn_membership_number', 'state_of_origin']);
+  assert.throws(() => s.submit({ crffn_membership_number: 'RFFC-349547' }), /all and only/);
+  assert.throws(() => s.submit({ crffn_membership_number: 'RFFC-349547', state_of_origin: 'Lagos', full_name: 'Wrong' }), /all and only/);
+  assert.equal(s.writes(), 0);
+  s.submit({ crffn_membership_number: 'RFFC-349547', state_of_origin: 'Lagos' });
+  assert.equal(JSON.parse(s.snapshot()['Application Correction Fields JSON']).length, 2);
+});
+test('legacy review-note changes invalidate the editor revision', () => {
+  const s = legacyFixture('State of Origin requires correction.');
+  const old = s.load().revision;
+  const original = s.ctx.getAdminRecordValue_;
+  s.ctx.getAdminRecordValue_ = (record, header) => header === 'Application Information Review Notes' ? 'State of Origin has another issue: Updated reason.' : original(record, header);
+  assert.notEqual(s.load().revision, old);
+  assert.throws(() => s.submit({ state_of_origin: 'Lagos' }, { revision: old }), /changed/);
+  assert.equal(s.writes(), 0);
+});
+
+test('a missing correction storage column requires review without creating headers or writing data', () => {
+  const s = legacyFixture('CRFFN Membership Number requires correction.', '', { noCorrectionColumn: true });
+  const before = s.snapshot();
+  assert.throws(() => s.load(), /administrator review/);
+  assert.equal(s.writes(), 0);
+  assert.deepEqual(s.snapshot(), before);
+  assert.equal(Object.hasOwn(s.snapshot(), 'Application Correction Fields JSON'), false);
 });
