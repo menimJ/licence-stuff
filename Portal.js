@@ -1027,17 +1027,9 @@ function getApplicantPortalDataUncached_(
         ]
       ),
 
-    applicationCorrectionFormUrl:
-      String(
-        rowObject[
-          'Application Information Status'
-        ] || ''
-      ).trim() ===
-        'Correction Required'
-        ? buildPrefilledCorrectionFormUrl_(
-            rowObject
-          )
-        : '',
+    // Application corrections now use the token-bound portal editor. The
+    // original Google Form remains unchanged for ordinary applications.
+    applicationCorrectionFormUrl: '',
 
     verificationStatus:
       rowObject['Verification Status'] ||
@@ -1105,83 +1097,22 @@ function parseApplicationCorrectionFields_(
 }
 
 
-const APPLICATION_CORRECTION_TARGET_TO_FORM_TITLE =
-  Object.freeze({
-    full_name:
-      'Full Name',
-    gender:
-      'Gender',
-    date_of_birth:
-      'Date of Birth',
-    nationality:
-      'Nationality',
-    state_of_origin:
-      'State of Origin — Nigerian Applicants Only',
-    residential_address:
-      'Residential Address',
-    phone_number:
-      'Phone Number',
-    email_address:
-      'Email Address',
-    means_of_identification:
-      'Means of Identification',
-    id_number:
-      'ID Number',
-    area_of_practice:
-      'Area of Practice',
-    other_area_of_practice:
-      'If Other, please specify',
-    company_name:
-      'Company Name',
-    company_rc_number:
-      'Company RC Number',
-    company_tin:
-      'Company TIN',
-    crffn_membership_number:
-      'CRFFN Corporate Membership Number',
-    company_address:
-      'Company Address',
-    position_held:
-      'Position Held',
-  });
-
+const APPLICATION_CORRECTION_TARGET_TO_FORM_TITLE = getApplicationCorrectionLabels_();
 
 /**
  * Returns the exact correction targets for the current application.
  *
  * Structured JSON is the primary source.
- * Review-note parsing is a compatibility fallback for corrections
- * created before the JSON field was available.
+ * Requests without structured targets must be reissued by an administrator.
  */
-function resolveApplicationCorrectionItems_(
-  rowObject
-) {
-  const structured =
-    parseApplicationCorrectionFields_(
-      rowObject[
-        'Application Correction Fields JSON'
-      ]
-    );
-
-  if (
-    Array.isArray(
-      structured
-    ) &&
-    structured.length
-  ) {
-    return structured;
-  }
-
-  return inferApplicationCorrectionItemsFromNotes_(
-    rowObject[
-      'Application Information Review Notes'
-    ]
-  );
+function resolveApplicationCorrectionItems_(rowObject) {
+  // Structured targets are authoritative. Never infer identity from review notes.
+  return parseApplicationCorrectionFields_(rowObject['Application Correction Fields JSON']);
 }
 
 
 /**
- * Recovers correction targets from readable review notes.
+ * Legacy diagnostic only: recovers labels for inspection, never applicant submission.
  *
  * Example notes:
  * Company RC Number requires correction.
@@ -1529,10 +1460,8 @@ function buildPrefilledCorrectionFormUrl_(
   /*
    * Prefer the structured JSON saved by the admin workflow.
    *
-   * FALLBACK:
-   * Older correction records may have been rejected before the
-   * JSON column was introduced. In that case, recover the affected
-   * fields from the human-readable Information Review Notes.
+   * No text fallback: an administrator must reissue requests without JSON.
+   * This legacy Form helper is not used by the secure portal editor.
    */
   const correctionItems =
     resolveApplicationCorrectionItems_(

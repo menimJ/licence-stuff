@@ -1441,26 +1441,15 @@
       <? } ?>
 
       <div class="correction-actions">
-        <? if (portalData.applicationCorrectionFormUrl) { ?>
-        <a
-          class="button"
-          href="<?= portalData.applicationCorrectionFormUrl ?>"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Continue Correction
-        </a>
-        <? } ?>
+        <button id="applicationCorrectionOpen" type="button" class="button" onclick="loadApplicationCorrections_()">Continue Correction</button>
       </div>
+      <p class="correction-help">Review and correct the requested fields below. Your application reference, payment and supporting documents will be retained.</p>
+      <p id="applicationCorrectionMessage" role="status" aria-live="polite"></p>
+      <form id="applicationCorrectionForm" style="display:none;" onsubmit="submitApplicationCorrections_(event)">
+        <fieldset id="applicationCorrectionFields" style="border:0;padding:0;"></fieldset>
+        <button id="applicationCorrectionSubmit" class="button" type="submit">Submit Corrections</button>
+      </form>
 
-      <div class="correction-help">
-        The correction form will open with your latest application information already filled in.
-        Only the field(s) identified by the administrator for correction will be left blank.
-        Review the remaining information, complete the blank field(s), reconfirm the declaration,
-        and submit using the same email address associated with Application ID
-        <strong><?= portalData.applicationId ?></strong>.
-        Your existing Application ID will be retained.
-      </div>
     </section>
 
     <? } ?>
@@ -2670,6 +2659,106 @@
         maximumFractionDigits: 0,
       }
     ).format(numericAmount);
+  }
+
+  let applicationCorrectionRequest_ = null;
+  let applicationCorrectionBusy_ = false;
+
+  function loadApplicationCorrections_() {
+    if (applicationCorrectionBusy_) { return; }
+    const message = document.getElementById('applicationCorrectionMessage');
+    message.textContent = 'Loading correction fields...';
+    applicationCorrectionBusy_ = true;
+    google.script.run.withSuccessHandler(function(result) {
+      applicationCorrectionBusy_ = false;
+      applicationCorrectionRequest_ = result;
+      const fields = document.getElementById('applicationCorrectionFields');
+      fields.replaceChildren();
+      fields.disabled = false;
+      document.getElementById('applicationCorrectionSubmit').disabled = false;
+      result.fields.forEach(function(field) {
+        const wrapper = document.createElement('div');
+        wrapper.style.marginBottom = '18px';
+        const label = document.createElement('label');
+        const id = 'application-correction-' + field.key;
+        label.htmlFor = id;
+        label.textContent = field.label + (field.required ? ' *' : '');
+        const reason = document.createElement('p');
+        reason.textContent = field.reason;
+        wrapper.append(label, reason);
+        let control;
+        if (field.type === 'select' || field.type === 'multiselect') {
+          control = document.createElement('select');
+          control.multiple = field.type === 'multiselect';
+          if (!control.multiple) { control.add(new Option('Select...', '')); }
+          const selected = control.multiple ? field.value.split(',').map(function(v) { return v.trim(); }) : [field.value];
+          field.choices.forEach(function(choice) { control.add(new Option(choice, choice, false, selected.indexOf(choice) !== -1)); });
+          // Display an old choice without silently replacing it with a new value.
+          selected.filter(function(value) { return value && field.choices.indexOf(value) === -1; }).forEach(function(value) {
+            control.add(new Option(value + ' (previous value; select a current option)', value, false, true));
+          });
+          if (control.multiple) {
+            const help = document.createElement('p');
+            help.textContent = 'You may select more than one Area of Practice.';
+            wrapper.append(help);
+          }
+        } else {
+          control = document.createElement(field.type === 'textarea' ? 'textarea' : 'input');
+          if (field.type !== 'textarea') { control.type = field.type; }
+          control.value = field.value;
+        }
+        control.id = id;
+        control.name = field.key;
+        control.required = field.required;
+        control.style.width = '100%';
+        control.style.padding = '10px';
+        wrapper.append(control);
+        fields.append(wrapper);
+      });
+      document.getElementById('applicationCorrectionForm').style.display = 'block';
+      message.textContent = '';
+    }).withFailureHandler(function(error) {
+      applicationCorrectionBusy_ = false;
+      message.textContent = error.message || 'The correction fields could not be loaded.';
+    }).getApplicantApplicationCorrections(getPortalCredentials().applicationId, getPortalCredentials().secureToken);
+  }
+
+  function submitApplicationCorrections_(event) {
+    event.preventDefault();
+    if (applicationCorrectionBusy_ || !applicationCorrectionRequest_) { return; }
+    const values = {};
+    applicationCorrectionRequest_.fields.forEach(function(field) {
+      const control = document.getElementById('application-correction-' + field.key);
+      values[field.key] = field.type === 'multiselect' ? Array.from(control.selectedOptions, function(option) { return option.value; }) : control.value;
+    });
+    applicationCorrectionBusy_ = true;
+    document.getElementById('applicationCorrectionFields').disabled = true;
+    document.getElementById('applicationCorrectionSubmit').disabled = true;
+    const message = document.getElementById('applicationCorrectionMessage');
+    message.textContent = 'Submitting corrections...';
+    google.script.run.withSuccessHandler(function(result) {
+      applicationCorrectionBusy_ = false;
+      applicationCorrectionRequest_ = null;
+      document.getElementById('applicationCorrectionForm').style.display = 'none';
+      message.textContent = result.message;
+      document.getElementById('applicationCorrectionOpen').style.display = 'none';
+      const refresh = document.createElement('button');
+      refresh.type = 'button';
+      refresh.className = 'button';
+      refresh.textContent = 'Return to Application';
+      refresh.onclick = reloadPractitionerPortal_;
+      message.append(document.createElement('br'), refresh);
+    }).withFailureHandler(function(error) {
+      applicationCorrectionBusy_ = false;
+      document.getElementById('applicationCorrectionFields').disabled = false;
+      document.getElementById('applicationCorrectionSubmit').disabled = false;
+      message.textContent = error.message || 'Corrections could not be saved. Please retry.';
+    }).submitApplicantApplicationCorrections({
+      applicationId: getPortalCredentials().applicationId,
+      secureToken: getPortalCredentials().secureToken,
+      revision: applicationCorrectionRequest_.revision,
+      values: values
+    });
   }
   </script>
 </body>

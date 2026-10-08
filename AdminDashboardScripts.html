@@ -451,29 +451,7 @@ const APPLICATIONS_PAGE_SIZE = 20;
         identification: ['Means of identification is unclear or unreadable', 'Incorrect means of identification was uploaded', 'Identification document is incomplete', 'Identification details do not match the application', 'Other']
       };
 
-      const DASHBOARD_INFORMATION_TARGETS = [
-        ['full_name', 'Full Name'],
-        ['gender', 'Gender'],
-        ['date_of_birth', 'Date of Birth'],
-        ['nationality', 'Nationality'],
-        ['state_of_origin', 'State of Origin'],
-        ['residential_address', 'Residential Address'],
-        ['phone_number', 'Phone Number'],
-        ['email_address', 'Email Address'],
-        ['means_of_identification', 'Means of Identification'],
-        ['id_number', 'ID Number'],
-
-        ['area_of_practice', 'Area of Practice'],
-        ['other_area_of_practice', 'If Other, please specify'],
-        ['company_name', 'Company Name'],
-        ['company_rc_number', 'Company RC Number'],
-        ['company_tin', 'Company TIN'],
-        ['crffn_membership_number', 'CRFFN Corporate Membership Number'],
-        ['company_address', 'Company Address'],
-        ['position_held', 'Position Held'],
-
-        ['other', 'Other Application Information']
-      ];
+      const DASHBOARD_INFORMATION_TARGETS = APPLICATION_INFORMATION_TARGETS;
 
       const DASHBOARD_INFORMATION_ISSUES = [
         ['incomplete', 'is incomplete'], ['incorrect', 'requires correction'], ['mismatch', 'does not match the submitted records'], ['invalid', 'appears invalid'], ['missing', 'is missing'], ['other', 'has another issue']
@@ -847,8 +825,11 @@ const APPLICATIONS_PAGE_SIZE = 20;
       const licencesState = {
         page: 1,
         search: '',
-        status: ''
+        status: '',
+        sortBy: 'submittedAt',
+        sortDirection: 'desc'
       };
+      let licencesRequestSequence_ = 0;
 
 
       function applyPaymentFilters() {
@@ -1565,6 +1546,25 @@ const APPLICATIONS_PAGE_SIZE = 20;
       }
 
 
+      function sortDashboardLicences_(field) {
+        licencesState.sortDirection = licencesState.sortBy === field && licencesState.sortDirection === 'asc' ? 'desc' : 'asc';
+        licencesState.sortBy = field;
+        loadLicencesPage(1);
+      }
+
+      function renderLicenceSortState_() {
+        const labels = { submittedAt: 'Submission date' };
+        document.querySelectorAll('[data-licence-sort]').forEach(function(header) {
+          const field = header.getAttribute('data-licence-sort');
+          const active = field === licencesState.sortBy;
+          header.setAttribute('aria-sort', active ? (licencesState.sortDirection === 'asc' ? 'ascending' : 'descending') : 'none');
+          header.querySelector('.licence-sort-indicator').textContent = active ? (licencesState.sortDirection === 'asc' ? '↑' : '↓') : '';
+          labels[field] = header.querySelector('button').textContent.replace(/[↑↓]/g, '').trim();
+        });
+        const summary = document.getElementById('licencesSortSummary');
+        if (summary) { summary.textContent = labels[licencesState.sortBy] + (licencesState.sortDirection === 'asc' ? ' ↑' : ' ↓'); }
+      }
+
       function loadLicencesPage(page) {
         const loading =
           document.getElementById(
@@ -1584,11 +1584,15 @@ const APPLICATIONS_PAGE_SIZE = 20;
           'Loading licences...'
         );
 
+        const requestSequence = ++licencesRequestSequence_;
+        renderLicenceSortState_();
         google.script.run
-          .withSuccessHandler(
-            renderLicencesPage_
-          )
+          .withSuccessHandler(function(result) {
+            if (requestSequence !== licencesRequestSequence_) { return; }
+            renderLicencesPage_(result);
+          })
           .withFailureHandler(function(error) {
+            if (requestSequence !== licencesRequestSequence_) { return; }
             loading.textContent =
               getErrorMessage_(error);
           })
@@ -1600,6 +1604,8 @@ const APPLICATIONS_PAGE_SIZE = 20;
                 WORKFLOW_PAGE_SIZE,
               search:
                 licencesState.search,
+              sortBy: licencesState.sortBy,
+              sortDirection: licencesState.sortDirection,
               status:
                 licencesState.status
             }
@@ -2450,30 +2456,9 @@ const APPLICATIONS_PAGE_SIZE = 20;
         window.top.location.replace(url);
       }
   function getDashboardInformationTargetLabel_(code) {
-  const labels = {
-    full_name: 'Full Name',
-    gender: 'Gender',
-    date_of_birth: 'Date of Birth',
-    nationality: 'Nationality',
-    state_of_origin: 'State of Origin',
-    residential_address: 'Residential Address',
-    phone_number: 'Phone Number',
-    email_address: 'Email Address',
-    means_of_identification: 'Means of Identification',
-    id_number: 'ID Number',
-    area_of_practice: 'Area of Practice',
-    other_area_of_practice: 'If Other, please specify',
-    company_name: 'Company Name',
-    company_rc_number: 'Company RC Number',
-    company_tin: 'Company TIN',
-    crffn_membership_number: 'CRFFN Membership Number',
-    company_address: 'Company Address',
-    position_held: 'Position Held',
-    other: 'Other Application Information'
-  };
-
-  return labels[code] || code;
-}
+    const field = DASHBOARD_INFORMATION_TARGETS.find(function(item) { return item[0] === code; });
+    return field ? field[1] : code;
+  }
 
 function getDashboardCorrectionIssueText_(code) {
   const issues = {

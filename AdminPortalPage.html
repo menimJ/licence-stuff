@@ -3424,22 +3424,7 @@
     const TARGETED_CORRECTION_OPTIONS =
       Object.freeze({
         information: {
-          targets: [
-            ['company_name', 'Company Name'],
-            ['company_rc_number', 'Company RC Number'],
-            ['company_tin', 'Company TIN'],
-            ['crffn_membership_number', 'CRFFN Corporate Membership Number'],
-            ['company_address', 'Company Address'],
-            ['full_name', 'Full Name'],
-            ['phone_number', 'Phone Number'],
-            ['email_address', 'Email Address'],
-            ['residential_address', 'Residential Address'],
-            ['means_of_identification', 'Means of Identification'],
-            ['id_number', 'ID Number'],
-            ['position_held', 'Position Held'],
-            ['area_of_practice', 'Area of Practice'],
-            ['other', 'Other Application Information']
-          ],
+          targets: <?!= JSON.stringify(getApplicationCorrectionTargets_()) ?>,
           issues: [
             ['incomplete', 'Incomplete'],
             ['incorrect', 'Requires correction'],

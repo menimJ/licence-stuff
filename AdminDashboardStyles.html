@@ -986,4 +986,17 @@
         .nav { grid-template-columns: 1fr; }
         .content, .topbar { padding-left: 16px; padding-right: 16px; }
       }
-    </style>
+      .licence-sort-button {
+    border: 0;
+    padding: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+  .licence-sort-button:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
+  #licencesTableArea th[aria-sort="ascending"] .licence-sort-button,
+  #licencesTableArea th[aria-sort="descending"] .licence-sort-button { text-decoration: underline; }
+  .licence-sort-indicator { display: inline-block; min-width: 1em; }
+</style>

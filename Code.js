@@ -2244,6 +2244,19 @@ function onFormSubmit(e) {
             row
           );
 
+        if (previousRow && isSecureApplicationCorrectionRequired_(previousRow)) {
+          // A public Form response is not an authenticated correction. Leave it
+          // unlinked rather than letting an old prefilled link supersede the
+          // secure application or erase its structured correction request.
+          writeRowValues_(sheet, row, headerMap, {
+            'Record Status': 'Needs Review',
+            'Review Note': 'Application information corrections must be submitted using the secure Practitioner Portal link.',
+            'Application Email Status': 'Not Attempted',
+            'Application Email Error': 'Secure portal correction required.'
+          });
+          return;
+        }
+
         count += 1;
 
         recordStatus =

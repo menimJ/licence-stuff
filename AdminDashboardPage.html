@@ -331,6 +331,7 @@
     <? } ?>
 
 <script>
+  const APPLICATION_INFORMATION_TARGETS = <?!= JSON.stringify(getApplicationCorrectionTargets_()) ?>;
   const ADMIN_SESSION_TOKEN =
     <?!= JSON.stringify(String(adminSessionToken || '')) ?>;
 

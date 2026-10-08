@@ -420,7 +420,7 @@ function isDashboardStageOneApplication_(application) {
  * Dashboard-only workflow queues.
  * Legacy admin portal behaviour is not changed.
  */
-function getAdminDashboardLatestRows_(sessionToken) {
+function getAdminDashboardLatestRows_(sessionToken, includeLicenceSortDates) {
   requireAdminAccess_(sessionToken);
 
   const sheet =
@@ -449,15 +449,16 @@ function getAdminDashboardLatestRows_(sessionToken) {
       ADMIN_PORTAL_CONFIG.MAX_APPLICATIONS
     );
 
-  const values =
+  const dataRange =
     sheet
       .getRange(
         lastRow - numberOfRows + 1,
         1,
         numberOfRows,
         lastColumn
-      )
-      .getDisplayValues();
+      );
+  const values = dataRange.getDisplayValues();
+  const rawValues = includeLicenceSortDates ? dataRange.getValues() : null;
 
   const seen = {};
   const rows = [];
@@ -486,6 +487,15 @@ function getAdminDashboardLatestRows_(sessionToken) {
       continue;
     }
 
+    if (rawValues) {
+      // Keep display values unchanged; sort dates using underlying Sheet values.
+      const raw = rowToObject_(headers, rawValues[index]);
+      rowObject.licenceSortDates = {
+        submittedAt: getLicenceSortTimestamp_(raw, ['Timestamp', 'Submitted At']),
+        licenceGeneratedAt: getLicenceSortTimestamp_(raw, ['Licence Generated At', 'License Generated At']),
+        licenceReleasedAt: getLicenceSortTimestamp_(raw, ['Licence Released At', 'License Released At'])
+      };
+    }
     seen[applicationId] = true;
     rows.push(rowObject);
   }
@@ -932,10 +942,12 @@ function getAdminLicencesPage(
 
   const items =
     getAdminDashboardLatestRows_(
-      sessionToken
+      sessionToken,
+      true
     )
       .map(function(rowObject) {
         return {
+          licenceSortDates: rowObject.licenceSortDates || {},
           applicationId:
             getFirstAvailableValue_(
               rowObject,
@@ -1084,11 +1096,66 @@ function getAdminLicencesPage(
         return true;
       });
 
-  return paginateAdminDashboardItems_(
+  const sort = sortAdminLicenceItems_(items, input);
+  const result = paginateAdminDashboardItems_(
     items,
     input,
     'No licences match the current search or filter.'
   );
+  result.sortBy = sort.sortBy;
+  result.sortDirection = sort.sortDirection;
+  return result;
+}
+
+
+function getLicenceSortTimestamp_(row, headers) {
+  for (let index = 0; index < headers.length; index++) {
+    const value = row[headers[index]];
+    if (value instanceof Date && Number.isFinite(value.getTime())) {
+      return value.getTime();
+    }
+    // Legacy text dates are accepted only when unambiguous ISO timestamps.
+    // Never parse locale-formatted display strings such as 03/04/2026.
+    if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}(?:T|$)/.test(value)) {
+      const timestamp = Date.parse(value);
+      if (Number.isFinite(timestamp)) { return timestamp; }
+    }
+  }
+  return null;
+}
+
+
+function sortAdminLicenceItems_(items, options) {
+  const fields = ['submittedAt', 'applicationId', 'applicantName', 'companyName',
+    'licenceNumber', 'licenceStatus', 'licenceGeneratedAt', 'licenceReleasedAt'];
+  const sortBy = fields.indexOf(options.sortBy) !== -1 ? options.sortBy : 'submittedAt';
+  const sortDirection = fields.indexOf(options.sortBy) !== -1 &&
+    (options.sortDirection === 'asc' || options.sortDirection === 'desc')
+      ? options.sortDirection : 'desc';
+  const dateField = ['submittedAt', 'licenceGeneratedAt', 'licenceReleasedAt'].indexOf(sortBy) !== -1;
+  const compareText = function(a, b) {
+    const left = String(a || '').toLowerCase();
+    const right = String(b || '').toLowerCase();
+    return left < right ? -1 : left > right ? 1 : 0;
+  };
+  items.sort(function(a, b) {
+    let comparison;
+    if (dateField) {
+      const left = a.licenceSortDates[sortBy];
+      const right = b.licenceSortDates[sortBy];
+      const leftMissing = !Number.isFinite(left);
+      const rightMissing = !Number.isFinite(right);
+      // Missing dates stay last in either direction.
+      if (leftMissing !== rightMissing) { return leftMissing ? 1 : -1; }
+      comparison = leftMissing ? 0 : left - right;
+    } else {
+      comparison = compareText(a[sortBy], b[sortBy]);
+    }
+    return comparison * (sortDirection === 'asc' ? 1 : -1) ||
+      compareText(a.applicationId, b.applicationId) ||
+      (a.applicationId < b.applicationId ? -1 : a.applicationId > b.applicationId ? 1 : 0);
+  });
+  return { sortBy: sortBy, sortDirection: sortDirection };
 }
 
 
@@ -2560,16 +2627,7 @@ function getCrffnMembershipNumber_(
   const knownValue =
     getFirstAvailableValue_(
       rowObject,
-      [
-        'CRFFN Corporate Membership Number',
-        'CRFFN Membership Number',
-        'CRFFN Membership No',
-        'CRFFN Registration Number',
-        'CRFFN Registration No',
-        'CRFFN Reg Number',
-        'CRFFN Number',
-        'Registration Number',
-      ]
+      getApplicationCorrectionRegistry_().crffn_membership_number.aliases
     );
 
   if (knownValue) {
@@ -3803,46 +3861,7 @@ const ADMIN_REJECTION_REASONS =
 const ADMIN_REJECTION_TARGETS =
   Object.freeze({
     information:
-      Object.freeze({
-        company_name:
-          'Company Name',
-        company_rc_number:
-          'Company RC Number',
-        company_tin:
-          'Company TIN',
-        crffn_membership_number:
-          'CRFFN Membership Number',
-        company_address:
-          'Company Address',
-        full_name:
-          'Full Name',
-        gender:
-          'Gender',
-        date_of_birth:
-          'Date of Birth',
-        nationality:
-          'Nationality',
-        state_of_origin:
-          'State of Origin',
-        phone_number:
-          'Phone Number',
-        email_address:
-          'Email Address',
-        residential_address:
-          'Residential Address',
-        means_of_identification:
-          'Means of Identification',
-        id_number:
-          'ID Number',
-        position_held:
-          'Position Held',
-        area_of_practice:
-          'Area of Practice',
-        other_area_of_practice:
-          'If Other, please specify',
-        other:
-          'Other Application Information',
-      }),
+      getApplicationCorrectionLabels_(),
 
     documents:
       Object.freeze({
@@ -5628,6 +5647,20 @@ function updateAdminReviewStage_(
         throw new Error(
           'This review cannot be changed because licence processing has already started.'
         );
+      }
+    }
+
+    if (stage === 'information') {
+      if (!options.approved) {
+        const targets = buildApplicationCorrectionRequest_(record, options.rejectionItems, options.rejectionDetails);
+        setAdminRecordMemory_(record, 'Application Correction Fields JSON', JSON.stringify(targets));
+      } else {
+        const targets = parseApplicationCorrectionFields_(getAdminRecordValue_(record, 'Application Correction Fields JSON'));
+        if (targets.length) {
+          setAdminRecordMemory_(record, 'Application Correction Fields JSON', JSON.stringify(targets.map(function(item) {
+            return Object.assign({}, item, { status: 'resolved' });
+          })));
+        }
       }
     }
 

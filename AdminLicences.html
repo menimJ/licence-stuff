@@ -28,7 +28,7 @@
 
   <div class="applications-summary">
     <span id="licencesCount">Loading licences...</span>
-    <span>20 records per page</span>
+    <span>20 records per page · <span id="licencesSortSummary" aria-live="polite">Submission date ↓</span></span>
   </div>
 
   <div id="licencesLoading" class="applications-state">
@@ -43,13 +43,13 @@
     <table class="applications-table">
       <thead>
         <tr>
-          <th>Application</th>
-          <th>Applicant</th>
-          <th>Company</th>
-          <th>Licence Number</th>
-          <th>Status</th>
-          <th>Generated</th>
-          <th>Released</th>
+          <th scope="col" aria-sort="none" data-licence-sort="applicationId"><button type="button" class="licence-sort-button" onclick="sortDashboardLicences_('applicationId')">Application <span class="licence-sort-indicator" aria-hidden="true"></span></button></th>
+          <th scope="col" aria-sort="none" data-licence-sort="applicantName"><button type="button" class="licence-sort-button" onclick="sortDashboardLicences_('applicantName')">Applicant <span class="licence-sort-indicator" aria-hidden="true"></span></button></th>
+          <th scope="col" aria-sort="none" data-licence-sort="companyName"><button type="button" class="licence-sort-button" onclick="sortDashboardLicences_('companyName')">Company <span class="licence-sort-indicator" aria-hidden="true"></span></button></th>
+          <th scope="col" aria-sort="none" data-licence-sort="licenceNumber"><button type="button" class="licence-sort-button" onclick="sortDashboardLicences_('licenceNumber')">Licence Number <span class="licence-sort-indicator" aria-hidden="true"></span></button></th>
+          <th scope="col" aria-sort="none" data-licence-sort="licenceStatus"><button type="button" class="licence-sort-button" onclick="sortDashboardLicences_('licenceStatus')">Status <span class="licence-sort-indicator" aria-hidden="true"></span></button></th>
+          <th scope="col" aria-sort="none" data-licence-sort="licenceGeneratedAt"><button type="button" class="licence-sort-button" onclick="sortDashboardLicences_('licenceGeneratedAt')">Generated <span class="licence-sort-indicator" aria-hidden="true"></span></button></th>
+          <th scope="col" aria-sort="none" data-licence-sort="licenceReleasedAt"><button type="button" class="licence-sort-button" onclick="sortDashboardLicences_('licenceReleasedAt')">Released <span class="licence-sort-indicator" aria-hidden="true"></span></button></th>
           <th>Action</th>
         </tr>
       </thead>
