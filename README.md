@@ -941,3 +941,50 @@ Payment, supporting-document and released-licence lookups already follow the sam
 latest-matching-credentials rule. Their storage workflows and the ID-only Admin
 lookup remain unchanged. This rule does not migrate correction JSON or alter
 historical rows.
+
+### One-time legacy correction migration (not yet executed in production)
+
+`migrateLegacyApplicationCorrections_()` is an Apps Script editor-only utility;
+its trailing underscore prevents calls through `google.script.run`. Calling it
+without arguments, or with `{ dryRun: true }`, is read-only. It returns and logs
+candidate reports with applicant name, submission count, record/status details,
+original review notes, resolved targets and generated JSON previews. Secure
+Tokens are not included in reports. Treat the reports as administrator records.
+
+Only active `Correction Required` rows are candidates. The existing credential
+selector identifies the last physical row matching ID and token; older matching
+rows are skipped, even if they have better correction notes. As an additional
+migration-only precaution, an ID with multiple distinct tokens (or a mixture of
+present and missing tokens) is skipped for review. This does not change portal
+selection. No historical rows are merged, deleted or migrated.
+
+The utility calls `getLegacyApplicationCorrectionItems_` with the actual record,
+using the existing registry, strict complete-line matching and field-column
+validation. It does not interpret arbitrary prose or derive submitted values.
+Custom `Other` instructions become `reason`/`customDetails`; all targets share
+one request ID, have `pending` status and retain authoritative registry labels.
+The original review notes remain untouched. Missing target columns, including
+Expiry Date, are reported without creating columns. Missing/duplicate required
+migration headers stop the run before writes.
+
+A separately approved future invocation with the explicit boolean
+`{ dryRun: false }` enables writing. For each candidate it takes the existing
+script/document locks, reselects the current row, rechecks status and blank JSON,
+checks duplicate-token ambiguity and reparses the current notes. It logs a
+`BEFORE_WRITE` backup containing ID, row number, original JSON, new JSON and
+timestamp, then writes **only that one Application Correction Fields JSON cell**.
+The backup is also returned in the report. It invalidates the applicant cache
+without changing application fields. No dry-run preview is used as a write plan.
+
+Every nonblank JSON cell is preserved, including submitted/resolved requests,
+malformed JSON and formulas. Valid existing arrays report
+`SKIPPED_ALREADY_STRUCTURED`; malformed content reports `SKIPPED_MALFORMED_JSON`
+with `MALFORMED_EXISTING_JSON` detail. Successful writes report `MIGRATED` and are
+skipped on rerun. Other report statuses explain unsafe/missing notes, missing
+credentials/fields, non-authoritative rows, changed status or errors.
+
+The default mode has been tested only with local synthetic data. Explicit-write
+behavior is tested using in-memory Sheet mocks; no production migration is
+performed by the tests. Run the migration tests with
+`node --test tests/legacy-correction-migration.test.cjs` and the complete suite
+with `node --test tests/*.test.cjs`. Production execution is a separate task.

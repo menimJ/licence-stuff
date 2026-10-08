@@ -108,7 +108,11 @@ function buildApplicationCorrectionRequest_(record, items, details) {
 // Only recognise complete sentences produced by the legacy Admin correction formatter.
 // Never search the explanatory text for field names or accept a partially matched request.
 function getLegacyApplicationCorrectionItems_(record) {
-  const fail = function() { throw new Error('This correction requires administrator review because its requested fields cannot be safely identified.'); };
+  const fail = function(code) {
+    const error = new Error('This correction requires administrator review because its requested fields cannot be safely identified.');
+    if (code) { error.correctionCode = code; }
+    throw error;
+  };
   if (String(getAdminRecordValue_(record, 'Application Information Status') || '').trim().toLowerCase() !== 'correction required' ||
       !record.headerMap['Application Correction Fields JSON']) { return fail(); }
   const registry = getApplicationCorrectionRegistry_();
@@ -136,7 +140,8 @@ function getLegacyApplicationCorrectionItems_(record) {
         });
       });
     });
-    if (matches.length !== 1 || seen[matches[0].targetCode] || !getApplicationCorrectionHeader_(record, matches[0].targetCode)) { return fail(); }
+    if (matches.length !== 1 || seen[matches[0].targetCode]) { return fail(); }
+    if (!getApplicationCorrectionHeader_(record, matches[0].targetCode)) { return fail('NO_EXISTING_FIELD'); }
     seen[matches[0].targetCode] = true;
     return matches[0];
   });
