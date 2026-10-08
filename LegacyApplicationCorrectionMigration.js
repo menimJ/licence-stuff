@@ -6,6 +6,9 @@
 function runLegacyCorrectionMigrationDryRun() {
   return migrateLegacyApplicationCorrections_({ dryRun: true });
 }
+function runLegacyCorrectionMigration() {
+  return migrateLegacyApplicationCorrections_({ dryRun: false });
+}
 function migrateLegacyApplicationCorrections_(options) {
   const dryRun = !options || options.dryRun !== false;
   const report = { dryRun: dryRun, startedAt: new Date().toISOString(), entries: [], counts: {} };
