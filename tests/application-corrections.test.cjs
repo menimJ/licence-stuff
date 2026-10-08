@@ -609,3 +609,165 @@ test('portal cache schema skips old summaries, retains caching, token isolation 
   assert.equal(after.applicationCorrectionFields.length, 0);
   assert.equal(loadPortal().performanceCache, 'HIT');
 });
+
+// Historical Form responses remain separate rows; no append API is supplied.
+function multiRowCorrectionFixture(overrides) {
+  const s = fixture();
+  const documentHeaders = vm.runInNewContext(read('SupportingDocuments.js').match(/function ensureSupportingDocumentColumns_[\s\S]*?const requiredHeaders = (\[[\s\S]*?\]);/)[1]);
+  const base = { ...Object.fromEntries(documentHeaders.map(header => [header, ''])), ...s.snapshot(),
+    'Application ID': 'APP-0005', 'Secure Token': 'TOKEN-CURRENT',
+    'Application Information Status': 'Correction Required',
+    'Application Correction Fields JSON': JSON.stringify([
+      { targetCode: 'company_rc_number', targetLabel: 'Company RC Number', issueCode: 'incorrect', issueText: 'requires correction', reason: 'requires correction', requestId: 'legacy-APP-0005', status: 'pending' },
+      { targetCode: 'crffn_membership_number', targetLabel: 'CRFFN Corporate Membership Number', issueCode: 'missing', issueText: 'is missing', reason: 'is missing', requestId: 'legacy-APP-0005', status: 'pending' },
+      { targetCode: 'company_tin', targetLabel: 'Company TIN', issueCode: 'invalid', issueText: 'appears invalid', reason: 'appears invalid', requestId: 'legacy-APP-0005', status: 'pending' }
+    ]),
+    'CAC Document URL': 'https://example.test/cac', 'Passport Photograph File ID': 'passport-keep',
+    'Passport Photograph URL': 'https://example.test/passport', 'Licence Number': 'LIC-KEEP',
+    'Licence PDF URL': 'https://example.test/licence', 'Application PDF URL': 'https://example.test/application'
+  };
+  const headers = Object.keys(base);
+  const rows = overrides.map(override => headers.map(header => ({ ...base, ...override })[header]));
+  const writes = [];
+  const sheet = {
+    getLastRow: () => rows.length + 1, getLastColumn: () => headers.length,
+    getRange(r, c, n = 1, w = 1) {
+      const slice = () => Array.from({ length: n }, (_, i) => (r + i === 1 ? headers : rows[r + i - 2]).slice(c - 1, c - 1 + w));
+      return { getValues: slice, getDisplayValues: () => slice().map(row => row.map(value => value == null ? '' : String(value))),
+        getFormulas: () => slice().map(row => row.map(value => typeof value === 'string' && value.startsWith('=') ? value : '')),
+        setValues(values) {
+          assert.ok(r >= 2 && r + n - 3 < rows.length, 'must update existing response rows');
+          values.forEach((row, i) => rows[r + i - 2].splice(c - 1, w, ...row)); writes.push(r);
+        }
+      };
+    }
+  };
+  s.ctx.getResponseSheet_ = () => sheet;
+  const snapshot = () => rows.map(row => Object.fromEntries(headers.map((header, i) => [header, row[i]])));
+  const set = (row, header, value) => { rows[row - 1][headers.indexOf(header)] = value; };
+  const append = override => rows.push(headers.map(header => ({ ...base, ...override })[header]));
+  const load = () => s.ctx.getApplicantApplicationCorrections('APP-0005', 'TOKEN-CURRENT');
+  const portal = () => s.ctx.getApplicantPortalDataUncached_('APP-0005', 'TOKEN-CURRENT');
+  const submit = (revision = load().revision) => s.ctx.submitApplicantApplicationCorrections({ applicationId: 'APP-0005', secureToken: 'TOKEN-CURRENT', revision,
+    values: { company_rc_number: 'RC-NEW', crffn_membership_number: 'RFFC-349547', company_tin: 'TIN-NEW' } });
+  return { ...s, sheet, snapshot, set, append, load, portal, submit, writes };
+}
+const historicalCorrectionRow = { 'Secure Token': 'TOKEN-OLD', 'Application Information Status': 'Confirmed', 'Application Correction Fields JSON': '' };
+const unrelatedTokenRow = { 'Secure Token': 'TOKEN-OTHER', 'Application Information Status': 'Pending', 'Application Correction Fields JSON': '' };
+
+test('credential selector chooses current row among two different-token historical responses', () => {
+  const s = multiRowCorrectionFixture([historicalCorrectionRow, {}]);
+  assert.equal(s.ctx.findApplicantApplicationRecordByCredentials_(' APP-0005 ', ' TOKEN-CURRENT ').record.rowNumber, 3);
+  assert.equal(s.load().fields.length, 3);
+});
+test('wrong, missing and mismatched credentials never select or update another duplicate', () => {
+  const s = multiRowCorrectionFixture([historicalCorrectionRow, {}, unrelatedTokenRow]);
+  const before = s.snapshot();
+  for (const [id, token] of [['APP-0005', 'WRONG-TOKEN'], ['WRONG-ID', 'TOKEN-CURRENT'], ['', 'TOKEN-CURRENT'], ['APP-0005', '']]) {
+    assert.throws(() => s.ctx.getApplicantApplicationCorrections(id, token), /invalid|incomplete/);
+    assert.equal(s.ctx.getApplicantPortalDataUncached_(id, token).ok, false);
+    assert.throws(() => s.ctx.submitApplicantApplicationCorrections({ applicationId: id, secureToken: token, revision: s.load().revision, values: {} }), /invalid|incomplete/);
+  }
+  assert.deepEqual(s.snapshot(), before); assert.deepEqual(s.writes, []);
+});
+test('summary, load and three-target submission use the same credential-selected row despite a newer different token', () => {
+  const s = multiRowCorrectionFixture([historicalCorrectionRow, {}, unrelatedTokenRow]);
+  s.ctx.findAdminApplicationRecord_ = () => { throw Error('Applicant flow must not use Admin ID-only lookup'); };
+  const original = s.ctx.findApplicantApplicationRecordByCredentials_;
+  const selected = [];
+  s.ctx.findApplicantApplicationRecordByCredentials_ = (...args) => { const result = original(...args); selected.push(result.record.rowNumber); return result; };
+  const before = s.snapshot();
+  const portal = s.portal(), editor = s.load();
+  assert.deepEqual(Array.from(portal.applicationCorrectionFields, item => item.targetCode), ['company_rc_number', 'crffn_membership_number', 'company_tin']);
+  assert.deepEqual(Array.from(editor.fields, field => field.key), Array.from(portal.applicationCorrectionFields, item => item.targetCode));
+  assert.ok(editor.fields.every(field => field.value === 'Old value'));
+  assert.equal(editor.fields[1].label, 'CRFFN Corporate Membership Number');
+  assert.equal(s.submit(editor.revision).ok, true);
+  assert.deepEqual(selected, [3, 3, 3]);
+  assert.deepEqual(s.writes, [3]);
+  assert.equal(s.snapshot().length, before.length);
+  assert.deepEqual(s.snapshot()[0], before[0]); assert.deepEqual(s.snapshot()[2], before[2]);
+  assert.equal(s.snapshot()[1]['Application Information Status'], 'Pending');
+});
+test('same ID and same token duplicates explicitly choose the last physical row, never older correction JSON', () => {
+  const s = multiRowCorrectionFixture([{}, {}]);
+  assert.equal(s.ctx.findApplicantApplicationRecordByCredentials_('APP-0005', 'TOKEN-CURRENT').record.rowNumber, 3);
+  const before = s.snapshot(); s.submit();
+  assert.deepEqual(s.snapshot()[0], before[0]); assert.deepEqual(s.writes, [3]);
+  const t = multiRowCorrectionFixture([{}, { 'Application Correction Fields JSON': '', 'Application Information Review Notes': '' }]);
+  assert.match(t.portal().applicationCorrectionError, /administrator review/);
+  assert.throws(() => t.load(), /administrator review/); assert.deepEqual(t.writes, []);
+});
+test('changed email matching another application never affects credential selection', () => {
+  const s = multiRowCorrectionFixture([historicalCorrectionRow, {}, { 'Application ID': 'APP-OTHER', 'Secure Token': 'OTHER-TOKEN', 'Email Address': 'shared@example.test' }]);
+  const revision = s.load().revision;
+  s.set(2, 'Email Address', 'shared@example.test');
+  assert.equal(s.load().revision, revision);
+  const before = s.snapshot(); s.submit(revision);
+  assert.deepEqual(s.snapshot()[2], before[2]); assert.deepEqual(s.writes, [3]);
+  assert.equal(s.snapshot()[1]['Email Address'], 'shared@example.test');
+});
+test('multi-row correction preserves document IDs/URLs, payment, licence, identity, audit and unrelated fields', () => {
+  const s = multiRowCorrectionFixture([historicalCorrectionRow, {}, unrelatedTokenRow]);
+  s.set(2, 'Company Name', '=UPPER("existing formula")');
+  const before = s.snapshot(); s.submit(); const after = s.snapshot();
+  const allowed = new Set(['Company RC Number', 'CRFFN Corporate Membership Number', 'Company TIN', 'Application Correction Fields JSON', 'Application Information Status', 'Record Status']);
+  for (const header of Object.keys(before[1])) if (!allowed.has(header)) assert.deepEqual(after[1][header], before[1][header], header);
+  assert.deepEqual(Object.keys(after[1]), Object.keys(before[1]));
+  assert.deepEqual(after[0], before[0]); assert.deepEqual(after[2], before[2]);
+});
+test('stale revision rejects correction state edits and a newly authoritative same-token row', () => {
+  for (const change of ['state', 'row']) {
+    const s = multiRowCorrectionFixture([historicalCorrectionRow, {}]);
+    const revision = s.load().revision;
+    if (change === 'state') s.set(2, 'Application Information Review Notes', 'Changed correction state');
+    else s.append({});
+    const before = s.snapshot();
+    assert.throws(() => s.submit(revision), /changed/);
+    assert.deepEqual(s.snapshot(), before); assert.deepEqual(s.writes, []);
+  }
+});
+test('new different-token duplicate does not redirect an already-loaded correction submission', () => {
+  const s = multiRowCorrectionFixture([historicalCorrectionRow, {}]);
+  const revision = s.load().revision; s.append(unrelatedTokenRow);
+  const before = s.snapshot(); s.submit(revision);
+  assert.deepEqual(s.writes, [3]); assert.deepEqual(s.snapshot()[2], before[2]);
+});
+test('safe legacy correction still loads and submits on credential-selected row', () => {
+  const notes = 'CRFFN Membership Number has another issue: Provide your corporate number.';
+  const s = multiRowCorrectionFixture([historicalCorrectionRow, { 'Application Correction Fields JSON': '', 'Application Information Review Notes': notes }, unrelatedTokenRow]);
+  assert.equal(s.portal().applicationCorrectionFields[0].targetCode, 'crffn_membership_number');
+  const editor = s.load(); assert.equal(editor.fields[0].key, 'crffn_membership_number');
+  const before = s.snapshot();
+  s.ctx.submitApplicantApplicationCorrections({ applicationId: 'APP-0005', secureToken: 'TOKEN-CURRENT', revision: editor.revision, values: { crffn_membership_number: 'RFFC-349547' } });
+  assert.deepEqual(s.writes, [3]); assert.deepEqual(s.snapshot()[0], before[0]); assert.deepEqual(s.snapshot()[2], before[2]);
+  assert.equal(s.snapshot()[1]['Application Information Review Notes'], notes);
+});
+test('unsafe legacy correction on selected duplicate returns review error without writes or older-row fallback', () => {
+  const s = multiRowCorrectionFixture([{}, { 'Application Correction Fields JSON': '', 'Application Information Review Notes': 'Fix something.' }, unrelatedTokenRow]);
+  const before = s.snapshot();
+  assert.match(s.portal().applicationCorrectionError, /administrator review/);
+  assert.throws(() => s.load(), /administrator review/);
+  assert.throws(() => s.ctx.submitApplicantApplicationCorrections({ applicationId: 'APP-0005', secureToken: 'TOKEN-CURRENT', revision: 'stale', values: {} }), /administrator review/);
+  assert.deepEqual(s.snapshot(), before); assert.deepEqual(s.writes, []);
+});
+test('supporting-document replacement updates only the existing credential-matching row and its Drive references', () => {
+  const s = multiRowCorrectionFixture([historicalCorrectionRow, { 'CAC Document Review Status': 'Correction Required' }, unrelatedTokenRow]);
+  const before = s.snapshot(), trashed = [];
+  s.ctx.Utilities.base64Decode = value => Array.from(Buffer.from(value, 'base64'));
+  s.ctx.Utilities.newBlob = (bytes, mime, name) => ({ bytes, mime, name });
+  s.ctx.getOrCreateApplicantSupportingDocumentFolder_ = id => {
+    assert.equal(id, 'APP-0005');
+    return { createFile: () => ({ getId: () => 'new-cac-id', getUrl: () => 'https://example.test/new-cac', setTrashed: () => assert.fail('new file must be retained') }) };
+  };
+  s.ctx.DriveApp = { getFileById: id => ({ isTrashed: () => false, setTrashed: value => {
+    assert.equal(value, true); assert.deepEqual(s.writes, [3], 'cleanup follows row commit'); trashed.push(id);
+  } }) };
+  const result = s.ctx.uploadApplicantSupportingDocumentUncached_({ applicationId: 'APP-0005', secureToken: 'TOKEN-CURRENT', documentType: 'cac', fileName: 'replacement.pdf', mimeType: 'application/pdf', base64Data: Buffer.from('synthetic PDF').toString('base64') });
+  assert.equal(result.ok, true); assert.deepEqual(s.writes, [3]); assert.deepEqual(trashed, ['cac-original']);
+  const after = s.snapshot(); assert.equal(after.length, before.length);
+  assert.deepEqual(after[0], before[0]); assert.deepEqual(after[2], before[2]);
+  assert.equal(after[1]['CAC Document File ID'], 'new-cac-id');
+  assert.equal(after[1]['CAC Document URL'], 'https://example.test/new-cac');
+  for (const header of ['Application ID', 'Secure Token', 'Passport Photograph File ID', 'Passport Photograph URL', 'Payment Reference', 'Licence Number', 'Application Correction Fields JSON']) assert.equal(after[1][header], before[1][header], header);
+});

@@ -168,23 +168,56 @@ function getPendingApplicationCorrectionItems_(record) {
   return items;
 }
 
-// Reuse the latest-row lookup, checking the token on that row (never email).
-function requireApplicantCorrectionRecord_(applicationId, secureToken) {
+/**
+ * Applicant identity is the pair (Application ID, Secure Token), never email.
+ * The last physical response row matching BOTH is authoritative, including when
+ * historical resubmissions reused both credentials. Never search older rows for
+ * a preferred status or correction JSON. Callers retain their existing locks.
+ */
+function findApplicantApplicationRecordByCredentials_(applicationId, secureToken) {
   const id = String(applicationId || '').trim();
   const token = String(secureToken || '').trim();
-  if (!id || !token) { throw new Error('The secure application link is incomplete.'); }
+  const fail = function(code, message) {
+    const error = new Error(message);
+    error.errorCode = code;
+    throw error;
+  };
+  if (!id || !token) { return fail('MISSING_CREDENTIALS', 'The secure application link is incomplete.'); }
   const sheet = getResponseSheet_(SpreadsheetApp.getActiveSpreadsheet());
-  const record = findAdminApplicationRecord_(sheet, id);
-  if (String(getAdminRecordValue_(record, 'Secure Token') || '').trim() !== token) {
-    throw new Error('The secure application link is invalid or no longer active.');
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) { return fail('APPLICATION_NOT_FOUND', 'No applications were found.'); }
+  const lastColumn = sheet.getLastColumn();
+  const headers = sheet.getRange(1, 1, 1, lastColumn).getDisplayValues()[0].map(function(header) { return String(header || '').trim(); });
+  const headerMap = getHeaderMap_(headers);
+  ['Application ID', 'Secure Token'].forEach(function(header) {
+    if (!headerMap[header]) { throw new Error('Required column is missing: ' + header); }
+  });
+  const rows = sheet.getRange(2, 1, lastRow - 1, lastColumn).getDisplayValues();
+  for (let index = rows.length - 1; index >= 0; index--) {
+    if (String(rows[index][headerMap['Application ID'] - 1] || '').trim() !== id ||
+        String(rows[index][headerMap['Secure Token'] - 1] || '').trim() !== token) { continue; }
+    const rowNumber = index + 2;
+    const range = sheet.getRange(rowNumber, 1, 1, lastColumn);
+    const rowValues = range.getValues()[0];
+    range.getFormulas()[0].forEach(function(formula, column) {
+      if (formula) { rowValues[column] = formula; }
+    });
+    return { sheet: sheet, displayRowValues: rows[index],
+      record: { rowNumber: rowNumber, headers: headers, headerMap: headerMap, rowValues: rowValues } };
   }
+  return fail('INVALID_ACCESS', 'The secure application link is invalid or no longer active.');
+}
+
+function requireApplicantCorrectionRecord_(applicationId, secureToken) {
+  const context = findApplicantApplicationRecordByCredentials_(applicationId, secureToken);
+  const record = context.record;
   if (String(getAdminRecordValue_(record, 'Application Information Status') || '').trim().toLowerCase() !== 'correction required') {
     throw new Error('There is no active application information correction request.');
   }
   if (['generated', 'printed', 'stamped', 'uploaded', 'released'].indexOf(String(getAdminRecordValue_(record, 'Licence Status') || '').trim().toLowerCase()) !== -1) {
     throw new Error('Application information cannot be changed after licence processing has started.');
   }
-  return { sheet: sheet, record: record };
+  return context;
 }
 
 // Presentation only: never replace the administrator's stored audit/history text.

@@ -857,108 +857,22 @@ function getApplicantPortalDataUncached_(
   applicationId,
   secureToken
 ) {
-  if (!applicationId || !secureToken) {
-    return {
-      ok: false,
-      errorCode: 'MISSING_CREDENTIALS',
-      message:
-        'This applicant portal link is incomplete. Please use the complete link sent to you.',
+  let context;
+  try {
+    context = findApplicantApplicationRecordByCredentials_(applicationId, secureToken);
+  } catch (error) {
+    const messages = {
+      MISSING_CREDENTIALS: 'This applicant portal link is incomplete. Please use the complete link sent to you.',
+      APPLICATION_NOT_FOUND: 'We could not find an application matching this link.',
+      INVALID_ACCESS: 'This portal link is invalid or no longer matches an application.',
     };
+    if (!Object.prototype.hasOwnProperty.call(messages, error.errorCode)) { throw error; }
+    return { ok: false, errorCode: error.errorCode, message: messages[error.errorCode] };
   }
-
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const sheet = getResponseSheet_(ss);
-
-  const lastRow = sheet.getLastRow();
-  const lastColumn = sheet.getLastColumn();
-
-  if (lastRow < 2) {
-    return {
-      ok: false,
-      errorCode: 'APPLICATION_NOT_FOUND',
-      message:
-        'We could not find an application matching this link.',
-    };
-  }
-
-  const headers = sheet
-    .getRange(1, 1, 1, lastColumn)
-    .getDisplayValues()[0]
-    .map(header => String(header).trim());
-
-  const headerMap = getHeaderMap_(headers);
-
-  const requiredColumns = [
-    'Application ID',
-    'Secure Token',
-  ];
-
-  requiredColumns.forEach(columnName => {
-    if (!headerMap[columnName]) {
-      throw new Error(
-        'Required column is missing: ' + columnName
-      );
-    }
-  });
-
-  const values = sheet
-    .getRange(2, 1, lastRow - 1, lastColumn)
-    .getDisplayValues();
-
-  const applicationIdIndex =
-    headerMap['Application ID'] - 1;
-
-  const secureTokenIndex =
-    headerMap['Secure Token'] - 1;
-
-  let matchingRow =
-    null;
-
-  /*
-   * Corrections/resubmissions keep the same Application ID
-   * and Secure Token, so always use the newest matching row.
-   */
-  for (
-    let index =
-      values.length - 1;
-    index >= 0;
-    index--
-  ) {
-    const storedApplicationId =
-      String(
-        values[index][
-          applicationIdIndex
-        ] || ''
-      ).trim();
-
-    const storedToken =
-      String(
-        values[index][
-          secureTokenIndex
-        ] || ''
-      ).trim();
-
-    if (
-      storedApplicationId ===
-        applicationId &&
-      storedToken ===
-        secureToken
-    ) {
-      matchingRow =
-        values[index];
-
-      break;
-    }
-  }
-
-  if (!matchingRow) {
-    return {
-      ok: false,
-      errorCode: 'INVALID_ACCESS',
-      message:
-        'This portal link is invalid or no longer matches an application.',
-    };
-  }
+  const headers = context.record.headers;
+  const headerMap = context.record.headerMap;
+  // Keep summary formatting separate from the raw/formula-preserving write record.
+  const matchingRow = context.displayRowValues;
 
   const rowObject = rowToObject_(
     headers,

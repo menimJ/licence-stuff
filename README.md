@@ -920,3 +920,24 @@ This is the correct stage to test:
 - licence download URLs
 
 before opening the system to real applicants.
+
+### Applicant Portal correction record selection
+
+The portal summary, application-information correction editor, and correction
+submission share `findApplicantApplicationRecordByCredentials_`. The authoritative
+record is the **last physical response Sheet row matching both Application ID and
+Secure Token**. Email, correction status, and the presence of correction JSON do
+not determine which row is selected.
+
+Historical Form resubmissions remain separate rows. When both credentials are
+reused, the latest matching row wins; an older row is never selected merely because
+it contains a correction request. Different-token rows are ignored. Correction
+submission reselects under the existing locks and checks the existing revision,
+which includes the Sheet row number, before updating that row in place. It does
+not submit a Google Form or append a response row. A newly authoritative row
+invalidates a previously loaded revision.
+
+Payment, supporting-document and released-licence lookups already follow the same
+latest-matching-credentials rule. Their storage workflows and the ID-only Admin
+lookup remain unchanged. This rule does not migrate correction JSON or alter
+historical rows.
